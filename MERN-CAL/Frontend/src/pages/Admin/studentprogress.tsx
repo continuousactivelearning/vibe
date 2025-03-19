@@ -6,11 +6,11 @@ import { BarChart, Bar, Tooltip, CartesianGrid } from 'recharts';
 
 const Dashboard = () => {
   const gradeData = [
-    { name: 'Grade 1', value: 22.67 },
-    { name: 'Grade 2', value: 20.33 },
-    { name: 'Grade 3', value: 21.33 },
-    { name: 'Grade 4', value: 14.67 },
-    { name: 'Grade 5', value: 21.00 },
+    { name: 'Module 1', value: 40 },
+    { name: 'Module 2', value: 20 },
+    { name: 'Module 3', value: 10 },
+    { name: 'Module 4', value: 70 },
+    { name: 'Module 5', value: 4 },
   ];
 
   const courseData = [
@@ -59,7 +59,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Students by Grade Section */}
         <div className="bg-white p-2 rounded-lg shadow-md">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Students by Grade</h3>
+          <h3 className="text-sm font-semibold text-gray-800 mb-3">Module Completed</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie data={gradeData} dataKey="value" nameKey="name" innerRadius="50%" outerRadius="70%" fill="#8884d8">
@@ -116,7 +116,7 @@ const Dashboard = () => {
 
         {/* Top 5 Students Section - Larger Height */}
         <div className="bg-white p-4 rounded-lg shadow-md">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Top 5 Students</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-3">Top 5 Students</h3> {/* Increased font size here */}
           <table className="w-full table-auto border-collapse">
             <thead>
               <tr className="bg-gray-100">
@@ -140,5 +140,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-
 
