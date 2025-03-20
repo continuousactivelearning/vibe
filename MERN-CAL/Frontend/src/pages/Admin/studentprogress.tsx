@@ -1,10 +1,24 @@
-import * as React from 'react'; 
+import * as React from 'react';
 import { PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { BarChart, Bar, Tooltip, CartesianGrid } from 'recharts';
+import { Button } from '@/components/ui/button';
+import { FaRegClock } from 'react-icons/fa'; // Font Awesome clock icon
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchWeeklyProgress } from '@/store/slices/FetchWeeklyProgress'; // Adjust path as needed
 
 const Dashboard = () => {
+  const dispatch = useDispatch();
+
+  // Accessing the weekly progress data from Redux
+  const { weeklyProgress, loading, error } = useSelector((state: any) => state.weeklyProgress);
+
+  // Dispatch action to fetch weekly progress
+  React.useEffect(() => {
+    dispatch(FetchWeeklyProgress());
+  }, [dispatch]);
+
   const courseData = [
     { name: 'Course 1', value: 80 },
     { name: 'Course 2', value: 65 },
@@ -14,18 +28,19 @@ const Dashboard = () => {
   ];
 
   const subjectScores = {
-    rank: 1, 
-    scores: 14, 
-    answeredFirstAttempt: 8, 
+    rank: 1,
+    scores: 14,
+    answeredFirstAttempt: 8,
     answeredMultipleAttempts: 5,
-    topicProficiency: 0, 
-    tutorialsViewed: 1, 
-    timeSpent: 4, 
+    topicProficiency: 0,
+    tutorialsViewed: 1,
+    timeSpent: 4,
     viewedHints: 6,
   };
 
   const progressBarStyle = buildStyles({
-    pathColor: '#FF6F61', trailColor: '#E2E8F0',
+    pathColor: '#FF6F61',
+    trailColor: '#E2E8F0',
   });
 
   const topStudents = [
@@ -41,8 +56,85 @@ const Dashboard = () => {
     { name: 'Quiz Master', description: 'Awarded for consistent quiz performance' },
   ];
 
+  const [elapsedTime, setElapsedTime] = React.useState<string>('00:00:00');
+  const [loginTime, setLoginTime] = React.useState<number | null>(null);
+  const [intervalId, setIntervalId] = React.useState<NodeJS.Timeout | null>(null);
+
+  const startClock = () => {
+    let storedLoginTime = localStorage.getItem('loginTime');
+    if (storedLoginTime) {
+      setLoginTime(Number(storedLoginTime));
+    } else {
+      const currentLoginTime = Date.now();
+      setLoginTime(currentLoginTime);
+      localStorage.setItem('loginTime', currentLoginTime.toString());
+    }
+
+    const id = setInterval(() => {
+      if (loginTime) {
+        const now = Date.now();
+        const diff = Math.floor((now - loginTime) / 1000);
+        const hours = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const seconds = String(diff % 60).padStart(2, '0');
+        setElapsedTime(`${hours}:${minutes}:${seconds}`);
+      }
+    }, 1000);
+
+    setIntervalId(id);
+  };
+
+  const stopClock = () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+    setIntervalId(null);
+  };
+
+  React.useEffect(() => {
+    startClock();
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [loginTime]);
+
   return (
     <div className="p-3 bg-gray-100 h-full flex flex-col">
+      <div className="flex justify-between items-center mb-4">
+        {/* Clock with Icon */}
+        <div className="flex items-center space-x-2">
+          <FaRegClock className="text-gray-700" />
+          <span className="text-xs font-semibold text-gray-900">Logged In Time:</span>
+          <span className="text-xs font-medium text-gray-600">{elapsedTime}</span>
+        </div>
+
+        {/* Log Out Button */}
+        <div className="flex items-center">
+          <Button onClick={stopClock} className="text-xs px-3 py-1">Log Out</Button>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {loading && <p>Loading Weekly Progress...</p>}
+      {error && <p>Error: {error}</p>}
+
+      {/* Display Weekly Progress Data */}
+      {weeklyProgress && (
+        <div className="weekly-progress">
+          <h2 className="text-xl font-semibold">Weekly Progress</h2>
+          <div className="grid grid-cols-1 md:grid-cols-7 gap-2">
+            {weeklyProgress.map((dayData, index) => (
+              <div key={index} className="day-progress">
+                <h4 className="text-sm">{`Day ${dayData.day}`}</h4>
+                <p>{`Progress: ${dayData.progress}`}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-md font-semibold text-gray-900">Student Performance Dashboard</h1>
         <div className="flex items-center space-x-2">
@@ -63,7 +155,7 @@ const Dashboard = () => {
         {/* Courses Progress Section */}
         <div className="bg-white p-2 rounded-lg shadow-md">
           <h3 className="text-xs font-semibold text-gray-800 mb-2">Courses Progress</h3>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer width="100%" height={200}>
             <BarChart data={courseData}>
               <CartesianGrid strokeDasharray="3 3" />
               <Tooltip />
@@ -93,7 +185,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
         {/* Badges Earned Section */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
+        <div className="bg-white p-3 rounded-lg shadow-md">
           <h3 className="text-xs font-semibold text-gray-800 mb-3">Badges Earned</h3>
           <ul className="list-disc pl-4 text-xs">
             {badges.map((badge, idx) => (
@@ -105,7 +197,7 @@ const Dashboard = () => {
         </div>
 
         {/* Top 5 Students Section */}
-        <div className="bg-white p-4 rounded-lg shadow-md">
+        <div className="bg-white p-3 rounded-lg shadow-md">
           <h3 className="text-xs font-semibold text-gray-800 mb-3">Top 5 Students</h3>
           <table className="w-full table-auto border-collapse">
             <thead>
@@ -126,10 +218,6 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
-  );
-};
-
-export default Dashboard;
-
+ 
 
 
