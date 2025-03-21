@@ -1,20 +1,19 @@
 import express from 'express';
-import {https} from 'firebase-functions';
-import { PrismaClient } from '@prisma/client';
+import { https } from 'firebase-functions';
+import { PrismaClient } from '@prisma/client';  // Import Prisma Client
 import AssessmentGrading from './routes/AssessmentGrading';
 import ProgressTracking from './routes/ProgressTracking';
 import FetchProgress from './routes/FetchProgress';
 import GoogleAuthhVerification from './routes/GoogleAuthhVerification';
 import BulkProcess from './routes/BulkProgress';
+import Streak from './routes/Streak';
 import cors from 'cors';
 import admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-// Read and parse the CORS environment variable
-const allowedOrigins = process.env.AE_CORS_ALLOWED_ORIGINS
-  ? process.env.AE_CORS_ALLOWED_ORIGINS.split(",").map(origin => origin.trim())
-  : [];
+
+const allowedOrigins = '*';
 console.log("Allowed CORS Origins:", allowedOrigins); // Debugging
 const app = express();
 
@@ -31,19 +30,38 @@ app.use(cors({
     credentials: true
 }));
 
-// Then, use JSON parser
+// JSON parser middleware
 app.use(express.json());
+
+// Root endpoint
 app.get('/', (req, res) => {
-    res.status(200).send('CALM Activity Engine');
-    });
-// After setting up CORS, add your routes
+  res.status(200).send('CALM Activity Engine');
+});
+
+// New endpoint to fetch weekly progress data
+app.get('/api/weekly-progress', async (req, res) => {
+  try {
+    const weeklyProgress = await prisma.weeklyProgress.findMany(); // Replace with your actual Prisma query
+    res.json(weeklyProgress);  // Return the weekly progress data as JSON
+  } catch (error) {
+    console.error('Error fetching weekly progress:', error);
+    res.status(500).json({ error: 'Error fetching weekly progress' });
+  }
+});
+
+// Add existing routes for other functionality
 app.use(AssessmentGrading);
 app.use(ProgressTracking);
 app.use(GoogleAuthhVerification);
 app.use(BulkProcess);
 app.use(FetchProgress);
+app.use(Streak);
 
+// Firebase function export
 exports.activityEngine = https.onRequest(app);
-// app.listen(PORT, () => {
-//      console.log(`Server is running on http://localhost:${PORT}`);
-// });
+
+// Start server for local development
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
