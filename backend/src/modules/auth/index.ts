@@ -21,8 +21,8 @@ import { useContainer } from "routing-controllers";
 import { IAuthService } from "./interfaces/IAuthService";
 import { FirebaseAuthService } from "./services/FirebaseAuthService";
 
-import { appConfig } from "@config/app";
-import { dbConfig } from "@config/db";
+import { appConfig } from "config/app";
+import { dbConfig } from "config/db";
 import { IDatabase, IUserRepository } from "shared/database";
 import { MongoDatabase, UserRepository } from "shared/database/providers/MongoDatabaseProvider";
 
