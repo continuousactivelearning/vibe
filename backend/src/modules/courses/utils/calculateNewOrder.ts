@@ -3,7 +3,9 @@ import {LexoRank} from 'lexorank';
 /**
  * Calculates the order for a new entity (Module, Section, or Item)
  */
-export function calculateNewOrder<T extends Record<string, string>>(
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function calculateNewOrder<T extends Record<string, any>>(
   sortedEntities: T[],
   idField: keyof T,
   afterId?: string,
