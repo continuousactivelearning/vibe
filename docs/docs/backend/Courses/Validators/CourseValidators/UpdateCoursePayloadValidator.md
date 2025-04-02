@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseValidators.ts:48](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L48)
+Defined in: [classes/validators/CourseValidators.ts:48](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L48)
 
 Validation for course payloads.
 
@@ -22,7 +22,7 @@ Validation for course payloads.
 
 > **description**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:59](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L59)
+Defined in: [classes/validators/CourseValidators.ts:59](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L59)
 
 #### Implementation of
 
@@ -34,7 +34,7 @@ Defined in: [classes/validators/CourseValidators.ts:59](https://github.com/conti
 
 > **name**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:53](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L53)
+Defined in: [classes/validators/CourseValidators.ts:53](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L53)
 
 #### Implementation of
 
@@ -46,4 +46,4 @@ Defined in: [classes/validators/CourseValidators.ts:53](https://github.com/conti
 
 > **nameOrDescription**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:65](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L65)
+Defined in: [classes/validators/CourseValidators.ts:65](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L65)

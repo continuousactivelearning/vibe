@@ -1,4 +1,4 @@
-Defined in: [classes/transformers/Section.ts:18](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L18)
+Defined in: [classes/transformers/Section.ts:18](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L18)
 
 Section data transformation.
 
@@ -12,7 +12,7 @@ Section data transformation.
 
 > **new Section**(`sectionPayload`, `existingSections`): `Section`
 
-Defined in: [classes/transformers/Section.ts:44](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L44)
+Defined in: [classes/transformers/Section.ts:44](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L44)
 
 #### Parameters
 
@@ -34,7 +34,7 @@ Defined in: [classes/transformers/Section.ts:44](https://github.com/continuousac
 
 > **createdAt**: `Date`
 
-Defined in: [classes/transformers/Section.ts:38](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L38)
+Defined in: [classes/transformers/Section.ts:38](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L38)
 
 #### Implementation of
 
@@ -46,7 +46,7 @@ Defined in: [classes/transformers/Section.ts:38](https://github.com/continuousac
 
 > **description**: `string`
 
-Defined in: [classes/transformers/Section.ts:28](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L28)
+Defined in: [classes/transformers/Section.ts:28](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L28)
 
 #### Implementation of
 
@@ -58,7 +58,7 @@ Defined in: [classes/transformers/Section.ts:28](https://github.com/continuousac
 
 > **itemsGroupId**: `ID`
 
-Defined in: [classes/transformers/Section.ts:34](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L34)
+Defined in: [classes/transformers/Section.ts:34](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L34)
 
 #### Implementation of
 
@@ -70,7 +70,7 @@ Defined in: [classes/transformers/Section.ts:34](https://github.com/continuousac
 
 > **name**: `string`
 
-Defined in: [classes/transformers/Section.ts:25](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L25)
+Defined in: [classes/transformers/Section.ts:25](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L25)
 
 #### Implementation of
 
@@ -82,7 +82,7 @@ Defined in: [classes/transformers/Section.ts:25](https://github.com/continuousac
 
 > **order**: `string`
 
-Defined in: [classes/transformers/Section.ts:31](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L31)
+Defined in: [classes/transformers/Section.ts:31](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L31)
 
 #### Implementation of
 
@@ -94,7 +94,7 @@ Defined in: [classes/transformers/Section.ts:31](https://github.com/continuousac
 
 > `optional` **sectionId**: `ID`
 
-Defined in: [classes/transformers/Section.ts:22](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L22)
+Defined in: [classes/transformers/Section.ts:22](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L22)
 
 #### Implementation of
 
@@ -106,7 +106,7 @@ Defined in: [classes/transformers/Section.ts:22](https://github.com/continuousac
 
 > **updatedAt**: `Date`
 
-Defined in: [classes/transformers/Section.ts:42](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/transformers/Section.ts#L42)
+Defined in: [classes/transformers/Section.ts:42](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/transformers/Section.ts#L42)
 
 #### Implementation of
 

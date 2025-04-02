@@ -1,4 +1,4 @@
-Defined in: [controllers/ItemController.ts:31](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L31)
+Defined in: [controllers/ItemController.ts:31](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L31)
 
 ## Constructors
 
@@ -6,7 +6,7 @@ Defined in: [controllers/ItemController.ts:31](https://github.com/continuousacti
 
 > **new ItemController**(`courseRepo`): `ItemController`
 
-Defined in: [controllers/ItemController.ts:32](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L32)
+Defined in: [controllers/ItemController.ts:32](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L32)
 
 #### Parameters
 
@@ -24,7 +24,7 @@ Defined in: [controllers/ItemController.ts:32](https://github.com/continuousacti
 
 > **create**(`sectionId`, `moduleId`, `versionId`, `item`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:42](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L42)
+Defined in: [controllers/ItemController.ts:42](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L42)
 
 #### Parameters
 
@@ -54,7 +54,7 @@ Defined in: [controllers/ItemController.ts:42](https://github.com/continuousacti
 
 > **move**(`sectionId`, `moduleId`, `versionId`, `itemId`, `body`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:217](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L217)
+Defined in: [controllers/ItemController.ts:217](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L217)
 
 #### Parameters
 
@@ -88,7 +88,7 @@ Defined in: [controllers/ItemController.ts:217](https://github.com/continuousact
 
 > **readAll**(`sectionId`, `moduleId`, `versionId`): `Promise`\<\{ `itemsGroup`: [`ItemsGroup`](../Transformers/ItemsGroup.md); \}\>
 
-Defined in: [controllers/ItemController.ts:102](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L102)
+Defined in: [controllers/ItemController.ts:102](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L102)
 
 #### Parameters
 
@@ -114,7 +114,7 @@ Defined in: [controllers/ItemController.ts:102](https://github.com/continuousact
 
 > **update**(`sectionId`, `moduleId`, `versionId`, `itemId`, `payload`): `Promise`\<\{ `itemsGroup`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/ItemController.ts:136](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/ItemController.ts#L136)
+Defined in: [controllers/ItemController.ts:136](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/ItemController.ts#L136)
 
 #### Parameters
 

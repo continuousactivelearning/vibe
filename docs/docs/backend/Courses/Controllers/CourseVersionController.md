@@ -1,4 +1,4 @@
-Defined in: [controllers/CourseVersionController.ts:25](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseVersionController.ts#L25)
+Defined in: [controllers/CourseVersionController.ts:25](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/CourseVersionController.ts#L25)
 
 ## Constructors
 
@@ -6,7 +6,7 @@ Defined in: [controllers/CourseVersionController.ts:25](https://github.com/conti
 
 > **new CourseVersionController**(`courseRepo`): `CourseVersionController`
 
-Defined in: [controllers/CourseVersionController.ts:26](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseVersionController.ts#L26)
+Defined in: [controllers/CourseVersionController.ts:26](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/CourseVersionController.ts#L26)
 
 #### Parameters
 
@@ -24,7 +24,7 @@ Defined in: [controllers/CourseVersionController.ts:26](https://github.com/conti
 
 > **create**(`id`, `payload`): `Promise`\<\{ `course`: `Record`\<`string`, `any`\>; `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/CourseVersionController.ts:31](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseVersionController.ts#L31)
+Defined in: [controllers/CourseVersionController.ts:31](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/CourseVersionController.ts#L31)
 
 #### Parameters
 
@@ -46,7 +46,7 @@ Defined in: [controllers/CourseVersionController.ts:31](https://github.com/conti
 
 > **read**(`id`): `Promise`\<`Record`\<`string`, `any`\>\>
 
-Defined in: [controllers/CourseVersionController.ts:73](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseVersionController.ts#L73)
+Defined in: [controllers/CourseVersionController.ts:73](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/CourseVersionController.ts#L73)
 
 #### Parameters
 

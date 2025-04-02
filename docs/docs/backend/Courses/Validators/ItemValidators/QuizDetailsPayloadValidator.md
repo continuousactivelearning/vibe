@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ItemValidators.ts:55](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L55)
+Defined in: [classes/validators/ItemValidators.ts:55](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L55)
 
 ## Implements
 
@@ -20,7 +20,7 @@ Defined in: [classes/validators/ItemValidators.ts:55](https://github.com/continu
 
 > **deadline**: `Date`
 
-Defined in: [classes/validators/ItemValidators.ts:69](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L69)
+Defined in: [classes/validators/ItemValidators.ts:69](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L69)
 
 #### Implementation of
 
@@ -32,7 +32,7 @@ Defined in: [classes/validators/ItemValidators.ts:69](https://github.com/continu
 
 > **questions**: `string`[]
 
-Defined in: [classes/validators/ItemValidators.ts:65](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L65)
+Defined in: [classes/validators/ItemValidators.ts:65](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L65)
 
 #### Implementation of
 
@@ -44,7 +44,7 @@ Defined in: [classes/validators/ItemValidators.ts:65](https://github.com/continu
 
 > **questionVisibility**: `number`
 
-Defined in: [classes/validators/ItemValidators.ts:58](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L58)
+Defined in: [classes/validators/ItemValidators.ts:58](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L58)
 
 #### Implementation of
 
@@ -56,7 +56,7 @@ Defined in: [classes/validators/ItemValidators.ts:58](https://github.com/continu
 
 > **releaseTime**: `Date`
 
-Defined in: [classes/validators/ItemValidators.ts:62](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L62)
+Defined in: [classes/validators/ItemValidators.ts:62](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L62)
 
 #### Implementation of
 

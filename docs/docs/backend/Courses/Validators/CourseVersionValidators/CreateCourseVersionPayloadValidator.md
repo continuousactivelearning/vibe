@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseVersionValidators.ts:11](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L11)
+Defined in: [classes/validators/CourseVersionValidators.ts:10](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L10)
 
 Validation for course version payloads.
 
@@ -22,7 +22,7 @@ Validation for course version payloads.
 
 > **courseId**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:13](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L13)
+Defined in: [classes/validators/CourseVersionValidators.ts:12](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L12)
 
 #### Implementation of
 
@@ -34,7 +34,7 @@ Defined in: [classes/validators/CourseVersionValidators.ts:13](https://github.co
 
 > **createdAt**: `Date`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:27](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L27)
+Defined in: [classes/validators/CourseVersionValidators.ts:26](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L26)
 
 #### Implementation of
 
@@ -46,7 +46,7 @@ Defined in: [classes/validators/CourseVersionValidators.ts:27](https://github.co
 
 > **description**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:21](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L21)
+Defined in: [classes/validators/CourseVersionValidators.ts:20](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L20)
 
 #### Implementation of
 
@@ -58,7 +58,7 @@ Defined in: [classes/validators/CourseVersionValidators.ts:21](https://github.co
 
 > **modules**: `IModule`[]
 
-Defined in: [classes/validators/CourseVersionValidators.ts:24](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L24)
+Defined in: [classes/validators/CourseVersionValidators.ts:23](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L23)
 
 #### Implementation of
 
@@ -70,7 +70,7 @@ Defined in: [classes/validators/CourseVersionValidators.ts:24](https://github.co
 
 > **updatedAt**: `Date`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:30](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L30)
+Defined in: [classes/validators/CourseVersionValidators.ts:29](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L29)
 
 #### Implementation of
 
@@ -82,7 +82,7 @@ Defined in: [classes/validators/CourseVersionValidators.ts:30](https://github.co
 
 > **version**: `string`
 
-Defined in: [classes/validators/CourseVersionValidators.ts:17](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L17)
+Defined in: [classes/validators/CourseVersionValidators.ts:16](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L16)
 
 #### Implementation of
 

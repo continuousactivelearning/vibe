@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ItemValidators.ts:91](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L91)
+Defined in: [classes/validators/ItemValidators.ts:91](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L91)
 
 ## Implements
 
@@ -20,7 +20,7 @@ Defined in: [classes/validators/ItemValidators.ts:91](https://github.com/continu
 
 > `optional` **\_id**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:93](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L93)
+Defined in: [classes/validators/ItemValidators.ts:93](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L93)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [classes/validators/ItemValidators.ts:93](https://github.com/continu
 
 > `optional` **afterItemId**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:115](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L115)
+Defined in: [classes/validators/ItemValidators.ts:115](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L115)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [classes/validators/ItemValidators.ts:115](https://github.com/contin
 
 > `optional` **beforeItemId**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:120](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L120)
+Defined in: [classes/validators/ItemValidators.ts:120](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L120)
 
 ***
 
@@ -44,7 +44,7 @@ Defined in: [classes/validators/ItemValidators.ts:120](https://github.com/contin
 
 > `optional` **blogDetails**: [`BlogDetailsPayloadValidator`](BlogDetailsPayloadValidator.md)
 
-Defined in: [classes/validators/ItemValidators.ts:143](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L143)
+Defined in: [classes/validators/ItemValidators.ts:143](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L143)
 
 ***
 
@@ -52,7 +52,7 @@ Defined in: [classes/validators/ItemValidators.ts:143](https://github.com/contin
 
 > **createdAt**: `Date`
 
-Defined in: [classes/validators/ItemValidators.ts:123](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L123)
+Defined in: [classes/validators/ItemValidators.ts:123](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L123)
 
 ***
 
@@ -60,7 +60,7 @@ Defined in: [classes/validators/ItemValidators.ts:123](https://github.com/contin
 
 > **description**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:101](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L101)
+Defined in: [classes/validators/ItemValidators.ts:101](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L101)
 
 #### Implementation of
 
@@ -72,7 +72,7 @@ Defined in: [classes/validators/ItemValidators.ts:101](https://github.com/contin
 
 > **itemDetails**: `IVideoDetails` \| `IQuizDetails` \| `IBlogDetails`
 
-Defined in: [classes/validators/ItemValidators.ts:110](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L110)
+Defined in: [classes/validators/ItemValidators.ts:110](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L110)
 
 #### Implementation of
 
@@ -84,7 +84,7 @@ Defined in: [classes/validators/ItemValidators.ts:110](https://github.com/contin
 
 > **name**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:97](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L97)
+Defined in: [classes/validators/ItemValidators.ts:97](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L97)
 
 #### Implementation of
 
@@ -96,7 +96,7 @@ Defined in: [classes/validators/ItemValidators.ts:97](https://github.com/continu
 
 > **order**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:107](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L107)
+Defined in: [classes/validators/ItemValidators.ts:107](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L107)
 
 #### Implementation of
 
@@ -108,7 +108,7 @@ Defined in: [classes/validators/ItemValidators.ts:107](https://github.com/contin
 
 > `optional` **quizDetails**: [`QuizDetailsPayloadValidator`](QuizDetailsPayloadValidator.md)
 
-Defined in: [classes/validators/ItemValidators.ts:149](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L149)
+Defined in: [classes/validators/ItemValidators.ts:149](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L149)
 
 ***
 
@@ -116,7 +116,7 @@ Defined in: [classes/validators/ItemValidators.ts:149](https://github.com/contin
 
 > **sectionId**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:104](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L104)
+Defined in: [classes/validators/ItemValidators.ts:104](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L104)
 
 ***
 
@@ -124,7 +124,7 @@ Defined in: [classes/validators/ItemValidators.ts:104](https://github.com/contin
 
 > **type**: `ItemType`
 
-Defined in: [classes/validators/ItemValidators.ts:130](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L130)
+Defined in: [classes/validators/ItemValidators.ts:130](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L130)
 
 #### Implementation of
 
@@ -136,7 +136,7 @@ Defined in: [classes/validators/ItemValidators.ts:130](https://github.com/contin
 
 > **updatedAt**: `Date`
 
-Defined in: [classes/validators/ItemValidators.ts:126](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L126)
+Defined in: [classes/validators/ItemValidators.ts:126](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L126)
 
 ***
 
@@ -144,4 +144,4 @@ Defined in: [classes/validators/ItemValidators.ts:126](https://github.com/contin
 
 > `optional` **videoDetails**: [`VideoDetailsPayloadValidator`](VideoDetailsPayloadValidator.md)
 
-Defined in: [classes/validators/ItemValidators.ts:137](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L137)
+Defined in: [classes/validators/ItemValidators.ts:137](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L137)

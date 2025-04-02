@@ -1,4 +1,4 @@
-Defined in: [classes/validators/CourseValidators.ts:18](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L18)
+Defined in: [classes/validators/CourseValidators.ts:18](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L18)
 
 Validation for course payloads.
 
@@ -22,7 +22,7 @@ Validation for course payloads.
 
 > `optional` **createdAt**: `Date`
 
-Defined in: [classes/validators/CourseValidators.ts:37](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L37)
+Defined in: [classes/validators/CourseValidators.ts:37](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L37)
 
 #### Implementation of
 
@@ -34,7 +34,7 @@ Defined in: [classes/validators/CourseValidators.ts:37](https://github.com/conti
 
 > **description**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:28](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L28)
+Defined in: [classes/validators/CourseValidators.ts:28](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L28)
 
 #### Implementation of
 
@@ -46,7 +46,7 @@ Defined in: [classes/validators/CourseValidators.ts:28](https://github.com/conti
 
 > **instructors**: `string`[]
 
-Defined in: [classes/validators/CourseValidators.ts:31](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L31)
+Defined in: [classes/validators/CourseValidators.ts:31](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L31)
 
 #### Implementation of
 
@@ -58,7 +58,7 @@ Defined in: [classes/validators/CourseValidators.ts:31](https://github.com/conti
 
 > **name**: `string`
 
-Defined in: [classes/validators/CourseValidators.ts:23](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L23)
+Defined in: [classes/validators/CourseValidators.ts:23](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L23)
 
 #### Implementation of
 
@@ -70,7 +70,7 @@ Defined in: [classes/validators/CourseValidators.ts:23](https://github.com/conti
 
 > `optional` **updatedAt**: `Date`
 
-Defined in: [classes/validators/CourseValidators.ts:40](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L40)
+Defined in: [classes/validators/CourseValidators.ts:40](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L40)
 
 #### Implementation of
 
@@ -82,7 +82,7 @@ Defined in: [classes/validators/CourseValidators.ts:40](https://github.com/conti
 
 > **versions**: `string`[]
 
-Defined in: [classes/validators/CourseValidators.ts:34](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/CourseValidators.ts#L34)
+Defined in: [classes/validators/CourseValidators.ts:34](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/CourseValidators.ts#L34)
 
 #### Implementation of
 

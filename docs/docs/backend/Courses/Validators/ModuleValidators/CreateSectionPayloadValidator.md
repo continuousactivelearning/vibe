@@ -1,4 +1,4 @@
-Defined in: [classes/validators/SectionValidators.ts:16](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L16)
+Defined in: [classes/validators/SectionValidators.ts:16](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L16)
 
 ## Implements
 
@@ -20,7 +20,7 @@ Defined in: [classes/validators/SectionValidators.ts:16](https://github.com/cont
 
 > `optional` **afterSectionId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:36](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L36)
+Defined in: [classes/validators/SectionValidators.ts:36](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L36)
 
 ***
 
@@ -28,7 +28,7 @@ Defined in: [classes/validators/SectionValidators.ts:36](https://github.com/cont
 
 > `optional` **beforeSectionId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:41](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L41)
+Defined in: [classes/validators/SectionValidators.ts:41](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L41)
 
 ***
 
@@ -36,7 +36,7 @@ Defined in: [classes/validators/SectionValidators.ts:41](https://github.com/cont
 
 > **createdAt**: `Date`
 
-Defined in: [classes/validators/SectionValidators.ts:47](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L47)
+Defined in: [classes/validators/SectionValidators.ts:47](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L47)
 
 #### Implementation of
 
@@ -48,7 +48,7 @@ Defined in: [classes/validators/SectionValidators.ts:47](https://github.com/cont
 
 > **description**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:28](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L28)
+Defined in: [classes/validators/SectionValidators.ts:28](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L28)
 
 #### Implementation of
 
@@ -60,7 +60,7 @@ Defined in: [classes/validators/SectionValidators.ts:28](https://github.com/cont
 
 > `optional` **itemsGroupId**: `ID`
 
-Defined in: [classes/validators/SectionValidators.ts:44](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L44)
+Defined in: [classes/validators/SectionValidators.ts:44](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L44)
 
 #### Implementation of
 
@@ -72,7 +72,7 @@ Defined in: [classes/validators/SectionValidators.ts:44](https://github.com/cont
 
 > **name**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:23](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L23)
+Defined in: [classes/validators/SectionValidators.ts:23](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L23)
 
 #### Implementation of
 
@@ -84,7 +84,7 @@ Defined in: [classes/validators/SectionValidators.ts:23](https://github.com/cont
 
 > **order**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:31](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L31)
+Defined in: [classes/validators/SectionValidators.ts:31](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L31)
 
 #### Implementation of
 
@@ -96,7 +96,7 @@ Defined in: [classes/validators/SectionValidators.ts:31](https://github.com/cont
 
 > `optional` **sectionId**: `string`
 
-Defined in: [classes/validators/SectionValidators.ts:18](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L18)
+Defined in: [classes/validators/SectionValidators.ts:18](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L18)
 
 #### Implementation of
 
@@ -108,7 +108,7 @@ Defined in: [classes/validators/SectionValidators.ts:18](https://github.com/cont
 
 > **updatedAt**: `Date`
 
-Defined in: [classes/validators/SectionValidators.ts:50](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/SectionValidators.ts#L50)
+Defined in: [classes/validators/SectionValidators.ts:50](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/SectionValidators.ts#L50)
 
 #### Implementation of
 

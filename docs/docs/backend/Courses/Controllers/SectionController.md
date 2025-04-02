@@ -1,4 +1,4 @@
-Defined in: [controllers/SectionController.ts:26](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/SectionController.ts#L26)
+Defined in: [controllers/SectionController.ts:26](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/SectionController.ts#L26)
 
 ## Constructors
 
@@ -6,7 +6,7 @@ Defined in: [controllers/SectionController.ts:26](https://github.com/continuousa
 
 > **new SectionController**(`courseRepo`): `SectionController`
 
-Defined in: [controllers/SectionController.ts:27](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/SectionController.ts#L27)
+Defined in: [controllers/SectionController.ts:27](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/SectionController.ts#L27)
 
 #### Parameters
 
@@ -24,7 +24,7 @@ Defined in: [controllers/SectionController.ts:27](https://github.com/continuousa
 
 > **create**(`versionId`, `moduleId`, `payload`): `Promise`\<\{ `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/SectionController.ts:37](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/SectionController.ts#L37)
+Defined in: [controllers/SectionController.ts:37](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/SectionController.ts#L37)
 
 #### Parameters
 
@@ -50,7 +50,7 @@ Defined in: [controllers/SectionController.ts:37](https://github.com/continuousa
 
 > **move**(`versionId`, `moduleId`, `sectionId`, `body`): `Promise`\<\{ `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/SectionController.ts:136](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/SectionController.ts#L136)
+Defined in: [controllers/SectionController.ts:136](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/SectionController.ts#L136)
 
 #### Parameters
 
@@ -86,7 +86,7 @@ Defined in: [controllers/SectionController.ts:136](https://github.com/continuous
 
 > **update**(`versionId`, `moduleId`, `sectionId`, `payload`): `Promise`\<\{ `version`: `Record`\<`string`, `any`\>; \}\>
 
-Defined in: [controllers/SectionController.ts:86](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/SectionController.ts#L86)
+Defined in: [controllers/SectionController.ts:86](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/controllers/SectionController.ts#L86)
 
 #### Parameters
 

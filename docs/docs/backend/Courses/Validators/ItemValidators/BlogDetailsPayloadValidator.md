@@ -1,4 +1,4 @@
-Defined in: [classes/validators/ItemValidators.ts:75](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L75)
+Defined in: [classes/validators/ItemValidators.ts:75](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L75)
 
 ## Implements
 
@@ -20,7 +20,7 @@ Defined in: [classes/validators/ItemValidators.ts:75](https://github.com/continu
 
 > **content**: `string`
 
-Defined in: [classes/validators/ItemValidators.ts:81](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L81)
+Defined in: [classes/validators/ItemValidators.ts:81](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L81)
 
 #### Implementation of
 
@@ -32,7 +32,7 @@ Defined in: [classes/validators/ItemValidators.ts:81](https://github.com/continu
 
 > **points**: `number`
 
-Defined in: [classes/validators/ItemValidators.ts:85](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L85)
+Defined in: [classes/validators/ItemValidators.ts:85](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L85)
 
 #### Implementation of
 
@@ -44,7 +44,7 @@ Defined in: [classes/validators/ItemValidators.ts:85](https://github.com/continu
 
 > **tags**: `string`[]
 
-Defined in: [classes/validators/ItemValidators.ts:77](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/classes/validators/ItemValidators.ts#L77)
+Defined in: [classes/validators/ItemValidators.ts:77](https://github.com/continuousactivelearning/cal/blob/e8382d8ddbcc1815082ca613a620a97f6d2451f9/backend/src/modules/courses/classes/validators/ItemValidators.ts#L77)
 
 #### Implementation of
 
