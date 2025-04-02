@@ -10,6 +10,9 @@ import {
 import {ISection} from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
 
+/**
+ * @category Courses/Validators/ModuleValidators
+ */
 class CreateSectionPayloadValidator implements ISection {
   @IsEmpty()
   sectionId?: string | undefined;

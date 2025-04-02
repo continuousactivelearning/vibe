@@ -23,6 +23,9 @@ import {
   ItemType,
 } from 'shared/interfaces/IUser';
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class VideoDetailsPayloadValidator implements IVideoDetails {
   @IsNotEmpty()
   @IsString()
@@ -46,6 +49,9 @@ class VideoDetailsPayloadValidator implements IVideoDetails {
   points: number;
 }
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class QuizDetailsPayloadValidator implements IQuizDetails {
   @IsNotEmpty()
   @IsPositive()
@@ -63,6 +69,9 @@ class QuizDetailsPayloadValidator implements IQuizDetails {
   deadline: Date;
 }
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class BlogDetailsPayloadValidator implements IBlogDetails {
   @IsEmpty()
   tags: string[];
@@ -76,6 +85,9 @@ class BlogDetailsPayloadValidator implements IBlogDetails {
   points: number;
 }
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class CreateItemPayloadValidator implements IBaseItem {
   @IsEmpty()
   _id?: string;
@@ -137,6 +149,9 @@ class CreateItemPayloadValidator implements IBaseItem {
   quizDetails?: QuizDetailsPayloadValidator;
 }
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class UpdateItemPayloadValidator implements IBaseItem {
   @IsEmpty()
   _id?: string;
@@ -198,6 +213,9 @@ class UpdateItemPayloadValidator implements IBaseItem {
   quizDetails?: QuizDetailsPayloadValidator;
 }
 
+/**
+ * @category Courses/Validators/ItemValidators
+ */
 class MoveItemPayloadValidator {
   @IsOptional()
   @IsMongoId()

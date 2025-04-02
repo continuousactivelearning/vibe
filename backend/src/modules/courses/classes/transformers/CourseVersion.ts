@@ -8,6 +8,11 @@ import {ICourseVersion} from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
 import {Module} from './Module';
 
+/**
+ * Course version data transformation.
+ *
+ * @category Courses/Transformers
+ */
 class CourseVersion implements ICourseVersion {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})

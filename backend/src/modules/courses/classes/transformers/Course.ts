@@ -11,7 +11,7 @@ import {ID} from 'shared/types';
 
 /**
  * Course data transformation.
- * 
+ *
  * @category Courses/Transformers
  */
 class Course implements ICourse {

@@ -15,6 +15,11 @@ import {
 } from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
 import {CreateItemPayloadValidator} from '../validators/ItemValidators';
+/**
+ * Item data transformation.
+ *
+ * @category Courses/Transformers/Item
+ */
 class Item implements IBaseItem {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})
@@ -67,6 +72,11 @@ class Item implements IBaseItem {
   }
 }
 
+/**
+ * Items Group data transformation.
+ *
+ * @category Courses/Transformers
+ */
 class ItemsGroup {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})

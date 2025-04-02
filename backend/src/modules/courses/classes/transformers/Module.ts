@@ -11,6 +11,11 @@ import {ID} from 'shared/types';
 import {CreateModulePayloadValidator} from '../validators/ModuleValidators';
 import {Section} from './Section';
 
+/**
+ * Module data transformation.
+ *
+ * @category Courses/Transformers
+ */
 class Module implements IModule {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})

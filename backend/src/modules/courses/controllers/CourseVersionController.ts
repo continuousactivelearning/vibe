@@ -16,6 +16,10 @@ import {Inject, Service} from 'typedi';
 import {CourseVersion} from '../classes/transformers/CourseVersion';
 import {CreateCourseVersionPayloadValidator} from '../classes/validators/CourseVersionValidators';
 
+/**
+ *
+ * @category Courses/Controllers
+ */
 @JsonController('/courses')
 @Service()
 export class CourseVersionController {

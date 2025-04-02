@@ -22,6 +22,10 @@ import {
 } from '../classes/validators/ItemValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 
+/**
+ *
+ * @category Courses/Controllers
+ */
 @JsonController()
 @Service()
 export class ItemController {

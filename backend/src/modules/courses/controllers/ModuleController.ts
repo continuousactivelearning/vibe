@@ -19,12 +19,16 @@ import {CreateModulePayloadValidator} from '../classes/validators/ModuleValidato
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {IsMongoId, IsString} from 'class-validator';
 
-class CreateParams {
+export class CreateParams {
   @IsMongoId()
   @IsString()
   versionId: string;
 }
 
+/**
+ *
+ * @category Courses/Controllers
+ */
 @JsonController('/courses')
 @Service()
 export class ModuleController {

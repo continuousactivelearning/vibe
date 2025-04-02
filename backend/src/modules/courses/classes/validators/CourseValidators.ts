@@ -12,8 +12,8 @@ import {ICourse} from 'shared/interfaces/IUser';
 
 /**
  * Validation for course payloads.
- * 
- * @category Courses/Validators
+ *
+ * @category Courses/Validators/CourseValidators
  */
 class CreateCoursePayloadValidator implements ICourse {
   @IsNotEmpty()
@@ -42,8 +42,8 @@ class CreateCoursePayloadValidator implements ICourse {
 
 /**
  * Validation for course payloads.
- * 
- * @category Courses/Validators
+ *
+ * @category Courses/Validators/CourseValidators
  */
 class UpdateCoursePayloadValidator implements Partial<ICourse> {
   @IsOptional()

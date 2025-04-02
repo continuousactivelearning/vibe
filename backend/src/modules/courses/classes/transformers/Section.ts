@@ -10,6 +10,11 @@ import {ISection} from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
 import {CreateSectionPayloadValidator} from '../validators/SectionValidators';
 
+/**
+ * Section data transformation.
+ *
+ * @category Courses/Transformers
+ */
 class Section implements ISection {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})

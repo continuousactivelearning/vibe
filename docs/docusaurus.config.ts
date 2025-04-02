@@ -25,6 +25,7 @@ const config: Config = {
         entryPoints: [
           "../backend/src/modules/courses/index.ts",
         ],
+        entryFileName:"Backend.md",
         entryPointStrategy: "expand",
         tsconfig: "../backend/tsconfig.json",
         out: "./docs/backend/",

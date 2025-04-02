@@ -1,6 +1,4 @@
-Defined in: [controllers/CourseController.ts:29](https://github.com/continuousactivelearning/cal/blob/e06c4332ead0ef718e54921eb9e9d365189f3ab9/backend/src/modules/courses/controllers/CourseController.ts#L29)
-
-Course data transformation.
+Defined in: [controllers/CourseController.ts:28](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseController.ts#L28)
 
 ## Constructors
 
@@ -8,7 +6,7 @@ Course data transformation.
 
 > **new CourseController**(`courseRepo`): `CourseController`
 
-Defined in: [controllers/CourseController.ts:30](https://github.com/continuousactivelearning/cal/blob/e06c4332ead0ef718e54921eb9e9d365189f3ab9/backend/src/modules/courses/controllers/CourseController.ts#L30)
+Defined in: [controllers/CourseController.ts:29](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseController.ts#L29)
 
 #### Parameters
 
@@ -26,13 +24,13 @@ Defined in: [controllers/CourseController.ts:30](https://github.com/continuousac
 
 > **create**(`payload`): `Promise`\<`Record`\<`string`, `any`\>\>
 
-Defined in: [controllers/CourseController.ts:36](https://github.com/continuousactivelearning/cal/blob/e06c4332ead0ef718e54921eb9e9d365189f3ab9/backend/src/modules/courses/controllers/CourseController.ts#L36)
+Defined in: [controllers/CourseController.ts:35](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseController.ts#L35)
 
 #### Parameters
 
 ##### payload
 
-`CreateCoursePayloadValidator`
+[`CreateCoursePayloadValidator`](../Validators/CourseValidators/CreateCoursePayloadValidator.md)
 
 #### Returns
 
@@ -44,7 +42,7 @@ Defined in: [controllers/CourseController.ts:36](https://github.com/continuousac
 
 > **read**(`id`): `Promise`\<`Record`\<`string`, `any`\>\>
 
-Defined in: [controllers/CourseController.ts:48](https://github.com/continuousactivelearning/cal/blob/e06c4332ead0ef718e54921eb9e9d365189f3ab9/backend/src/modules/courses/controllers/CourseController.ts#L48)
+Defined in: [controllers/CourseController.ts:47](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseController.ts#L47)
 
 #### Parameters
 
@@ -62,7 +60,7 @@ Defined in: [controllers/CourseController.ts:48](https://github.com/continuousac
 
 > **update**(`id`, `payload`): `Promise`\<`Record`\<`string`, `any`\>\>
 
-Defined in: [controllers/CourseController.ts:62](https://github.com/continuousactivelearning/cal/blob/e06c4332ead0ef718e54921eb9e9d365189f3ab9/backend/src/modules/courses/controllers/CourseController.ts#L62)
+Defined in: [controllers/CourseController.ts:61](https://github.com/continuousactivelearning/cal/blob/30fc76483b4a27a3eb2e18b9977ba472853191ce/backend/src/modules/courses/controllers/CourseController.ts#L61)
 
 #### Parameters
 
@@ -72,7 +70,7 @@ Defined in: [controllers/CourseController.ts:62](https://github.com/continuousac
 
 ##### payload
 
-`UpdateCoursePayloadValidator`
+[`UpdateCoursePayloadValidator`](../Validators/CourseValidators/UpdateCoursePayloadValidator.md)
 
 #### Returns
 

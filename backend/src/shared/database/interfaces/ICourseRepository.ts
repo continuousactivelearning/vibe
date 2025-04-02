@@ -1,4 +1,4 @@
-import {ItemsGroup} from 'modules/courses/classes/transformers/transformers';
+import {ItemsGroup} from 'modules/courses/classes/transformers/index';
 import {ICourse, ICourseVersion} from 'shared/interfaces/IUser';
 
 export interface ICourseRepository {

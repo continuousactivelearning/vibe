@@ -17,6 +17,10 @@ import {Section} from '../classes/transformers/Section';
 import {CreateSectionPayloadValidator} from '../classes/validators/SectionValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 
+/**
+ *
+ * @category Courses/Controllers
+ */
 @JsonController()
 @Service()
 export class SectionController {

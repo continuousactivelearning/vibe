@@ -9,6 +9,9 @@ import {
 } from 'class-validator';
 import {IModule, ISection} from 'shared/interfaces/IUser';
 
+/**
+ * @category Courses/Validators/ModuleValidators
+ */
 class CreateModulePayloadValidator implements IModule {
   @IsEmpty()
   moduleId?: string | undefined;

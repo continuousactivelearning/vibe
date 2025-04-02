@@ -20,8 +20,7 @@ import {
 } from '../classes/validators/CourseValidators';
 
 /**
- * Course data transformation.
- * 
+ *
  * @category Courses/Controllers
  */
 @JsonController('/courses')
