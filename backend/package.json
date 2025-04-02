@@ -12,7 +12,14 @@
     "build": "tsc && pnpm sentry:sourcemaps",
     "start": "node dist/index.js",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org aditya-bmv --project node-express ./build && sentry-cli sourcemaps upload --org aditya-bmv --project node-express ./build",
-    "docs": "typedoc"
+    "docs": "typedoc",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm.cmd run compile",
+    "pretest": "npm.cmd run compile",
+    "posttest": "npm.cmd run lint"
   },
   "keywords": [],
   "author": "",
@@ -38,7 +45,9 @@
     "tsconfig-paths": "^4.2.0",
     "typedoc": "^0.27.9",
     "typedoc-plugin-markdown": "^4.4.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "gts": "^6.0.2",
+    "@types/node": "^22.7.5"
   },
   "dependencies": {
     "@sentry/cli": "^2.42.2",
