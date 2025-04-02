@@ -10,6 +10,11 @@ import {
 } from 'class-validator';
 import {ICourse} from 'shared/interfaces/IUser';
 
+/**
+ * Validation for course payloads.
+ * 
+ * @category Courses/Validators
+ */
 class CreateCoursePayloadValidator implements ICourse {
   @IsNotEmpty()
   @IsString()
@@ -35,6 +40,11 @@ class CreateCoursePayloadValidator implements ICourse {
   updatedAt?: Date;
 }
 
+/**
+ * Validation for course payloads.
+ * 
+ * @category Courses/Validators
+ */
 class UpdateCoursePayloadValidator implements Partial<ICourse> {
   @IsOptional()
   @IsString()

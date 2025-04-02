@@ -36,3 +36,8 @@ export const coursesModuleOptions: RoutingControllersOptions = {
     return true;
   },
 };
+
+
+
+export * from './classes/transformers/index';
+export * from './controllers/index';

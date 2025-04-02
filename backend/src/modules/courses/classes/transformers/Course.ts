@@ -9,6 +9,11 @@ import {
 import {ICourse} from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
 
+/**
+ * Course data transformation.
+ * 
+ * @category Courses/Transformers
+ */
 class Course implements ICourse {
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true}) // Convert ObjectId -> string when serializing

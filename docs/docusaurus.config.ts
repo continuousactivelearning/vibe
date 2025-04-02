@@ -10,20 +10,29 @@ const config: Config = {
   favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://continuousactivelearning.github.io/vibe/",
+  url: "https://continuousactivelearning.github.io",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/",
+  baseUrl: "/vibe/",
 
   plugins: [
     [
       "docusaurus-plugin-typedoc",
       {
-        entryPoints: ["../backend/src"],
+        categorizeByGroup: true,
+        hideBreadcrumbs: true,
+        hidePageTitle: true,
+        entryPoints: [
+          "../backend/src/modules/courses/index.ts",
+        ],
         entryPointStrategy: "expand",
         tsconfig: "../backend/tsconfig.json",
         out: "./docs/backend/",
         exclude: ["**/tests/**"],
+        router: "category",
+        sidebar: {
+          fullNames: false,
+        },
       },
     ],
   ],

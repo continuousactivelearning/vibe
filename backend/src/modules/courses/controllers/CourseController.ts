@@ -1,12 +1,3 @@
-/**
- * @file CourseController.ts
- * @description Controller managing course-related routes.
- * @module courses
- *
- * @license MIT
- * @created 2025-03-08
- */
-
 import {instanceToPlain} from 'class-transformer';
 import 'reflect-metadata';
 import {
@@ -28,6 +19,11 @@ import {
   UpdateCoursePayloadValidator,
 } from '../classes/validators/CourseValidators';
 
+/**
+ * Course data transformation.
+ * 
+ * @category Courses/Controllers
+ */
 @JsonController('/courses')
 @Service()
 export class CourseController {

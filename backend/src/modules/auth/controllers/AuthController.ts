@@ -27,6 +27,14 @@ import {DTOSignUp, DTOChangePassword} from '../dtos/index';
 
 @JsonController('/auth')
 @Service()
+
+
+
+/**
+ * AuthController handles authentication-related routes.
+ * It provides endpoints for user signup, password change, and token verification.
+ * @group Auth
+ */
 export class AuthController {
   /**
    * Constructs the AuthController with the required AuthService.
