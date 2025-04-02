@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { IsEmpty, IsNotEmpty, IsString } from "class-validator";
-import { ICourseVersion, IModule } from "shared/interfaces/IUser";
+import {IsEmpty, IsNotEmpty, IsString} from 'class-validator';
+import {ICourseVersion, IModule} from 'shared/interfaces/IUser';
 
 class CreateCourseVersionPayloadValidator implements ICourseVersion {
   @IsEmpty()
@@ -24,4 +24,4 @@ class CreateCourseVersionPayloadValidator implements ICourseVersion {
   updatedAt: Date;
 }
 
-export { CreateCourseVersionPayloadValidator };
+export {CreateCourseVersionPayloadValidator};
