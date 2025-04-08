@@ -6,7 +6,6 @@ import {
   MaxLength,
   IsOptional,
   IsMongoId,
-  Validate,
   ValidateIf,
 } from 'class-validator';
 import {IModule, ISection} from 'shared/interfaces/IUser';
