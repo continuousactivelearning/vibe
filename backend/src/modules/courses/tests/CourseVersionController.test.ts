@@ -87,14 +87,12 @@ describe('Course Version Controller Integration Tests', () => {
           description: 'Course version description',
         };
 
-        // log the endpoint to request to
-        const endPoint = '/courses/123/versions';
+        // endpoint id should be a valid mongoId.
+        const endPoint = '/courses/5f9b1b3c9d1f1f1f1f1f1f1f/versions';
         const versionResponse = await request(app)
           .post(endPoint)
           .send(courseVersionPayload)
           .expect(404);
-
-        // expect(versionResponse.body.message).toContain("Course not found");
       });
 
       it('should return 400 if invalid course version data', async () => {

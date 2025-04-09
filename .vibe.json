@@ -1,0 +1,46 @@
+{
+  "environment": "Development",
+  "Welcome": true,
+  "steps": [
+    {
+      "name": "ToolChain Check",
+      "description": "Verify Node.js, npm, pnpm, and firebase-tools are installed"
+    },
+    {
+      "name": "Firebase Login",
+      "description": "Ensure Firebase CLI is logged in"
+    },
+    {
+      "name": "Emulators",
+      "description": "Initialize Firebase emulators"
+    },
+    {
+      "name": "Env Variables",
+      "description": "Create .env file and set MongoDB URI"
+    },
+    {
+      "name": "Backend Packages",
+      "description": "Install backend dependencies"
+    },
+    {
+      "name": "MongoDB Test Binaries",
+      "description": "Ensure MongoDB binaries for in-memory server are downloaded"
+    },
+    {
+      "name": "Backend Tests",
+      "description": "Run backend tests"
+    },
+    {
+      "name": "Frontend Packages",
+      "description": "Install frontend dependencies"
+    }
+  ],
+  "ToolChain Check": true,
+  "Firebase Login": true,
+  "Emulators": true,
+  "Env Variables": true,
+  "Backend Packages": true,
+  "MongoDB Test Binaries": true,
+  "Frontend Packages": true,
+  "Backend Tests": true
+}

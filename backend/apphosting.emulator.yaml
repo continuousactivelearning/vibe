@@ -1,0 +1,5 @@
+env:
+#- variable: ENV_VAR_NAME
+#  value: plaintext value
+#- variable: SECRET_ENV_VAR_NAME
+#  secret: cloud-secret-manager-id
