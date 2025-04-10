@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { runStart } from "./commands/start.ts";
 import { runTest } from "./commands/test.ts";
+import { runHelp } from "./commands/help.ts";
 
 const program = new Command();
 
@@ -14,6 +15,11 @@ program
   .command("start")
   .description("Start frontend and backend")
   .action(runStart);
+
+program
+  .command("help")
+  .description("help")
+  .action(runHelp);
 
 program
   .command("test")
