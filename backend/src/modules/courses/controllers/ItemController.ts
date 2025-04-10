@@ -80,7 +80,7 @@ export class ItemController {
       const section = module.sections.find(s => s.sectionId === sectionId);
 
       //Fetch ItemGroup
-      let itemsGroup = plainToInstance(
+      const itemsGroup = plainToInstance(
         ItemsGroup,
         await this.courseRepo.readItemsGroup(section.itemsGroupId.toString()),
       );
@@ -215,10 +215,10 @@ export class ItemController {
         body.videoDetails
           ? {itemDetails: body.videoDetails}
           : body.blogDetails
-          ? {itemDetails: body.blogDetails}
-          : body.quizDetails
-          ? {itemDetails: body.quizDetails}
-          : {},
+            ? {itemDetails: body.blogDetails}
+            : body.quizDetails
+              ? {itemDetails: body.quizDetails}
+              : {},
       );
 
       //Update Section Update Date
@@ -272,12 +272,12 @@ export class ItemController {
       }
 
       //Fetch ItemsGroup
-      let itemsGroup = await this.courseRepo.readItemsGroup(itemsGroupId);
+      const itemsGroup = await this.courseRepo.readItemsGroup(itemsGroupId);
       if (!itemsGroup) {
         throw new DeleteError('ItemsGroup not found');
       }
 
-      let itemToDelete = itemsGroup.items.find(
+      const itemToDelete = itemsGroup.items.find(
         i => i.itemId.toString() === itemId,
       );
 
@@ -294,9 +294,8 @@ export class ItemController {
         throw new Error('Unable to delete item');
       }
 
-      const updatedItemsGroup = await this.courseRepo.readItemsGroup(
-        itemsGroupId,
-      );
+      const updatedItemsGroup =
+        await this.courseRepo.readItemsGroup(itemsGroupId);
 
       return {
         deletedItem: instanceToPlain(itemToDelete),
