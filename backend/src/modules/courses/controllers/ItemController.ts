@@ -291,6 +291,7 @@ export class ItemController {
       );
 
       if (!deletionStatus) {
+        throw new Error('Unable to delete item');
       }
 
       const updatedItemsGroup =
