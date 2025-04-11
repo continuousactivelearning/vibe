@@ -88,7 +88,17 @@ install_node_deps() {
 
 install_cli() {
   echo "⚙ Installing CLI..."
-  pnpm install -w ./scripts/vibe-cli/
+  cd vibe-cli
+  if [ ! -d "node_modules" ]; then
+    echo "📦 Installing vibe-cli dependencies..."
+    pnpm install --no-frozen-lockfile
+  fi
+  pnpm build
+  echo "📦 Adding vibe-cli to workspace..."
+  pnpm add -w .
+  pnpm link --global
+  cd ..
+  echo "✅ Vibe CLI installed and linked globally."
 }
 
 init_state() {
@@ -131,4 +141,4 @@ run_step "Frontend Packages"    "steps/install-frontend.ts"
 clear
 
 echo "🎉 Setup complete!"
-echo "Run 'pnpm vibe start' to start development server"
+echo "Run 'vibe start' to start development server"

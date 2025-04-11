@@ -58,9 +58,20 @@ function Run-Step {
 }
 
 function Install-CLI {
-    Write-Host "⚙ Installing CLI globally as 'mycli'..."
-    pnpm install ".\\scripts\\vibe-cli"
+    Write-Host "⚙ Installing CLI..."
+    cd vibe-cli
+    if (!(Test-Path "node_modules")) {
+        Write-Host "📦 Installing vibe-cli dependencies..."
+        pnpm install --no-frozen-lockfile
+    }
+    pnpm build
+    Write-Host "📦 Adding vibe-cli to workspace..."
+    pnpm add -w .
+    pnpm link --global
+    cd ..
+    Write-Host "✅ Vibe CLI installed and linked globally."
 }
+
 
 Ensure-Node
 Install-PNPM
@@ -79,4 +90,4 @@ Run-Step "Frontend Packages"    "steps\\install-frontend.ts"
 
 Install-CLI
 
-Write-Host "🎉 Setup complete! You can now use 'pnpm vibe start'"
+Write-Host "🎉 Setup complete! You can now use 'vibe start'"

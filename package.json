@@ -8,13 +8,10 @@
 		"husky": "^9.1.7",
 		"lint-staged": "^15.5.0"
 	},
-	"bin": {
-		"vibe": "scripts/cli.ts"
-	},
 	"scripts": {
 		"prepare": "husky",
 		"binaries": "pnpx ts-node scripts/preload-mongo-binary.ts",
-		"vibe": "node scripts/vibe-cli/src/cli.ts"
+		"vibe": "pnpx ts-node scripts/vibe-cli/src/cli.ts"
 	},
 	"lint-staged": {
 		"backend/**/*.{js,jsx,ts,tsx}": [
@@ -28,6 +25,6 @@
 		"firebase-tools": "^14.1.0",
 		"mongodb-memory-server": "^10.1.4",
 		"mongodb-memory-server-core": "^10.1.4",
-		"vibe": "link:scripts/vibe-cli"
+		"vibe": "link:vibe-cli"
 	}
 }
