@@ -26,12 +26,10 @@ export class CourseRepository implements ICourseRepository {
 
   private async init() {
     this.courseCollection = await this.db.getCollection<Course>('newCourse');
-    this.courseVersionCollection = await this.db.getCollection<CourseVersion>(
-      'newCourseVersion',
-    );
-    this.itemsGroupCollection = await this.db.getCollection<ItemsGroup>(
-      'itemsGroup',
-    );
+    this.courseVersionCollection =
+      await this.db.getCollection<CourseVersion>('newCourseVersion');
+    this.itemsGroupCollection =
+      await this.db.getCollection<ItemsGroup>('itemsGroup');
   }
   async create(course: Course): Promise<Course | null> {
     await this.init();
@@ -108,9 +106,8 @@ export class CourseRepository implements ICourseRepository {
   ): Promise<CourseVersion | null> {
     await this.init();
     try {
-      const result = await this.courseVersionCollection.insertOne(
-        courseVersion,
-      );
+      const result =
+        await this.courseVersionCollection.insertOne(courseVersion);
       if (result.acknowledged) {
         const newCourseVersion = await this.courseVersionCollection.findOne({
           _id: result.insertedId,
