@@ -285,13 +285,12 @@ export class ItemController {
         throw new DeleteError('Item not found');
       }
 
-      const deletionStaus = await this.courseRepo.deleteItem(
+      const deletionStatus = await this.courseRepo.deleteItem(
         itemsGroupId,
         itemId,
       );
 
-      if (!deletionStaus) {
-        throw new Error('Unable to delete item');
+      if (!deletionStatus) {
       }
 
       const updatedItemsGroup =
