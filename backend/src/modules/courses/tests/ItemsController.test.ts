@@ -64,7 +64,7 @@ describe('Item Controller Integration Tests', () => {
         },
       };
 
-      it('should crate an item', async () => {
+      it('should create an item', async () => {
         const courseResponse = await request(app)
           .post('/courses/')
           .send(coursePayload)
