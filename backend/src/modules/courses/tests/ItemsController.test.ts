@@ -143,7 +143,7 @@ describe('Item Controller Integration Tests', () => {
         },
       };
 
-      it('should crate an item', async () => {
+      it('should delete an item', async () => {
         const courseResponse = await request(app)
           .post('/courses/')
           .send(coursePayload)
@@ -200,7 +200,7 @@ describe('Item Controller Integration Tests', () => {
         // Testing for Invalid params
 
         const itemsResponse = await request(app)
-          .delete(`/itemGroups/123/items/123`)
+          .delete('/itemGroups/123/items/123')
           .expect(400);
       });
 
@@ -208,7 +208,7 @@ describe('Item Controller Integration Tests', () => {
         // Testing for Not found Case
         const itemsResponse = await request(app)
           .delete(
-            `/itemGroups/62341aeb5be816967d8fc2db/items/62341aeb5be816967d8fc2db`,
+            '/itemGroups/62341aeb5be816967d8fc2db/items/62341aeb5be816967d8fc2db',
           )
           .expect(404);
       });
