@@ -55,7 +55,6 @@ install_pnpm() {
     echo "📦 Installing pnpm..."
     npm install -g pnpm
   fi
-
   echo "⚙ Running pnpm setup..."
   pnpm setup
 
@@ -79,23 +78,25 @@ install_pnpm() {
   echo "✅ pnpm: $(pnpm -v)"
 }
 
-
 install_node_deps() {
   echo "📦 Installing required Node.js dependencies..."
-  pnpm install --no-frozen-lockfile
-  pnpm add -w commander concurrently @inquirer/prompts mongodb-memory-server firebase-tools
+  # pnpm install --no-frozen-lockfile
+  # pnpm add -w commander concurrently @inquirer/prompts mongodb-memory-server firebase-tools
+  if [ ! -d "node_modules" ]; then
+    pnpm install
+  fi
 }
 
 install_cli() {
   echo "⚙ Installing CLI..."
+  # pnpm add -w ./vibe-cli
+  # if [ ! -d "node_modules" ]; then
+  #   echo "📦 Installing vibe-cli dependencies..."
+  #   pnpm install --no-frozen-lockfile
+  # fi
+  # pnpm build
+  # echo "📦 Adding vibe-cli to workspace..."
   cd vibe-cli
-  if [ ! -d "node_modules" ]; then
-    echo "📦 Installing vibe-cli dependencies..."
-    pnpm install --no-frozen-lockfile
-  fi
-  pnpm build
-  echo "📦 Adding vibe-cli to workspace..."
-  pnpm add -w .
   pnpm link --global
   cd ..
   echo "✅ Vibe CLI installed and linked globally."
@@ -125,8 +126,8 @@ run_step "Welcome"              "steps/welcome.ts"
 clear
 run_step "Toolchain Check"      "steps/toolchain-check.ts"
 clear
-run_step "Firebase Login"       "steps/firebase-login.ts"
-clear
+# run_step "Firebase Login"       "steps/firebase-login.ts"
+# clear
 run_step "Emulators"            "steps/firebase-emulators.ts"
 clear
 run_step "Env Variables"        "steps/env.ts"

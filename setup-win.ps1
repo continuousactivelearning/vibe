@@ -36,9 +36,11 @@ function Install-PNPM {
 }
 
 function Install-NodeDeps {
-    Write-Host "📦 Installing required Node.js dependencies..."
-    pnpm install --no-frozen-lockfile
-    pnpm add -w commander concurrently @inquirer/prompts mongodb-memory-server firebase-tools
+    if (!(Test-Path "node_modules")) {
+        Write-Host "📦 Installing required Node.js dependencies..."
+        pnpm install
+    }
+    # pnpm add -w commander concurrently @inquirer/prompts mongodb-memory-server firebase-tools
 }
 
 function Init-StateFile {
@@ -60,13 +62,6 @@ function Run-Step {
 function Install-CLI {
     Write-Host "⚙ Installing CLI..."
     cd vibe-cli
-    if (!(Test-Path "node_modules")) {
-        Write-Host "📦 Installing vibe-cli dependencies..."
-        pnpm install --no-frozen-lockfile
-    }
-    pnpm build
-    Write-Host "📦 Adding vibe-cli to workspace..."
-    pnpm add -w .
     pnpm link --global
     cd ..
     Write-Host "✅ Vibe CLI installed and linked globally."
@@ -80,7 +75,7 @@ Init-StateFile
 
 Run-Step "Welcome"              "steps\\welcome.ts"
 Run-Step "Toolchain Check"      "steps\\toolchain-check.ts"
-Run-Step "Firebase Login"       "steps\\firebase-login.ts"
+# Run-Step "Firebase Login"       "steps\\firebase-login.ts"
 Run-Step "Emulators"            "steps\\firebase-emulators.ts"
 Run-Step "Env Variables"        "steps\\env.ts"
 Run-Step "Backend Packages"     "steps\\install-backend.ts"
