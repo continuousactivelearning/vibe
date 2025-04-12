@@ -44,9 +44,10 @@ export async function runTest() {
     console.error("❌ Please run this command from within the vibe project directory.");
     process.exit(1);
   }
-
-  const backendPassed = runTestProcess("Backend", "backend");
-  const frontendPassed = runTestProcess("Frontend", "frontend");
+  const backendDir = path.join(root, "backend");
+  const frontendDir = path.join(root, "frontend");
+  const backendPassed = runTestProcess("Backend", backendDir);
+  const frontendPassed = runTestProcess("Frontend", frontendDir);
 
   if (!backendPassed || !frontendPassed) {
     console.error("❌ One or more test suites failed.");
