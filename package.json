@@ -11,7 +11,7 @@
 	"scripts": {
 		"prepare": "husky",
 		"binaries": "pnpx ts-node scripts/preload-mongo-binary.ts",
-		"vibe": "pnpx ts-node scripts/vibe-cli/src/cli.ts"
+		"vibe": "pnpx ts-node scripts/cli/src/cli.ts"
 	},
 	"lint-staged": {
 		"backend/**/*.{js,jsx,ts,tsx}": [
@@ -25,6 +25,6 @@
 		"firebase-tools": "^14.1.0",
 		"mongodb-memory-server": "^10.1.4",
 		"mongodb-memory-server-core": "^10.1.4",
-		"vibe": "link:vibe-cli"
+		"vibe": "link:cli"
 	}
 }

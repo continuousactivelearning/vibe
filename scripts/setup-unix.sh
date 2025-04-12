@@ -4,7 +4,6 @@ set -e
 STATE_FILE=".vibe.json"
 
 echo "🚀 ViBe Setup Script"
-
 OS="$(uname -s)"
 
 ensure_node() {
@@ -96,7 +95,7 @@ install_cli() {
   # fi
   # pnpm build
   # echo "📦 Adding vibe-cli to workspace..."
-  cd vibe-cli
+  cd cli
   pnpm link --global
   cd ..
   echo "✅ Vibe CLI installed and linked globally."
@@ -116,6 +115,9 @@ run_step() {
   node "./scripts/$FILE"
 }
 
+if [[ "$(pwd)" == */scripts ]]; then
+  cd ..
+fi
 ensure_node
 install_pnpm
 install_node_deps

@@ -61,13 +61,15 @@ function Run-Step {
 
 function Install-CLI {
     Write-Host "⚙ Installing CLI..."
-    cd vibe-cli
+    cd cli
     pnpm link --global
     cd ..
     Write-Host "✅ Vibe CLI installed and linked globally."
 }
 
-
+if ((Get-Location).Path -match '\\scripts$') {
+    Set-Location ..
+  }  
 Ensure-Node
 Install-PNPM
 Install-NodeDeps

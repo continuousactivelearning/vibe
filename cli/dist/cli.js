@@ -930,7 +930,7 @@ var require_command = __commonJS({
   "../node_modules/.pnpm/commander@10.0.1/node_modules/commander/lib/command.js"(exports2) {
     var EventEmitter = require("events").EventEmitter;
     var childProcess = require("child_process");
-    var path = require("path");
+    var path2 = require("path");
     var fs = require("fs");
     var process2 = require("process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
@@ -1767,10 +1767,10 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path.resolve(baseDir, baseName);
+          const localBin = path2.resolve(baseDir, baseName);
           if (fs.existsSync(localBin))
             return localBin;
-          if (sourceExt.includes(path.extname(baseName)))
+          if (sourceExt.includes(path2.extname(baseName)))
             return void 0;
           const foundExt = sourceExt.find((ext) => fs.existsSync(`${localBin}${ext}`));
           if (foundExt)
@@ -1788,19 +1788,19 @@ Expecting one of '${allowedValues.join("', '")}'`);
           } catch (err) {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path.resolve(path.dirname(resolvedScriptPath), executableDir);
+          executableDir = path2.resolve(path2.dirname(resolvedScriptPath), executableDir);
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path.basename(this._scriptPath, path.extname(this._scriptPath));
+            const legacyName = path2.basename(this._scriptPath, path2.extname(this._scriptPath));
             if (legacyName !== this._name) {
               localFile = findFile(executableDir, `${legacyName}-${subcommand._name}`);
             }
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path.extname(executableFile));
+        launchWithNode = sourceExt.includes(path2.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -2595,7 +2595,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path.basename(filename, path.extname(filename));
+        this._name = path2.basename(filename, path2.extname(filename));
         return this;
       }
       /**
@@ -2609,10 +2609,10 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {string|Command}
        */
-      executableDir(path2) {
-        if (path2 === void 0)
+      executableDir(path3) {
+        if (path3 === void 0)
           return this._executableDir;
-        this._executableDir = path2;
+        this._executableDir = path3;
         return this;
       }
       /**
@@ -2827,17 +2827,29 @@ var {
 // src/commands/start.ts
 var import_child_process = require("child_process");
 var import_os = __toESM(require("os"));
-function runProcess(name, cwd) {
+var import_path = __toESM(require("path"));
+var import_process = require("process");
+function findProjectRoot() {
+  const currentPath = (0, import_process.cwd)();
+  const segments = currentPath.split(import_path.default.sep);
+  const vibeIndex = segments.lastIndexOf("vibe");
+  if (vibeIndex === -1) {
+    return null;
+  }
+  const rootPath = segments.slice(0, vibeIndex + 1).join(import_path.default.sep);
+  return rootPath;
+}
+function runProcess(name, cwd2) {
   return new Promise((resolve, reject) => {
-    console.log(`\u23F3 Starting ${name} in ${cwd}...`);
+    console.log(`\u23F3 Starting ${name} in ${cwd2}...`);
     const isWindows = import_os.default.platform() === "win32";
-    const process2 = (0, import_child_process.spawn)("pnpm", ["run", "dev"], {
-      cwd,
+    const proc = (0, import_child_process.spawn)("pnpm", ["run", "dev"], {
+      cwd: cwd2,
       stdio: "inherit",
       shell: isWindows
       // shell: true required for Windows
     });
-    process2.on("exit", (code) => {
+    proc.on("exit", (code) => {
       if (code === 0) {
         console.log(`\u2705 ${name} exited cleanly.`);
         resolve(true);
@@ -2850,10 +2862,17 @@ function runProcess(name, cwd) {
 }
 async function runStart() {
   console.log("\u{1F680} Launching backend and frontend...");
+  const root = findProjectRoot();
+  if (!root) {
+    console.error("\u274C Please run this command from within the vibe project directory.");
+    process.exit(1);
+  }
+  const backendDir = import_path.default.join(root, "backend");
+  const frontendDir = import_path.default.join(root, "frontend");
   try {
     await Promise.all([
-      runProcess("Backend", "backend"),
-      runProcess("Frontend", "frontend")
+      runProcess("Backend", backendDir),
+      runProcess("Frontend", frontendDir)
     ]);
   } catch (err) {
     console.error("\u274C One or more services failed to start.");
@@ -2864,11 +2883,11 @@ async function runStart() {
 // src/commands/test.ts
 var import_child_process2 = require("child_process");
 var import_os2 = __toESM(require("os"));
-function runTestProcess(name, cwd) {
+function runTestProcess(name, cwd2) {
   console.log(`\u{1F9EA} Running ${name} tests...`);
   const isWindows = import_os2.default.platform() === "win32";
   const result = (0, import_child_process2.spawnSync)("pnpm", ["run", "test:ci"], {
-    cwd,
+    cwd: cwd2,
     stdio: "inherit",
     shell: isWindows
   });
