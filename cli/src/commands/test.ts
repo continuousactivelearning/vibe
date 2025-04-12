@@ -1,5 +1,21 @@
 import { spawnSync } from "child_process";
 import os from "os";
+import path from "path";
+import { cwd } from "process";
+
+function findProjectRoot(): string | null {
+  const currentPath = cwd();
+  const segments = currentPath.split(path.sep);
+  const vibeIndex = segments.lastIndexOf("vibe");
+
+  if (vibeIndex === -1) {
+    return null;
+  }
+
+  // Reconstruct path up to /vibe
+  const rootPath = segments.slice(0, vibeIndex + 1).join(path.sep);
+  return rootPath;
+}
 
 function runTestProcess(name: string, cwd: string): boolean {
   console.log(`🧪 Running ${name} tests...`);
@@ -22,6 +38,12 @@ function runTestProcess(name: string, cwd: string): boolean {
 
 export async function runTest() {
   console.log("🧪 Running full test suite...");
+  const root = findProjectRoot();
+
+  if (!root) {
+    console.error("❌ Please run this command from within the vibe project directory.");
+    process.exit(1);
+  }
 
   const backendPassed = runTestProcess("Backend", "backend");
   const frontendPassed = runTestProcess("Frontend", "frontend");

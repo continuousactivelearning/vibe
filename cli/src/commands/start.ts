@@ -1,7 +1,7 @@
 import { spawn } from "child_process";
 import os from "os";
 import path from "path";
-import { cwd, chdir } from "process";
+import { cwd } from "process";
 
 function findProjectRoot(): string | null {
   const currentPath = cwd();
