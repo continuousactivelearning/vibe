@@ -2,12 +2,9 @@
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
-import { fileURLToPath } from "url";
+import { findProjectRoot } from "../findRoot.ts";
 
-// Resolve path for ESM __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const stateFile = path.resolve(__dirname, "../../.vibe.json");
+const stateFile = path.resolve(findProjectRoot(), ".vibe.json");
 
 // Constants
 const STEP_NAME = "Firebase Login";

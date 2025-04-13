@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { input } from "@inquirer/prompts";
+import { findProjectRoot } from "../findRoot.ts";
 
-// Resolve current file path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const rootDir = path.resolve(__dirname, "../../");
+const rootDir = findProjectRoot();
 const backendDir = path.join(rootDir, "backend");
 const statePath = path.join(rootDir, ".vibe.json");
 const envPath = path.join(backendDir, ".env");

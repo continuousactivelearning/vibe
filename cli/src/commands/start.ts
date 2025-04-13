@@ -1,21 +1,7 @@
 import { spawn } from "child_process";
 import os from "os";
 import path from "path";
-import { cwd } from "process";
-
-function findProjectRoot(): string | null {
-  const currentPath = cwd();
-  const segments = currentPath.split(path.sep);
-  const vibeIndex = segments.lastIndexOf("vibe");
-
-  if (vibeIndex === -1) {
-    return null;
-  }
-
-  // Reconstruct path up to /vibe
-  const rootPath = segments.slice(0, vibeIndex + 1).join(path.sep);
-  return rootPath;
-}
+import { findProjectRoot } from "../findRoot.ts";
 
 function runProcess(name: string, cwd: string) {
   return new Promise((resolve, reject) => {

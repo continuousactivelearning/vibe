@@ -1,15 +1,11 @@
 #!/usr/bin/env node
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 import { MongoMemoryServer } from "mongodb-memory-server";
+import { findProjectRoot } from "../findRoot.ts";
 
-// Resolve __dirname from ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-// Resolve paths
-const rootDir = path.resolve(__dirname, "../../");
+const rootDir = findProjectRoot();
 const statePath = path.join(rootDir, ".vibe.json");
 
 // Step name constant

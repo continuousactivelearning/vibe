@@ -1,16 +1,12 @@
 #!/usr/bin/env node
 import { select } from "@inquirer/prompts";
 import fs from "fs";
+import os from "os";
 import path from "path";
-import os from "os"; // For cross-platform detection
-import { fileURLToPath } from "url";
-
-// __dirname for ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { findProjectRoot } from "../findRoot.ts";
 
 // Path to .vibe.json state file
-const statePath = path.resolve(__dirname, "../../.vibe.json");
+const statePath = path.resolve(findProjectRoot(), ".vibe.json");
 
 // Read existing state
 function readState(): Record<string, any> {
@@ -37,7 +33,6 @@ if (state["Welcome"]) {
 
 console.log("\n🚀 Welcome to the ViBe Setup!\n");
 
-// (Optional) Cross-platform OS info logging
 const platform = os.platform(); // 'win32', 'linux', 'darwin'
 console.log(`🔍 Detected platform: ${platform}`);
 

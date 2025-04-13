@@ -19,12 +19,6 @@
 		]
 	},
 	"dependencies": {
-		"@inquirer/prompts": "^7.4.1",
-		"commander": "^13.1.0",
-		"concurrently": "^9.1.2",
-		"firebase-tools": "^14.1.0",
-		"mongodb-memory-server": "^10.1.4",
-		"mongodb-memory-server-core": "^10.1.4",
 		"vibe": "link:cli"
 	}
 }

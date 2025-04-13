@@ -6,13 +6,12 @@
   "bin": {
     "vibe": "src/cli.ts"
   },
-  "scripts": {
-    "build": "esbuild src/cli.ts --bundle --platform=node --target=node22 --outfile=dist/cli.js --format=cjs"
-  },
   "dependencies": {
-    "commander": "^10.0.0"
+    "@inquirer/prompts": "^7.4.1",
+    "commander": "^10.0.0",
+    "mongodb-memory-server": "^10.1.4"
   },
   "devDependencies": {
-    "esbuild": "^0.19.0"
+    "@types/node": "^22.14.1"
   }
 }

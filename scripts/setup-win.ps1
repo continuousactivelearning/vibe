@@ -8,7 +8,9 @@ $STATE_FILE = ".vibe.json"
 function Ensure-Node {
     if (!(Get-Command node -ErrorAction SilentlyContinue) -or !(Get-Command npm -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Node.js is not installed."
-        Write-Host "Please install Node.js manually from https://nodejs.org"
+        pnpm install -g n
+        n latest
+        $env:Path = "C:\Program Files\nodejs;" + $env:Path
         exit 1
     }
 
@@ -18,7 +20,7 @@ function Ensure-Node {
     $majorVersion = ($nodeVersion -replace "[vV]", "").Split(".")[0]
     if ([int]$majorVersion -lt 22) {
         Write-Host "🔄 Node.js version too old (<22). Upgrading using 'n'..."
-        npm install -g n
+        pnpm install -g n
         n latest
         $env:Path = "C:\Program Files\nodejs;" + $env:Path
     }
@@ -30,7 +32,7 @@ function Ensure-Node {
 function Install-PNPM {
     if (!(Get-Command pnpm -ErrorAction SilentlyContinue)) {
         Write-Host "📦 Installing pnpm..."
-        npm install -g pnpm
+        Invoke-WebRequest https://get.pnpm.io/install.ps1 -UseBasicParsing | Invoke-Expression
     }
     Write-Host "✅ pnpm version: $(pnpm -v)"
 }
@@ -50,15 +52,6 @@ function Init-StateFile {
     }
 }
 
-function Run-Step {
-    param(
-        [string]$Name,
-        [string]$Script
-    )
-    Write-Host "👉 Running step: $Name"
-    node ".\\scripts\\$Script"
-}
-
 function Install-CLI {
     Write-Host "⚙ Installing CLI..."
     cd cli
@@ -70,21 +63,11 @@ function Install-CLI {
 if ((Get-Location).Path -match '\\scripts$') {
     Set-Location ..
   }  
-Ensure-Node
+
 Install-PNPM
+Ensure-Node
 Install-NodeDeps
 Init-StateFile
-
-Run-Step "Welcome"              "steps\\welcome.ts"
-Run-Step "Toolchain Check"      "steps\\toolchain-check.ts"
-# Run-Step "Firebase Login"       "steps\\firebase-login.ts"
-Run-Step "Emulators"            "steps\\firebase-emulators.ts"
-Run-Step "Env Variables"        "steps\\env.ts"
-Run-Step "Backend Packages"     "steps\\install-backend.ts"
-Run-Step "MongoDB Test Binaries" "steps\\mongodb-binary.ts"
-Run-Step "Backend Tests"        "steps\\test-backend.ts"
-Run-Step "Frontend Packages"    "steps\\install-frontend.ts"
-
 Install-CLI
-
+vibe setup
 Write-Host "🎉 Setup complete! You can now use 'vibe start'"
