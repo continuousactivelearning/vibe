@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import fs from "fs";
 import path from "path";
-import { input } from "@inquirer/prompts";
 import { findProjectRoot } from "../findRoot.ts";
+import password from '@inquirer/password';
 
 const rootDir = findProjectRoot();
 const backendDir = path.join(rootDir, "backend");
@@ -11,6 +11,22 @@ const envPath = path.join(backendDir, ".env");
 
 // Constants
 const STEP_NAME = "Env Variables";
+
+async function getMongoUri() {
+  const userPassword = await password({
+    message: 'Enter your MongoDB password:',
+    mask: '*',
+  });
+
+  const encodedPassword = encodeURIComponent(userPassword);
+  const uriTemplate = 'mongodb+srv://Vibe:<db_password>@vibe-test.jt5wz7s.mongodb.net/?retryWrites=true&w=majority&appName=vibe-test';
+  const finalUri = uriTemplate.replace('<db_password>', encodedPassword);
+
+  console.log('\nYour MongoDB URI:');
+  console.log(finalUri);
+
+  return finalUri;
+}
 
 // Read state
 function readState(): Record<string, any> {
@@ -39,30 +55,9 @@ if (state[STEP_NAME]) {
 
 console.log(`
 📄 Creating .env file for MongoDB
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📘 MongoDB URI Instructions:
-
-1. Go to https://www.mongodb.com/atlas/database and sign up or log in.
-2. Create a new project and cluster.
-3. Navigate to the 'Database Access' section in your project.
-4. Create a new database user with appropriate permissions.
-5. Go to the 'Clusters' section and click 'Connect' on your cluster.
-6. Select 'Connect your application'.
-7. Copy the connection string.
-8. ⚠️ Replace <password> in the copied string with your actual database password.
-9. Paste the modified connection string below.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `);
 
-let mongoUri = "";
-
-while (!isValidMongoUri(mongoUri)) {
-  mongoUri = await input({ message: "Paste your MongoDB URI:" });
-  if (!isValidMongoUri(mongoUri)) {
-    console.log("❌ That doesn't look like a valid MongoDB URI. Please try again.");
-  }
-}
+const mongoUri = await getMongoUri();
 
 // Write to .env file
 fs.writeFileSync(envPath, `DB_URL="${mongoUri}"\n`);

@@ -7,6 +7,7 @@
     "vibe": "src/cli.ts"
   },
   "dependencies": {
+    "@inquirer/password": "^4.0.12",
     "@inquirer/prompts": "^7.4.1",
     "commander": "^10.0.0",
     "mongodb-memory-server": "^10.1.4"
