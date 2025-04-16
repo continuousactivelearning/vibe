@@ -5,6 +5,41 @@ Write-Host "🚀 ViBe Setup Script (Windows)"
 
 $STATE_FILE = ".vibe.json"
 
+function Clone-Repo {
+    Write-Host "📦 Cloning ViBe repository..."
+    git clone https://github.com/continuousactivelearning/vibe.git
+  }
+  
+  function Check-Repo {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+      Write-Host "Git is not installed. Installing Git..."
+  
+      if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Write-Error "winget is not available. Please install Git manually."
+        exit 1
+      }
+  
+      winget install --id Git.Git -e --source winget
+      Write-Host "✅ Git installed successfully."
+    }
+  
+    $cwd = Get-Location
+    if ($cwd.Path -like "*\vibe") {
+      try {
+        git rev-parse --is-inside-work-tree > $null
+        Write-Host "✅ This is a Git repository."
+      } catch {
+        Write-Host "⚠️ Not a Git repository. Cloning..."
+        Clone-Repo
+        Set-Location "./vibe"
+      }
+    } else {
+      Write-Host "📁 Not inside 'vibe' directory. Cloning..."
+      Clone-Repo
+      Set-Location "./vibe"
+    }
+  }
+
 function Ensure-Node {
     if (!(Get-Command node -ErrorAction SilentlyContinue) -or !(Get-Command npm -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Node.js is not installed."
@@ -64,6 +99,7 @@ if ((Get-Location).Path -match '\\scripts$') {
     Set-Location ..
   }  
 
+Check-Repo
 Install-PNPM
 Ensure-Node
 Install-NodeDeps
