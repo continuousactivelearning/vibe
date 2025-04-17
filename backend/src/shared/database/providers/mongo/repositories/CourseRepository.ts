@@ -177,6 +177,75 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
+
+  async deleteVersion(
+    courseId: string,
+    versionId: string,
+  ): Promise<CourseVersion | null> {
+    await this.init();
+    try {
+      // 1. find the course version to Delete.
+      const courseVersion = await this.courseVersionCollection.findOne({
+        _id: new ObjectId(versionId),
+      });
+
+      const course = await this.courseCollection.findOne({
+        _id: new ObjectId(courseId),
+      });
+
+      if (!course) {
+        throw new ItemNotFoundError('Course not found');
+      }
+
+      // 2. check if the course version exists.
+      if (!courseVersion) {
+        throw new ItemNotFoundError('Course Version not found');
+      }
+
+      // 3. Extract itemGroupsIds before deleting the course version.
+      const itemGroupsIds = courseVersion.modules.flatMap(module =>
+        module.sections.map(section => new ObjectId(section.itemsGroupId)),
+      );
+
+      // 4. Delete course version
+      const versionDeleteResult = await this.courseVersionCollection.deleteOne({
+        _id: new ObjectId(versionId),
+      });
+
+      if (versionDeleteResult.deletedCount !== 1) {
+        throw new DeleteError('Failed to delete course version');
+      }
+
+      // 5. Remove courseVersionId from the course
+
+      const courseUpdateResult = await this.courseCollection.updateOne(
+        {_id: new ObjectId(courseId)},
+        {$pull: {versions: versionId}},
+      );
+
+      if (courseUpdateResult.modifiedCount !== 1) {
+        throw new DeleteError('Failed to update course');
+      }
+
+      // 6. Cascade Delete item groups
+
+      const itemDeletionResult = await this.itemsGroupCollection.deleteMany({
+        _id: {$in: itemGroupsIds.map(id => new ObjectId(id))},
+      });
+
+      if (itemDeletionResult.deletedCount === 0) {
+        throw new DeleteError('Failed to delete item groups');
+      }
+
+      // 7. Return the deleted course version
+      return courseVersion;
+    } catch (error) {
+      throw new Error(
+        'Failed to delete course version.\n More Details: ' + error,
+      );
+    }
+  }
+
   async createItemsGroup(itemsGroup: ItemsGroup): Promise<ItemsGroup | null> {
     await this.init();
     try {
