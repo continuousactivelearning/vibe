@@ -16,6 +16,16 @@ import {ICourse} from 'shared/interfaces/IUser';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 
+interface Module {
+  moduleId: string;
+  name: string;
+  description: string;
+  order: string;
+  sections: unknown[]; // Use unknown[] instead of any[] for lint compliance
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Service()
 export class CourseRepository implements ICourseRepository {
   private courseCollection: Collection<Course>;
@@ -250,6 +260,97 @@ export class CourseRepository implements ICourseRepository {
       }
     } catch (error) {
       throw new UpdateError('Failed to update items.\n More Details: ' + error);
+    }
+  }
+
+  async deleteModule(
+    versionId: string,
+    moduleId: string,
+  ): Promise<Module | null> {
+    await this.init();
+    try {
+      console.log('Starting deleteModule process');
+
+      // Convert versionId and moduleId to ObjectId
+      const versionObjectId = new ObjectId(versionId);
+      const moduleObjectId = new ObjectId(moduleId);
+
+      // Find the course version
+      const courseVersion = await this.courseVersionCollection.findOne({
+        _id: versionObjectId,
+      });
+      console.log('Course version found:', courseVersion);
+
+      if (!courseVersion) {
+        console.error('Course Version not found');
+        throw new ItemNotFoundError('Course Version not found');
+      }
+
+      // Find the module to delete
+      const module = courseVersion.modules.find(m =>
+        new ObjectId(m.moduleId).equals(moduleObjectId),
+      );
+      console.log('Module found:', module);
+
+      if (!module) {
+        console.error('Module not found');
+        throw new ItemNotFoundError('Module not found');
+      }
+
+      // Cascade delete sections and items
+      if (module.sections.length > 0) {
+        const itemGroupsIds = module.sections.map(
+          section => new ObjectId(section.itemsGroupId),
+        );
+        console.log('Item group IDs to delete:', itemGroupsIds);
+
+        const itemDeletionResult = await this.itemsGroupCollection.deleteMany({
+          _id: {$in: itemGroupsIds},
+        });
+        console.log('Item deletion result:', itemDeletionResult);
+
+        if (itemDeletionResult.deletedCount === 0) {
+          console.error('Failed to delete item groups');
+          throw new DeleteError('Failed to delete item groups');
+        }
+      } else {
+        console.log('No sections or items to delete.');
+      }
+
+      // Remove the module from the course version
+      const updatedModules = courseVersion.modules.filter(
+        m => !new ObjectId(m.moduleId).equals(moduleObjectId),
+      );
+      console.log('Updated modules:', updatedModules);
+
+      const updateResult = await this.courseVersionCollection.updateOne(
+        {_id: versionObjectId},
+        {$set: {modules: updatedModules}},
+      );
+      console.log('Update result:', updateResult);
+
+      if (updateResult.modifiedCount !== 1) {
+        console.error('Failed to update course version');
+        throw new DeleteError('Failed to update course version');
+      }
+
+      console.log('Module successfully deleted:', module);
+
+      // Convert ObjectId fields to string before returning
+      return {
+        ...module,
+        moduleId: module.moduleId.toString(),
+        // If you have other ObjectId fields, convert them here as well
+      } as Module;
+    } catch (error) {
+      if (error instanceof ItemNotFoundError) {
+        console.error('Item not found:', error.message);
+        throw error; // Let the controller handle this error
+      }
+      console.error('Error in deleteModule:', error);
+      throw new DeleteError(
+        'Failed to delete module.\n More Details: ' + error,
+      );
     }
   }
 }

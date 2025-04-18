@@ -1,4 +1,10 @@
-import {Collection, Db, Document, MongoClient} from 'mongodb';
+import {
+  Collection,
+  Db,
+  Document,
+  MongoClient,
+  MongoClientOptions,
+} from 'mongodb';
 import {IDatabase} from 'shared/database/interfaces/IDatabase';
 import {Service} from 'typedi';
 
@@ -21,18 +27,19 @@ export class MongoDatabase implements IDatabase<Db> {
    * Creates an instance of MongoDatabase.
    * @param {string} uri - The MongoDB connection URI.
    * @param {string} dbName - The name of the database to connect to.
+   * @param {MongoClientOptions} options - Optional MongoDB client options.
    */
   constructor(
     private readonly uri: string,
     private readonly dbName: string,
+    private readonly options: MongoClientOptions = {}, // <-- add comma here
   ) {
-    this.client = new MongoClient(uri);
+    this.client = new MongoClient(uri, options); // Use options if provided
   }
 
   /**
    * Connects to the MongoDB database.
    * @returns {Promise<Db>} The connected database instance.
-   * @throws Will throw an error if the connection fails.
    */
   private async connect(): Promise<Db> {
     await this.client.connect();
@@ -47,7 +54,6 @@ export class MongoDatabase implements IDatabase<Db> {
   public async disconnect(): Promise<Db | null> {
     if (this.client) {
       await this.client.close();
-      console.log('Disconnected from MongoDB');
       this.database = null;
     }
     return this.database;
@@ -61,13 +67,6 @@ export class MongoDatabase implements IDatabase<Db> {
     return this.database !== null;
   }
 
-  /**
-   * Retrieves a collection from the connected database.
-   * @template T
-   * @param {string} name - The name of the collection to retrieve.
-   * @returns {Collection<T>} The MongoDB collection.
-   * @throws Will throw an error if the database is not connected.
-   */
   /**
    * Retrieves a collection from the connected database.
    * @template T

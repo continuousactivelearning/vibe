@@ -9,15 +9,18 @@ import {
   JsonController,
   Params,
   Post,
+  Delete,
+  BadRequestError,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemNotFoundError, ReadError} from 'shared/errors/errors';
+import {ItemNotFoundError, ReadError, DeleteError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {CourseVersion} from '../classes/transformers/CourseVersion';
 import {
   CreateCourseVersionParams,
   CreateCourseVersionBody,
   ReadCourseVersionParams,
+  DeleteModuleParams,
 } from '../classes/validators/CourseVersionValidators';
 
 /**
@@ -112,6 +115,47 @@ export class CourseVersionController {
       }
       if (error instanceof ItemNotFoundError) {
         throw new HttpError(404, error.message);
+      }
+      throw new HttpError(500, error.message);
+    }
+  }
+
+  /**
+   * Delete a module from a specific course version.
+   *
+   * @param params - Parameters including version ID and module ID
+   * @returns The deleted module object
+   *
+   * @throws BadRequestError if version ID or module ID is missing
+   * @throws HttpError(404) if the module is not found
+   * @throws HttpError(500) for delete errors
+   *
+   * @category Courses/Controllers
+   */
+  @Delete('/versions/:versionId/modules/:moduleId')
+  async deleteModule(@Params() params: DeleteModuleParams) {
+    const {versionId, moduleId} = params;
+    if (!versionId || !moduleId) {
+      throw new BadRequestError('Version ID and Module ID are required');
+    }
+    try {
+      const deletedModule = await this.courseRepo.deleteModule(
+        versionId,
+        moduleId,
+      );
+      const deleted: any = deletedModule;
+      return {
+        deletedItem: instanceToPlain({
+          ...deleted,
+          moduleId: deleted?.moduleId?.toString(),
+        }),
+      };
+    } catch (error) {
+      if (error instanceof ItemNotFoundError) {
+        throw new HttpError(404, error.message);
+      }
+      if (error instanceof DeleteError) {
+        throw new HttpError(500, error.message);
       }
       throw new HttpError(500, error.message);
     }
