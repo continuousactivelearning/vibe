@@ -32,17 +32,14 @@ if (state[STEP_NAME]) {
   process.exit(0);
 }
 
-// Clean up old Firebase config files
 const firebasercPath = path.join(backendDir, ".firebaserc");
 const firebaseJsonPath = path.join(backendDir, "firebase.json");
 
-if (fs.existsSync(firebasercPath)) {
-  fs.unlinkSync(firebasercPath);
-  console.log("🧹 Removed old .firebaserc");
-}
-if (fs.existsSync(firebaseJsonPath)) {
-  fs.unlinkSync(firebaseJsonPath);
-  console.log("🧹 Removed old firebase.json");
+if (fs.existsSync(firebasercPath) && fs.existsSync(firebaseJsonPath)) {
+  console.log("Config files already exist.");
+  state[STEP_NAME] = true;
+  writeState(state);
+  process.exit(0);
 }
 
 console.log(`
