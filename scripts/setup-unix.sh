@@ -8,6 +8,8 @@ OS="$(uname -s)"
 clone_repo() {
   echo "📦 Cloning ViBe repository..."
   git clone https://github.com/continuousactivelearning/vibe.git
+  cd vibe
+
 }
 check_repo() {
   if ! command -v git &>/dev/null; then
@@ -108,6 +110,7 @@ install_node_deps() {
   if ! command -v firebase >/dev/null 2>&1; then
     pnpm i -g firebase-tools
   fi
+  sudo chown -R "$USER":"$USER" ./
   pnpm i
 }
 
