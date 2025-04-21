@@ -141,6 +141,21 @@ verify_node() {
       \. "$HOME/.nvm/nvm.sh"
       # Download and install Node.js:
       nvm install 23
+      SHELL_NAME=$(basename "$SHELL")
+      case "$SHELL_NAME" in
+      bash)
+        source ~/.bashrc
+        ;;
+      zsh)
+        source ~/.zshrc
+        ;;
+      fish)
+        source ~/.config/fish/config.fish
+        ;;
+      *)
+        echo "⚠️  Unknown shell. Please restart your terminal or manually source your shell config."
+        ;;
+      esac
       if [ $? -eq 0 ]; then
         echo "✅ Node.js updated to $(node -v)."
       else
@@ -150,10 +165,25 @@ verify_node() {
     fi
   else
     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
-      # in lieu of restarting the shell
-      \. "$HOME/.nvm/nvm.sh"
-      # Download and install Node.js:
-      nvm install 23
+    # in lieu of restarting the shell
+    \. "$HOME/.nvm/nvm.sh"
+    # Download and install Node.js:
+    nvm install 23
+    SHELL_NAME=$(basename "$SHELL")
+    case "$SHELL_NAME" in
+    bash)
+      source ~/.bashrc
+      ;;
+    zsh)
+      source ~/.zshrc
+      ;;
+    fish)
+      source ~/.config/fish/config.fish
+      ;;
+    *)
+      echo "⚠️  Unknown shell. Please restart your terminal or manually source your shell config."
+      ;;
+    esac
   fi
 }
 
