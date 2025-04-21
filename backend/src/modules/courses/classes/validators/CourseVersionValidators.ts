@@ -70,11 +70,11 @@ class DeleteCourseVersionParams {
    */
   @IsMongoId()
   @IsString()
-  id: string;
+  versionId: string;
 
   @IsMongoId()
   @IsString()
-  cid: string;
+  courseId: string;
 }
 
 export {

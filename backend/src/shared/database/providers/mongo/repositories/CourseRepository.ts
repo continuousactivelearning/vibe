@@ -230,7 +230,7 @@ export class CourseRepository implements ICourseRepository {
       // 6. Cascade Delete item groups
 
       const itemDeletionResult = await this.itemsGroupCollection.deleteMany({
-        _id: {$in: itemGroupsIds.map(id => new ObjectId(id))},
+        _id: {$in: itemGroupsIds},
       });
 
       if (itemDeletionResult.deletedCount === 0) {
@@ -240,6 +240,9 @@ export class CourseRepository implements ICourseRepository {
       // 7. Return the deleted course version
       return courseVersion;
     } catch (error) {
+      if (error instanceof ItemNotFoundError) {
+        throw error;
+      }
       throw new Error(
         'Failed to delete course version.\n More Details: ' + error,
       );
@@ -251,7 +254,6 @@ export class CourseRepository implements ICourseRepository {
     try {
       const result = await this.itemsGroupCollection.insertOne(itemsGroup);
       if (result) {
-        console.log('Items created', result.insertedId);
         const newItems = await this.itemsGroupCollection.findOne({
           _id: result.insertedId,
         });

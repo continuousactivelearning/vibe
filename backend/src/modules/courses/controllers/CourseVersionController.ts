@@ -132,21 +132,20 @@ export class CourseVersionController {
    */
 
   @Authorized(['admin', 'instructor'])
-  @Delete('/:cid/versions/:id')
+  @Delete('/:courseId/versions/:versionId')
   async delete(@Params() params: DeleteCourseVersionParams) {
-    const {cid, id} = params;
-    if (!id || !cid) {
+    const {courseId, versionId} = params;
+    if (!versionId || !courseId) {
       throw new BadRequestError('Version ID is required');
     }
     try {
-      const version = await this.courseRepo.deleteVersion(cid, id);
-      version._id = version._id.toString();
+      const version = await this.courseRepo.deleteVersion(courseId, versionId);
       return {
-        deletedItem: instanceToPlain(version),
+        message: `Version with the ID ${versionId} has been deleted successfully.`,
       };
     } catch (error) {
-      if (error instanceof BadRequestError) {
-        throw new HttpError(400, error.message);
+      if (error instanceof ItemNotFoundError) {
+        throw new HttpError(404, error.message);
       }
       if (error instanceof DeleteError) {
         throw new HttpError(500, error.message);
