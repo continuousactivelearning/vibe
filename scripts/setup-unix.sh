@@ -5,29 +5,29 @@ STATE_FILE=".vibe.json"
 echo "🚀 ViBe Setup Script"
 OS="$(uname -s)"
 
-clone_repo(){
+clone_repo() {
   echo "📦 Cloning ViBe repository..."
   git clone https://github.com/continuousactivelearning/vibe.git
 }
 check_repo() {
-  if ! command -v git &> /dev/null; then
-  echo "Git is not installed."
-  # install git and do git.config by gigving prompts"
-  if [[ "$OS" == "Linux" ]]; then
-    if command -v apt >/dev/null 2>&1; then
-      sudo apt update
-      sudo apt install -y git
-    elif command -v dnf >/dev/null 2>&1; then
-      sudo dnf install -y git
-    elif command -v yum >/dev/null 2>&1; then
-      sudo yum install -y git
-    elif command -v pacman >/dev/null 2>&1; then
-      sudo pacman -Sy --noconfirm git
+  if ! command -v git &>/dev/null; then
+    echo "Git is not installed."
+    # install git and do git.config by gigving prompts"
+    if [[ "$OS" == "Linux" ]]; then
+      if command -v apt >/dev/null 2>&1; then
+        sudo apt update
+        sudo apt install -y git
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y git
+      elif command -v yum >/dev/null 2>&1; then
+        sudo yum install -y git
+      elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -Sy --noconfirm git
+      fi
+    elif [[ "$OS" == "Darwin" ]]; then
+      brew install git
     fi
-  elif [[ "$OS" == "Darwin" ]]; then
-    brew install git
-  fi
-  echo "Git installed successfully."
+    echo "Git installed successfully."
   fi
   cwd=$(pwd)
   if [[ "$cwd" == */vibe ]]; then
@@ -82,6 +82,7 @@ install_pnpm() {
       fi
     fi
   fi
+  source "$HOME/.bashrc" || source "$HOME/.zshrc" || source "$HOME/.config/fish/config.fish"
   pnpm setup
   SHELL_NAME=$(basename "$SHELL")
   case "$SHELL_NAME" in
@@ -129,13 +130,14 @@ verify_node() {
   if exists_node; then
     echo "✅ Node.js found at version $(node -v)."
     current_node=$(node -v)
-    required_node="v22.0.0"
+    required_node="v23.0.0"
     if ! [ "$(printf '%s\n' "${required_node#v}" "${current_node#v}" | sort -V | head -n1)" = "${required_node#v}" ]; then
       echo "❌ Node.js version is too old. Updating to v22.0.0 or higher."
-      sudo pnpm install -g n
-      sudo n latest
-      export PATH="/usr/local/bin:$PATH"
-      hash -r
+      curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | bash
+      # in lieu of restarting the shell
+      \. "$HOME/.nvm/nvm.sh"
+      # Download and install Node.js:
+      nvm install 23
       if [ $? -eq 0 ]; then
         echo "✅ Node.js updated to $(node -v)."
       else
