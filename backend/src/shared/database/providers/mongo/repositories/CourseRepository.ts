@@ -243,7 +243,7 @@ export class CourseRepository implements ICourseRepository {
       if (error instanceof ItemNotFoundError) {
         throw error;
       }
-      throw new Error(
+      throw new DeleteError(
         'Failed to delete course version.\n More Details: ' + error,
       );
     }
