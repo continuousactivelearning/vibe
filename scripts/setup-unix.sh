@@ -5,9 +5,18 @@ STATE_FILE=".vibe.json"
 echo "🚀 ViBe Setup Script"
 OS="$(uname -s)"
 
+
+# boolian wasclones true or false
+
+WASCLONED=false
 clone_repo() {
   echo "📦 Cloning ViBe repository..."
   git clone https://github.com/continuousactivelearning/vibe.git
+  if [ $? -ne 0 ]; then
+    echo "❌ Failed to clone the repository."
+    exit 1
+  fi
+  WASCLONED=true
   cd vibe
 
 }
@@ -162,4 +171,11 @@ install_node_deps
 install_cli
 init_state
 vibe setup
+if [ "$WASCLONED" = true ]; then
+  echo "Do 'cd vibe' to enter the directory."
+fi
+if ! command -v vibe >/dev/null 2>&1; then
 echo "✅ Setup complete! To use CLI restart the terminal or source the rc file."
+else
+  echo "To use CLI, run 'vibe' command."
+fi
