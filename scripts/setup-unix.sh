@@ -38,13 +38,11 @@ check_repo() {
     else
       echo "No Git repository found."
       clone_repo
-      cd vibe
     fi
 
   else
     echo "No Git repository found."
     clone_repo
-    cd vibe
   fi
 }
 
@@ -85,23 +83,16 @@ install_pnpm() {
     fi
   fi
   source "$HOME/.bashrc" || source "$HOME/.zshrc" || source "$HOME/.config/fish/config.fish"
-  pnpm setup
-  SHELL_NAME=$(basename "$SHELL")
-  case "$SHELL_NAME" in
-  bash)
-    source ~/.bashrc
-    ;;
-  zsh)
-    source ~/.zshrc
-    ;;
-  fish)
-    source ~/.config/fish/config.fish
-    ;;
-  *)
-    echo "⚠️  Unknown shell. Please restart your terminal or manually source your shell config."
-    ;;
-  esac
-  echo "✅ pnpm: $(pnpm -v)"
+  if [ $? -ne 0 ]; then
+    echo "❌ Failed to install pnpm."
+    exit 1
+  fi
+  if ! command -v pnpm >/dev/null 2>&1; then
+    echo "Restart the setup."
+    exit 1
+	else
+  		echo "✅ pnpm: $(pnpm -v)"
+  fi
 }
 
 install_node_deps() {
@@ -141,21 +132,7 @@ verify_node() {
       \. "$HOME/.nvm/nvm.sh"
       # Download and install Node.js:
       nvm install 23
-      SHELL_NAME=$(basename "$SHELL")
-      case "$SHELL_NAME" in
-      bash)
-        source ~/.bashrc
-        ;;
-      zsh)
-        source ~/.zshrc
-        ;;
-      fish)
-        source ~/.config/fish/config.fish
-        ;;
-      *)
-        echo "⚠️  Unknown shell. Please restart your terminal or manually source your shell config."
-        ;;
-      esac
+      source "$HOME/.bashrc" || source "$HOME/.zshrc" || source "$HOME/.config/fish/config.fish"
       if [ $? -eq 0 ]; then
         echo "✅ Node.js updated to $(node -v)."
       else
@@ -169,24 +146,11 @@ verify_node() {
     \. "$HOME/.nvm/nvm.sh"
     # Download and install Node.js:
     nvm install 23
-    SHELL_NAME=$(basename "$SHELL")
-    case "$SHELL_NAME" in
-    bash)
-      source ~/.bashrc
-      ;;
-    zsh)
-      source ~/.zshrc
-      ;;
-    fish)
-      source ~/.config/fish/config.fish
-      ;;
-    *)
-      echo "⚠️  Unknown shell. Please restart your terminal or manually source your shell config."
-      ;;
-    esac
+    source ~/.bashrc || source ~/.zshrc || source ~/.config/fish/config.fish
   fi
 }
 
+source ~/.bashrc || source ~/.zshrc || source ~/.config/fish/config.fish
 if [[ "$(pwd)" == */scripts ]]; then
   cd ..
 fi
@@ -198,4 +162,4 @@ install_node_deps
 install_cli
 init_state
 vibe setup
-echo "✅ Setup complete! You can now use 'vibe start'."
+echo "✅ Setup complete! To use CLI restart the terminal or source the rc file."
