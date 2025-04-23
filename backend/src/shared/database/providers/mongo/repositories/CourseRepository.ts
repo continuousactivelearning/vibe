@@ -327,12 +327,9 @@ export class CourseRepository implements ICourseRepository {
   async deleteModule(
     versionId: string,
     moduleId: string,
-  ): Promise<IModule | null> {
+  ): Promise<boolean | null> {
     await this.init();
     try {
-      console.log('Starting deleteModule process');
-      console.log('Received versionId:', versionId, 'moduleId:', moduleId);
-
       // Convert versionId and moduleId to ObjectId
       const versionObjectId = new ObjectId(versionId);
       const moduleObjectId = new ObjectId(moduleId);
@@ -341,10 +338,8 @@ export class CourseRepository implements ICourseRepository {
       const courseVersion = await this.courseVersionCollection.findOne({
         _id: versionObjectId,
       });
-      console.log('Course version found:', courseVersion);
 
       if (!courseVersion) {
-        console.error('Course Version not found');
         throw new ItemNotFoundError('Course Version not found');
       }
 
@@ -352,10 +347,8 @@ export class CourseRepository implements ICourseRepository {
       const module = courseVersion.modules.find(m =>
         new ObjectId(m.moduleId).equals(moduleObjectId),
       );
-      console.log('Module found:', module);
 
       if (!module) {
-        console.error('Module not found');
         throw new ItemNotFoundError('Module not found');
       }
 
@@ -364,7 +357,6 @@ export class CourseRepository implements ICourseRepository {
         const itemGroupsIds = module.sections.map(
           section => new ObjectId(section.itemsGroupId),
         );
-        console.log('Item group IDs to delete:', itemGroupsIds);
 
         try {
           const itemDeletionResult = await this.itemsGroupCollection.deleteMany(
@@ -372,56 +364,37 @@ export class CourseRepository implements ICourseRepository {
               _id: {$in: itemGroupsIds},
             },
           );
-          console.log('Item deletion result:', itemDeletionResult);
 
           if (itemDeletionResult.deletedCount === 0) {
-            console.error('Failed to delete item groups');
             throw new DeleteError('Failed to delete item groups');
           }
         } catch (error) {
-          console.error('Error during item deletion:', error);
           throw new DeleteError('Item deletion failed');
         }
-      } else {
-        console.log('No sections or items to delete.');
       }
 
       // Remove the module from the course version
       const updatedModules = courseVersion.modules.filter(
         m => !new ObjectId(m.moduleId).equals(moduleObjectId),
       );
-      console.log('Updated modules:', updatedModules);
 
       const updateResult = await this.courseVersionCollection.updateOne(
         {_id: versionObjectId},
         {$set: {modules: updatedModules}},
       );
-      console.log('Update result:', updateResult);
 
       if (updateResult.modifiedCount !== 1) {
-        console.error('Failed to update course version');
         throw new DeleteError('Failed to update course version');
       }
 
-      console.log('Module successfully deleted:', module);
-
-      // Convert ObjectId fields to string before returning
-      return {
-        ...module,
-        moduleId: module.moduleId.toString(),
-        // If you have other ObjectId fields, convert them here as well
-      } as IModule;
+      return true;
     } catch (error) {
-      console.error('Error caught in deleteModule:', error);
       if (error instanceof ItemNotFoundError) {
-        console.error('Item not found:', error.message);
-        throw error; // Let the controller handle this error
+        throw error;
       }
       if (error instanceof DeleteError) {
-        console.error('Delete error:', error.message);
-        throw error; // Let the controller handle this error
+        throw error;
       }
-      console.error('Unexpected error in deleteModule:', error);
       throw new DeleteError(
         'Failed to delete module.\n More Details: ' + error,
       );
