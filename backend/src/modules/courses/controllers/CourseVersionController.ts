@@ -13,14 +13,14 @@ import {
   BadRequestError,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemNotFoundError, ReadError, DeleteError} from 'shared/errors/errors';
+import {DeleteError, ItemNotFoundError, ReadError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {CourseVersion} from '../classes/transformers/CourseVersion';
 import {
   CreateCourseVersionParams,
   CreateCourseVersionBody,
   ReadCourseVersionParams,
-  DeleteModuleParams,
+  DeleteCourseVersionParams,
 } from '../classes/validators/CourseVersionValidators';
 
 /**
@@ -119,48 +119,37 @@ export class CourseVersionController {
       throw new HttpError(500, error.message);
     }
   }
-
   /**
-   * Delete a module from a specific course version.
+   * Delete the course version by its ID
    *
-   * @param params - Parameters including version ID and module ID
-   * @returns The deleted module object
+   * @params params - Parameters including the courseID and version ID.
+   * @returns The deleted course version object.
    *
-   * @throws BadRequestError if version ID or module ID is missing
-   * @throws HttpError(404) if the module is not found
-   * @throws HttpError(500) for delete errors
+   * @throws HttpError(404) if the course or version is not found.
+   * @throws HttpError(500) on any other internal server errors.
    *
    * @category Courses/Controllers
    */
-  @Delete('/versions/:versionId/modules/:moduleId')
-  async deleteModule(@Params() params: DeleteModuleParams) {
-    const {versionId, moduleId} = params;
-    if (!versionId || !moduleId) {
-      throw new BadRequestError('Version ID and Module ID are required');
+
+  @Authorized(['admin', 'instructor'])
+  @Delete('/:courseId/versions/:versionId')
+  async delete(@Params() params: DeleteCourseVersionParams) {
+    const {courseId, versionId} = params;
+    if (!versionId || !courseId) {
+      throw new BadRequestError('Version ID is required');
     }
     try {
-      const deletedModule = await this.courseRepo.deleteModule(
-        versionId,
-        moduleId,
-      );
-      const deleted: {moduleId: string} = {
-        moduleId: deletedModule.moduleId.toString(),
-      };
+      const version = await this.courseRepo.deleteVersion(courseId, versionId);
       return {
-        deletedItem: instanceToPlain({
-          ...deleted,
-          moduleId: deleted?.moduleId?.toString(),
-        }),
+        message: `Version with the ID ${versionId} has been deleted successfully.`,
       };
     } catch (error) {
       if (error instanceof ItemNotFoundError) {
         throw new HttpError(404, error.message);
       }
       if (error instanceof DeleteError) {
-        console.error('Delete error:', error.message);
-        throw new HttpError(500, 'Item deletion failed');
+        throw new HttpError(500, error.message);
       }
-      throw new HttpError(500, error.message);
     }
   }
 }

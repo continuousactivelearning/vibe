@@ -59,29 +59,27 @@ class ReadCourseVersionParams {
 }
 
 /**
- * Route parameters for deleting a module from a course version.
+ * Route parameters for deleting a course version by ID.
  *
  * @category Courses/Validators/CourseVersionValidators
  */
-class DeleteModuleParams {
+
+class DeleteCourseVersionParams {
   /**
-   * ID of the course version.
+   * ID of the course version to delete.
    */
   @IsMongoId()
   @IsString()
   versionId: string;
 
-  /**
-   * ID of the module to delete.
-   */
   @IsMongoId()
   @IsString()
-  moduleId: string;
+  courseId: string;
 }
 
 export {
   CreateCourseVersionBody,
   CreateCourseVersionParams,
   ReadCourseVersionParams,
-  DeleteModuleParams,
+  DeleteCourseVersionParams,
 };
