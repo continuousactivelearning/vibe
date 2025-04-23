@@ -43,7 +43,7 @@ import {calculateNewOrder} from '../utils/calculateNewOrder';
 @Service()
 export class ItemController {
   constructor(
-    @Inject('NewCourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
   ) {
     if (!this.courseRepo) {
       throw new Error('CourseRepository is not properly injected');

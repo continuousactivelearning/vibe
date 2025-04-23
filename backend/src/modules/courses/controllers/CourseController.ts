@@ -39,7 +39,7 @@ import {
 @Service()
 export class CourseController {
   constructor(
-    @Inject('NewCourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
   ) {}
 
   /**

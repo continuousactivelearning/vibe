@@ -19,7 +19,7 @@ if (!Container.has('Database')) {
 }
 
 Container.set(
-  'NewCourseRepo',
+  'CourseRepo',
   new CourseRepository(Container.get<MongoDatabase>('Database')),
 );
 
