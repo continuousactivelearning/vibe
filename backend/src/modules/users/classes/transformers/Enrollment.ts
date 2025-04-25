@@ -10,7 +10,7 @@ import {ID} from 'shared/types';
 
 @Expose()
 export class Enrollment implements IEnrollment {
-  @Expose()
+  @Expose({toClassOnly: true})
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})
   @Transform(StringToObjectId.transformer, {toClassOnly: true})
   _id?: ID;
@@ -39,7 +39,7 @@ export class Enrollment implements IEnrollment {
 
   constructor(userId?: string, courseId?: string, courseVersionId?: string) {
     if (userId && courseId && courseVersionId) {
-      this.userId = new ObjectId(userId);
+      this.userId = userId;
       this.courseId = new ObjectId(courseId);
       this.courseVersionId = new ObjectId(courseVersionId);
       this.status = 'active';

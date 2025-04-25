@@ -10,18 +10,26 @@ import {CourseVersionController} from './controllers/CourseVersionController';
 import {ModuleController} from './controllers/ModuleController';
 import {SectionController} from './controllers/SectionController';
 import {ItemController} from './controllers/ItemController';
-import {EnrollmentController} from './controllers/EnrollmentController';
 
 useContainer(Container);
 
-if (!Container.has('Database')) {
-  Container.set<IDatabase>('Database', new MongoDatabase(dbConfig.url, 'vibe'));
+export function setupCoursesModuleDependencies() {
+  if (!Container.has('Database')) {
+    Container.set<IDatabase>(
+      'Database',
+      new MongoDatabase(dbConfig.url, 'vibe'),
+    );
+  }
+
+  if (!Container.has('CourseRepo')) {
+    Container.set(
+      'CourseRepo',
+      new CourseRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
 }
 
-Container.set(
-  'CourseRepo',
-  new CourseRepository(Container.get<MongoDatabase>('Database')),
-);
+setupCoursesModuleDependencies();
 
 export const coursesModuleOptions: RoutingControllersOptions = {
   controllers: [
@@ -30,9 +38,8 @@ export const coursesModuleOptions: RoutingControllersOptions = {
     ModuleController,
     SectionController,
     ItemController,
-    EnrollmentController,
   ],
-  // defaultErrorHandler: false,
+  defaultErrorHandler: true,
   // middlewares: [HttpErrorHandler],
   authorizationChecker: async function () {
     return true;
@@ -43,4 +50,3 @@ export const coursesModuleOptions: RoutingControllersOptions = {
 export * from './classes/validators/index';
 export * from './classes/transformers/index';
 export * from './controllers/index';
-export {EnrollmentController};

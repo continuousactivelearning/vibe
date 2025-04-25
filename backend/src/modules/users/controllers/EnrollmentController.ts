@@ -1,169 +1,49 @@
 import 'reflect-metadata';
-import {instanceToPlain} from 'class-transformer';
 import {
-  Authorized,
+  HttpCode,
+  HttpError,
   JsonController,
   Params,
   Post,
-  HttpError,
 } from 'routing-controllers';
 import {Inject, Service} from 'typedi';
 import {EnrollmentParams} from '../classes/validators/EnrollmentValidators';
-import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
-import {Enrollment} from '../classes/transformers/Enrollment';
-import {Progress} from '../classes/transformers/Progress';
+import {EnrollmentService} from '../services';
+import {
+  Enrollment,
+  EnrollUserResponse,
+  Progress,
+} from '../classes/transformers';
 import {ItemNotFoundError} from 'shared/errors/errors';
-import {ObjectId} from 'mongodb';
 
 /**
  * Controller for managing student enrollments in courses.
  *
  * @category Users/Controllers
  */
-@JsonController('/users')
+@JsonController('/users', {transformResponse: true})
 @Service()
 export class EnrollmentController {
   constructor(
-    @Inject('EnrollmentRepo')
-    private readonly enrollmentRepo: EnrollmentRepository,
-    @Inject('NewCourseRepo') private readonly courseRepo: CourseRepository,
-    @Inject('UserRepo') private readonly userRepo: UserRepository,
+    @Inject('EnrollmentService')
+    private readonly enrollmentService: EnrollmentService,
   ) {}
 
-  /**
-   * Enroll a student in a specific course version.
-   * Initializes progress tracking to the first module, section, and item.
-   *
-   * @param params - Parameters with userId, courseId, and courseVersionId
-   * @returns The created enrollment and progress records
-   *
-   * @throws HTTPError(404) if the course or version doesn't exist
-   * @throws HTTPError(409) if the student is already enrolled
-   * @throws HTTPError(500) for other errors
-   */
-  @Authorized(['admin', 'instructor', 'student'])
-  @Post('/:userId/enrollment/courses/:courseId/versions/:courseVersionId')
-  async enrollUser(@Params() params: EnrollmentParams) {
-    try {
-      const {userId, courseId, courseVersionId} = params;
-
-      // Check if user, course, and courseVersion exist
-      const user = await this.userRepo.findByFirebaseUID(userId);
-      if (!user) {
-        throw new ItemNotFoundError('User not found');
-      }
-
-      // Check if course exists
-      const course = await this.courseRepo.read(courseId);
-      if (!course) {
-        throw new ItemNotFoundError('Course not found');
-      }
-
-      // Check if course version exists and belongs to the course
-      const courseVersion = await this.courseRepo.readVersion(courseVersionId);
-      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
-        throw new ItemNotFoundError(
-          'Course version not found or does not belong to this course',
-        );
-      }
-
-      // Check if student is already enrolled
-      const existingEnrollment = await this.enrollmentRepo.findEnrollment(
-        userId,
-        courseId,
-        courseVersionId,
-      );
-
-      if (existingEnrollment) {
-        throw new HttpError(
-          409,
-          'User is already enrolled in this course version',
-        );
-      }
-
-      // Create enrollment record
-      const enrollment = new Enrollment(userId, courseId, courseVersionId);
-      const createdEnrollment = await this.enrollmentRepo.createEnrollment({
-        userId: new ObjectId(userId),
-        courseId: new ObjectId(courseId),
-        courseVersionId: new ObjectId(courseVersionId),
-        status: 'active',
-        enrollmentDate: new Date(),
-      });
-
-      // Initialize progress to first module, section, and item
-      const initialProgress = await this.initializeProgress(
-        userId,
-        courseId,
-        courseVersionId,
-        courseVersion,
-      );
-
-      return {
-        enrollment: instanceToPlain(createdEnrollment),
-        progress: instanceToPlain(initialProgress),
-      };
-    } catch (error) {
-      if (error instanceof ItemNotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      if (error instanceof HttpError) {
-        throw error;
-      }
-      throw new HttpError(500, `Failed to enroll user: ${error.message}`);
-    }
-  }
-
-  /**
-   * Initialize student progress tracking to the first item in the course.
-   * Private helper method for the enrollment process.
-   */
-  private async initializeProgress(
-    userId: string,
-    courseId: string,
-    courseVersionId: string,
-    courseVersion: any, // Replace with the actual type of courseVersion
-  ) {
-    // Get the first module, section, and item
-    if (!courseVersion.modules || courseVersion.modules.length === 0) {
-      return null; // No modules to track progress for
-    }
-
-    const firstModule = courseVersion.modules.sort((a, b) =>
-      a.order.localeCompare(b.order),
-    )[0];
-
-    if (!firstModule.sections || firstModule.sections.length === 0) {
-      return null; // No sections to track progress for
-    }
-
-    const firstSection = firstModule.sections.sort((a, b) =>
-      a.order.localeCompare(b.order),
-    )[0];
-
-    // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
-      firstSection.itemsGroupId.toString(),
+  @Post('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
+  @HttpCode(200)
+  async enrollUser(
+    @Params() params: EnrollmentParams,
+  ): Promise<EnrollUserResponse> {
+    const {userId, courseId, courseVersionId} = params;
+    const responseData = await this.enrollmentService.enrollUser(
+      userId,
+      courseId,
+      courseVersionId,
     );
 
-    if (!itemsGroup || !itemsGroup.items || itemsGroup.items.length === 0) {
-      return null; // No items to track progress for
-    }
-
-    const firstItem = itemsGroup.items.sort((a, b) =>
-      a.order.localeCompare(b.order),
-    )[0];
-
-    // Create progress record
-    return await this.enrollmentRepo.createProgress({
-      userId: new ObjectId(userId),
-      courseId: new ObjectId(courseId),
-      courseVersionId: new ObjectId(courseVersionId),
-      currentModule: firstModule.moduleId,
-      currentSection: firstSection.sectionId,
-      currentItem: firstItem.itemId,
-    });
+    return new EnrollUserResponse(
+      responseData.enrollment,
+      responseData.progress,
+    );
   }
 }

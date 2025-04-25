@@ -1,5 +1,10 @@
 import 'reflect-metadata';
-import {IsMongoId, IsNotEmpty, IsString} from 'class-validator';
+import {
+  IsFirebasePushId,
+  IsMongoId,
+  IsNotEmpty,
+  IsString,
+} from 'class-validator';
 
 /**
  * Route parameters for enrolling a student in a course version.
@@ -10,7 +15,7 @@ export class EnrollmentParams {
   /**
    * User ID of the student to enroll
    */
-  @IsMongoId()
+
   @IsString()
   @IsNotEmpty()
   userId: string;

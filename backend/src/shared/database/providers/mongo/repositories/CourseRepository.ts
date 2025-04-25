@@ -26,8 +26,6 @@ export class CourseRepository implements ICourseRepository {
   private courseCollection: Collection<Course>;
   private courseVersionCollection: Collection<CourseVersion>;
   private itemsGroupCollection: Collection<ItemsGroup>;
-  private enrollmentCollection: Collection<IEnrollment>;
-  private progressCollection: Collection<IProgress>;
 
   constructor(@Inject(() => MongoDatabase) private db: MongoDatabase) {}
 
@@ -37,10 +35,6 @@ export class CourseRepository implements ICourseRepository {
       await this.db.getCollection<CourseVersion>('newCourseVersion');
     this.itemsGroupCollection =
       await this.db.getCollection<ItemsGroup>('itemsGroup');
-    this.enrollmentCollection =
-      await this.db.getCollection<IEnrollment>('enrollment');
-    this.progressCollection =
-      await this.db.getCollection<IProgress>('progress');
   }
   async create(course: Course): Promise<Course | null> {
     await this.init();
@@ -50,9 +44,7 @@ export class CourseRepository implements ICourseRepository {
         const newCourse = await this.courseCollection.findOne({
           _id: result.insertedId,
         });
-        return instanceToPlain(
-          Object.assign(new Course(), newCourse),
-        ) as Course;
+        return Object.assign(new Course(), newCourse) as Course;
       } else {
         throw new CreateError('Failed to create course');
       }
@@ -188,7 +180,6 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
-
   async deleteVersion(
     courseId: string,
     versionId: string,
@@ -259,7 +250,6 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
-
   async createItemsGroup(itemsGroup: ItemsGroup): Promise<ItemsGroup | null> {
     await this.init();
     try {
@@ -291,7 +281,6 @@ export class CourseRepository implements ICourseRepository {
       throw new ReadError('Failed to read items.\n More Details: ' + error);
     }
   }
-
   async deleteItem(itemGroupsId: string, itemId: string): Promise<boolean> {
     await this.init();
     try {
@@ -308,7 +297,6 @@ export class CourseRepository implements ICourseRepository {
       throw new DeleteError('Failed to delete item.\n More Details: ' + error);
     }
   }
-
   async updateItemsGroup(
     itemsGroupId: string,
     itemsGroup: ItemsGroup,
@@ -411,45 +399,6 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
-
-  async createEnrollment(enrollment: IEnrollment): Promise<IEnrollment> {
-    await this.init();
-    try {
-      const result = await this.enrollmentCollection.insertOne(enrollment);
-      if (result.acknowledged) {
-        const newEnrollment = await this.enrollmentCollection.findOne({
-          _id: result.insertedId,
-        });
-        return newEnrollment;
-      } else {
-        throw new CreateError('Failed to create enrollment');
-      }
-    } catch (error) {
-      throw new CreateError(
-        'Failed to create enrollment.\n More Details: ' + error,
-      );
-    }
-  }
-
-  async createProgress(progress: IProgress): Promise<IProgress> {
-    await this.init();
-    try {
-      const result = await this.progressCollection.insertOne(progress);
-      if (result.acknowledged) {
-        const newProgress = await this.progressCollection.findOne({
-          _id: result.insertedId,
-        });
-        return newProgress;
-      } else {
-        throw new CreateError('Failed to create progress');
-      }
-    } catch (error) {
-      throw new CreateError(
-        'Failed to create progress.\n More Details: ' + error,
-      );
-    }
-  }
-
   async getFirstOrderItems(courseVersionId: string): Promise<{
     moduleId: ObjectId;
     sectionId: ObjectId;

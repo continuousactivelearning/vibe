@@ -40,15 +40,12 @@ export class EnrollmentRepository {
     courseVersionId: string,
   ): Promise<IEnrollment | null> {
     await this.init();
-    try {
-      return await this.enrollmentCollection.findOne({
-        userId: new ObjectId(userId),
-        courseId: new ObjectId(courseId),
-        courseVersionId: new ObjectId(courseVersionId),
-      });
-    } catch (error) {
-      throw new ReadError(`Failed to find enrollment: ${error.message}`);
-    }
+
+    return await this.enrollmentCollection.findOne({
+      userId: userId,
+      courseId: new ObjectId(courseId),
+      courseVersionId: new ObjectId(courseVersionId),
+    });
   }
 
   /**

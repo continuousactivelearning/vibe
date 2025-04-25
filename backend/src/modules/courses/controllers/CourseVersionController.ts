@@ -11,6 +11,7 @@ import {
   Post,
   Delete,
   BadRequestError,
+  HttpCode,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {DeleteError, ItemNotFoundError, ReadError} from 'shared/errors/errors';
@@ -53,6 +54,7 @@ export class CourseVersionController {
    */
   @Authorized(['admin', 'instructor'])
   @Post('/:id/versions')
+  @HttpCode(201)
   async create(
     @Params() params: CreateCourseVersionParams,
     @Body() body: CreateCourseVersionBody,

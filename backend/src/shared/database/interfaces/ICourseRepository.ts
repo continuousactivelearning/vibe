@@ -27,8 +27,6 @@ export interface ICourseRepository {
     itemsGroup: ItemsGroup,
   ): Promise<ItemsGroup | null>;
 
-  createEnrollment(enrollment: IEnrollment): Promise<IEnrollment>;
-  createProgress(progress: IProgress): Promise<IProgress>;
   getFirstOrderItems(courseVersionId: string): Promise<{
     moduleId: ObjectId;
     sectionId: ObjectId;

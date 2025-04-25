@@ -1,35 +1,68 @@
-import {useContainer} from 'routing-controllers';
+import {
+  ExpressErrorMiddlewareInterface,
+  HttpError,
+  Middleware,
+  useContainer,
+} from 'routing-controllers';
 import {RoutingControllersOptions} from 'routing-controllers';
-import {Container} from 'typedi';
+import {Container, Service} from 'typedi';
 import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
 import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {EnrollmentController} from './controllers/EnrollmentController';
-
+import {EnrollmentService} from './services';
+import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
+import {dbConfig} from '../../config/db';
 useContainer(Container);
 
-if (!Container.has('EnrollmentRepo')) {
-  Container.set(
-    'EnrollmentRepo',
-    new EnrollmentRepository(Container.get<MongoDatabase>('Database')),
-  );
+export function setupUsersModuleDependencies(): void {
+  if (!Container.has('Database')) {
+    Container.set('Database', new MongoDatabase(dbConfig.url, 'vibe'));
+  }
+
+  if (!Container.has('EnrollmentRepo')) {
+    Container.set(
+      'EnrollmentRepo',
+      new EnrollmentRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
+
+  if (!Container.has('CourseRepo')) {
+    Container.set(
+      'CourseRepo',
+      new CourseRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
+
+  if (!Container.has('UserRepo')) {
+    Container.set(
+      'UserRepo',
+      new UserRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
+
+  if (!Container.has('EnrollmentService')) {
+    Container.set(
+      'EnrollmentService',
+      new EnrollmentService(
+        Container.get<EnrollmentRepository>('EnrollmentRepo'),
+        Container.get<CourseRepository>('CourseRepo'),
+        Container.get<UserRepository>('UserRepo'),
+      ),
+    );
+  }
 }
 
-// Make sure course repository is registered
-if (!Container.has('NewCourseRepo')) {
-  Container.set(
-    'NewCourseRepo',
-    new CourseRepository(Container.get<MongoDatabase>('Database')),
-  );
-}
+setupUsersModuleDependencies();
 
 export const usersModuleOptions: RoutingControllersOptions = {
   controllers: [EnrollmentController],
+  middlewares: [],
+  defaultErrorHandler: true,
   authorizationChecker: async function () {
     return true;
   },
   validation: true,
-  routePrefix: '/api',
 };
 
 export * from './classes/validators/index';
