@@ -1,4 +1,4 @@
-#!/usr/bin/env pwsh
+﻿#!/usr/bin/env pwsh
 $StateFile = ".vibe.json"
 
 Write-Host "🚀 ViBe Setup Script"
