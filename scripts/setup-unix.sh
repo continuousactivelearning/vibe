@@ -5,7 +5,6 @@ STATE_FILE=".vibe.json"
 echo "🚀 ViBe Setup Script"
 OS="$(uname -s)"
 
-
 # boolian wasclones true or false
 
 WASCLONED=false
@@ -40,15 +39,8 @@ check_repo() {
     fi
     echo "Git installed successfully."
   fi
-  cwd=$(pwd)
-  if [[ "$cwd" == */vibe ]]; then
-    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-      echo "This is a Git repository."
-    else
-      echo "No Git repository found."
-      clone_repo
-    fi
-
+  if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "This is a Git repository."
   else
     echo "No Git repository found."
     clone_repo
@@ -99,8 +91,8 @@ install_pnpm() {
   if ! command -v pnpm >/dev/null 2>&1; then
     echo "Restart the setup."
     exit 1
-	else
-  		echo "✅ pnpm: $(pnpm -v)"
+  else
+    echo "✅ pnpm: $(pnpm -v)"
   fi
 }
 
