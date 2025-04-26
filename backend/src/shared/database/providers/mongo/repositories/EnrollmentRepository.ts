@@ -3,7 +3,14 @@ import {Collection, ObjectId} from 'mongodb';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {IEnrollment, IProgress} from 'shared/interfaces/IUser';
-import {CreateError, ItemNotFoundError, ReadError} from 'shared/errors/errors';
+import {
+  CreateError,
+  ItemNotFoundError,
+  ReadError,
+  UpdateError,
+} from 'shared/errors/errors';
+import {instanceToPlain} from 'class-transformer';
+import {Progress} from 'modules/users';
 
 @Service()
 export class EnrollmentRepository {
@@ -97,6 +104,53 @@ export class EnrollmentRepository {
       throw new CreateError(
         `Failed to create progress tracking: ${error.message}`,
       );
+    }
+  }
+
+  /**
+   * Reset User Item Progress
+   * @param userId - The ID of the user
+   * @param courseId - The ID of the course
+   * @param moduleId - The module ID that needs to be set
+   * @param sectionId - The section ID that needs to be set
+   * @param itemId - The item ID that needs to be set
+   * @returns A promise that resolves to the updated progress
+   * @throws CreateError if the progress record cannot be reset
+   */
+  async resetItemProgress(
+    userId: string,
+    courseId: string,
+    moduleId: string,
+    sectionId: string,
+    itemId: string,
+  ): Promise<IProgress> {
+    await this.init();
+    try {
+      const result = await this.progressCollection.updateOne(
+        {
+          userId: userId,
+          courseId: new ObjectId(courseId),
+        },
+        {
+          $set: {
+            currentModule: new ObjectId(moduleId),
+            currentSection: new ObjectId(sectionId),
+            currentItem: new ObjectId(itemId),
+          },
+        },
+      );
+
+      if (result.modifiedCount === 1) {
+        const updatedProgress = await this.progressCollection.findOne({
+          userId: userId,
+          courseId: new ObjectId(courseId),
+        });
+        return updatedProgress as IProgress;
+      } else {
+        throw new UpdateError('Failed to Reset the Progress');
+      }
+    } catch (error) {
+      throw new CreateError(`Failed to reset item progress: ${error.message}`);
     }
   }
 }

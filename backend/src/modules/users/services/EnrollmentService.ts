@@ -133,4 +133,64 @@ export class EnrollmentService {
       currentItem: firstItem.itemId,
     });
   }
+
+  /**
+   * Reset student progress to the given item id in the course.
+   */
+  async resetProgress(
+    userId: string,
+    courseId: string,
+    moduleId: string,
+    sectionId: string,
+    itemId: string,
+  ) {
+    // Check if user, course, and courseVersion exist
+    const user = await this.userRepo.findByFirebaseUID(userId);
+    if (!user) {
+      throw new ItemNotFoundError('User not found');
+    }
+
+    // Check if course exists
+    const course = await this.courseRepo.read(courseId);
+    if (!course) {
+      throw new ItemNotFoundError(
+        'The specified course Not found. Please check the CourseId.',
+      );
+    }
+
+    // Check if module exists
+    const module = await this.courseRepo.read(moduleId);
+    if (!module) {
+      throw new ItemNotFoundError(
+        'The specified module does not exist in the course. Please check the moduleId.',
+      );
+    }
+
+    // Check if section exists
+    const section = await this.courseRepo.read(sectionId);
+    if (!section) {
+      throw new ItemNotFoundError(
+        'The specified section does not exist in the given module. Please check the sectionId.',
+      );
+    }
+
+    // Check if item exists
+    const item = await this.courseRepo.read(itemId);
+    if (!item) {
+      throw new ItemNotFoundError(
+        'The specified item does not exist in the given section. Please check the itemId.',
+      );
+    }
+
+    // Reset Progress Record
+    const resetProgress = await this.enrollmentRepo.resetItemProgress(
+      userId,
+      courseId,
+      moduleId,
+      sectionId,
+      itemId,
+    );
+
+    return resetProgress;
+  }
 }
