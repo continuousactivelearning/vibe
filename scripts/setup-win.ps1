@@ -1,6 +1,4 @@
 #!/usr/bin/env pwsh
-
-$ErrorActionPreference = "Stop"
 $StateFile = ".vibe.json"
 
 Write-Host "🚀 ViBe Setup Script"
@@ -47,7 +45,7 @@ function Install-PNPM {
     # Refresh session path
     $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","User") + ";" + [System.Environment]::GetEnvironmentVariable("Path","Machine")
     if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
-        Write-Host "❌ Failed to install pnpm. Please restart PowerShell and try again."
+        Write-Host "Please restart PowerShell and run the script again."
         exit 1
     }
     Write-Host "✅ pnpm: $(pnpm -v)"
@@ -85,28 +83,45 @@ function Check-Node {
         $installed = [version]($currentNode.TrimStart('v'))
         if ($installed -lt $required) {
             Write-Host "❌ Node.js is too old. Installing NVM for Windows..."
+            if (-not (Get-Command nvm -ErrorAction SilentlyContinue)) {
             Invoke-WebRequest `
               https://github.com/coreybutler/nvm-windows/releases/latest/download/nvm-setup.zip `
               -OutFile "nvm-setup.zip"
             Expand-Archive -Path "nvm-setup.zip" -DestinationPath "."
             Start-Process .\nvm-setup.exe -Wait
-            Write-Host "Please run `nvm install 23` after the installer completes."
-            exit 1
+            . $PROFILE
+        }
+            if (-not (Get-Command nvm -ErrorAction SilentlyContinue)) {
+                Write-Host "❌ Rerun the script after restarting the terminal."
+                exit 1}
+            nvm install 23
+            nvm use 23
         }
     } else {
         Write-Host "Node.js not found. Installing NVM for Windows..."
-        Invoke-WebRequest `
-          https://github.com/coreybutler/nvm-windows/releases/latest/download/nvm-setup.zip `
-          -OutFile "nvm-setup.zip"
-        Expand-Archive -Path "nvm-setup.zip" -DestinationPath "."
-        Start-Process .\nvm-setup.exe -Wait
-        Write-Host "Please run `nvm install 23` after the installer completes."
-        exit 1
+        # look if nvm exists
+        if (-not (Get-Command nvm -ErrorAction SilentlyContinue)) {
+            Invoke-WebRequest `
+              https://github.com/coreybutler/nvm-windows/releases/latest/download/nvm-setup.zip `
+              -OutFile "nvm-setup.zip"
+            Expand-Archive -Path "nvm-setup.zip" -DestinationPath "."
+            Start-Process .\nvm-setup.exe -Wait
+            . $PROFILE
+        }
+        if (-not (Get-Command nvm -ErrorAction SilentlyContinue)) {
+            Write-Host "❌ Rerun the script after restarting the terminal."
+            exit 1}
+        nvm install 23
+        nvm use 23
     }
 }
 
 # --- MAIN ---
-
+# if it doesn’t exist, create the file:
+if (!(Test-Path -Path $PROFILE.CurrentUserCurrentHost)) {
+    New-Item -ItemType File -Path $PROFILE.CurrentUserCurrentHost -Force
+  }
+. $PROFILE
 # If we’re in the scripts folder, go up one level
 if ((Get-Location).Path -like "*\scripts") {
     Set-Location ..
