@@ -91,16 +91,24 @@ install_pnpm() {
       fi
     fi
   fi
-  source "$HOME/.bashrc" || source "$HOME/.zshrc" || source "$HOME/.config/fish/config.fish"
-  if [ $? -ne 0 ]; then
-    echo "❌ Failed to install pnpm."
-    exit 1
+  if [ -f "$HOME/.bashrc" ]; then
+    source "$HOME/.bashrc"
+  elif [ -f "$HOME/.bash_profile" ]; then
+    source "$HOME/.bash_profile"
+  elif [ -f "$HOME/.zshrc" ]; then
+    source "$HOME/.zshrc"
+  elif [ -f "$HOME/.zprofile" ]; then
+    source "$HOME/.zprofile"
+  elif [ -f "$HOME/.config/fish/config.fish" ]; then
+    source "$HOME/.config/fish/config.fish"
+  else
+    echo "⚠️ No shell config file found; you may need to add pnpm to your PATH manually."
   fi
   if ! command -v pnpm >/dev/null 2>&1; then
-    echo "Restart the setup."
+    echo "❌ pnpm not found. Restart the setup."
     exit 1
-	else
-  		echo "✅ pnpm: $(pnpm -v)"
+  else
+    echo "✅ pnpm: $(pnpm -v)"
   fi
 }
 
@@ -110,7 +118,7 @@ install_node_deps() {
   if ! command -v firebase >/dev/null 2>&1; then
     pnpm i -g firebase-tools
   fi
-  sudo chown -R "$USER":"$USER" ./
+  sudo chown -R "$USER" ./
   pnpm i
 }
 
@@ -159,7 +167,14 @@ verify_node() {
   fi
 }
 
-source ~/.bashrc || source ~/.zshrc || source ~/.config/fish/config.fish
+if [ -f ~/.bashrc ]; then
+  source ~/.bashrc
+elif [ -f ~/.zshrc ]; then
+  source ~/.zshrc
+elif [ -f ~/.config/fish/config.fish ]; then
+  source ~/.config/fish/config.fish
+fi
+
 if [[ "$(pwd)" == */scripts ]]; then
   cd ..
 fi
