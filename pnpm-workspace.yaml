@@ -4,3 +4,14 @@ packages:
   - backend/functions
   - docs
   - cli
+
+onlyBuiltDependencies:
+  - '@firebase/util'
+  - '@sentry-internal/node-cpu-profiler'
+  - '@sentry/cli'
+  - bcrypt
+  - core-js
+  - core-js-pure
+  - esbuild
+  - mongodb-memory-server
+  - protobufjs
