@@ -7,9 +7,10 @@ Return ONLY raw JSON without any markdown, comments or explanations in the follo
   "questionType": "SOL",
   "questionText": string,
   "hintText": string,
+  "difficulty": string,
   "timeLimit": number,
   "points": number,
-  "parameterized": boolean,
+  "isParameterized": boolean,
   "parameters": [
     {
       "name": string,
