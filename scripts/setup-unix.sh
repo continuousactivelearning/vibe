@@ -118,7 +118,7 @@ install_node_deps() {
   if ! command -v firebase >/dev/null 2>&1; then
     pnpm i -g firebase-tools
   fi
-  sudo chown -R "$USER" ./
+  sudo chown -R "$USER":"$(id -gn)" ./
   pnpm i
 }
 
