@@ -18,7 +18,6 @@ import {
   EnrollUserResponse,
   Progress,
 } from '../classes/transformers';
-import {ItemNotFoundError} from 'shared/errors/errors';
 import {instanceToPlain} from 'class-transformer';
 
 /**

@@ -1,22 +1,12 @@
 import 'reflect-metadata';
-import {instanceToPlain} from 'class-transformer';
-import {
-  Authorized,
-  JsonController,
-  Params,
-  Post,
-  HttpError,
-} from 'routing-controllers';
+import {NotFoundError} from 'routing-controllers';
 import {Inject, Service} from 'typedi';
-import {EnrollmentParams} from '../classes/validators/EnrollmentValidators';
 import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
 import {Enrollment} from '../classes/transformers/Enrollment';
-import {Progress} from '../classes/transformers/Progress';
-import {ItemNotFoundError} from 'shared/errors/errors';
 import {ObjectId} from 'mongodb';
-import {ICourseVersion} from 'shared/interfaces/IUser';
+import {ICourseVersion} from 'shared/interfaces/Models';
 
 @Service()
 export class EnrollmentService {
@@ -29,21 +19,21 @@ export class EnrollmentService {
 
   async enrollUser(userId: string, courseId: string, courseVersionId: string) {
     // Check if user, course, and courseVersion exist
-    const user = await this.userRepo.findByFirebaseUID(userId);
+    const user = await this.userRepo.findById(userId);
     if (!user) {
-      throw new ItemNotFoundError('User not found');
+      throw new NotFoundError('User not found');
     }
 
     // Check if course exists
     const course = await this.courseRepo.read(courseId);
     if (!course) {
-      throw new ItemNotFoundError('Course not found');
+      throw new NotFoundError('Course not found');
     }
 
     // Check if course version exists and belongs to the course
     const courseVersion = await this.courseRepo.readVersion(courseVersionId);
     if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'Course version not found or does not belong to this course',
       );
     }
@@ -125,12 +115,13 @@ export class EnrollmentService {
 
     // Create progress record
     return await this.enrollmentRepo.createProgress({
-      userId: userId,
+      userId: new ObjectId(userId),
       courseId: new ObjectId(courseId),
       courseVersionId: new ObjectId(courseVersionId),
       currentModule: firstModule.moduleId,
       currentSection: firstSection.sectionId,
       currentItem: firstItem.itemId,
+      completed: false,
     });
   }
 
@@ -147,13 +138,13 @@ export class EnrollmentService {
     // Check if user, course, and courseVersion exist
     const user = await this.userRepo.findByFirebaseUID(userId);
     if (!user) {
-      throw new ItemNotFoundError('User not found');
+      throw new NotFoundError('User not found');
     }
 
     // Check if course exists
     const course = await this.courseRepo.read(courseId);
     if (!course) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'The specified course Not found. Please check the CourseId.',
       );
     }
@@ -161,7 +152,7 @@ export class EnrollmentService {
     // Check if module exists
     const module = await this.courseRepo.read(moduleId);
     if (!module) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'The specified module does not exist in the course. Please check the moduleId.',
       );
     }
@@ -169,7 +160,7 @@ export class EnrollmentService {
     // Check if section exists
     const section = await this.courseRepo.read(sectionId);
     if (!section) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'The specified section does not exist in the given module. Please check the sectionId.',
       );
     }
@@ -177,7 +168,7 @@ export class EnrollmentService {
     // Check if item exists
     const item = await this.courseRepo.read(itemId);
     if (!item) {
-      throw new ItemNotFoundError(
+      throw new NotFoundError(
         'The specified item does not exist in the given section. Please check the itemId.',
       );
     }
