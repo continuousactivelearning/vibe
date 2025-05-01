@@ -1,4 +1,4 @@
-Defined in: [backend/src/modules/courses/classes/validators/CourseVersionValidators.ts:52](https://github.com/continuousactivelearning/vibe/blob/9a2d9d7201b944582c5d0ed5f0f7a4de13abde0f/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L52)
+Defined in: [backend/src/modules/courses/classes/validators/CourseVersionValidators.ts:52](https://github.com/continuousactivelearning/vibe/blob/e164f8b2c6380dfb48305a4531b51d78f4a518e5/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L52)
 
 Route parameters for reading a course version by ID.
 
@@ -18,6 +18,6 @@ Route parameters for reading a course version by ID.
 
 > **id**: `string`
 
-Defined in: [backend/src/modules/courses/classes/validators/CourseVersionValidators.ts:58](https://github.com/continuousactivelearning/vibe/blob/9a2d9d7201b944582c5d0ed5f0f7a4de13abde0f/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L58)
+Defined in: [backend/src/modules/courses/classes/validators/CourseVersionValidators.ts:58](https://github.com/continuousactivelearning/vibe/blob/e164f8b2c6380dfb48305a4531b51d78f4a518e5/backend/src/modules/courses/classes/validators/CourseVersionValidators.ts#L58)
 
 ID of the course version to retrieve.

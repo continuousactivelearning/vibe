@@ -13,17 +13,26 @@ git clone https://github.com/continuousactivelearning/vibe.git
 cd vibe
 ```
 
----
 
 ## ⚙️ Setup Using Installation Scripts
 
-ViBe uses a custom `setup-unix.sh` and `setup-win.ps1` scripts to help initialize the development environment (both backend and frontend).
+ViBe uses custom scripts-`setup-unix.sh` for Unix-based systems and `setup-win.ps1` for Windows-to help initialize the development environment (both backend and frontend).
 
 ### 📦 Run the Setup
 
-```bash
+#### On Unix/Linux/macOS
+
+```
 chmod +x scripts/setup-unix.sh
 ./scripts/setup-unix.sh
+```
+
+#### On Windows
+
+#### Open PowerShell as Administrator, then run:
+```
+cd scripts
+.\setup-win.ps1
 ```
 
 This script will:
@@ -31,14 +40,18 @@ This script will:
 - Install backend dependencies
 - Install frontend dependencies
 - Set up `.env` files
-- Installs the CLI
+- Install the CLI
 
 > 🛠️ The script is interactive and will guide you step-by-step.
 
 ---
 
+**Tip:**
+```
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```  
+If you encounter a security warning about running scripts, the `Set-ExecutionPolicy` command above allows you to run local scripts safely. You can revert this setting later if needed.
 ## 🧪 Run in Development Mode
-
 If you want to run services manually:
 
 ### 🖥 Frontend
