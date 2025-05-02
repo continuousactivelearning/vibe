@@ -58,7 +58,7 @@ BUSINESS RULES:
 
 
 2. Parameters: If parameterized=true:
-   - Each parameter name must appear exactly once in questionText as <QParam>{paramName}</QParam>.
+   - Each parameter name must appear atleast once in questionText as <QParam>{paramName}</QParam>.
    - Parameter values must be appropriate substitutions.
     - Correct Example:
           "questionText": "What is the value of <QParam>{temperature}</QParam> when pressure is constant?",
@@ -181,9 +181,9 @@ STYLE PARAMETERS:
     - Example Values: "Grade 6", "Grade 10", "College", "Undergraduate"
     - "gradeLevel": "Grade 6"
 
-- Tone: ${tone} (formal|casual)
+- Tone: ${tone} (professional)
     - The language tone/style of the question and hint.
-    - Allowed Values: "formal", "casual"
-    - "tone": "casual"
+    - Allowed Values: "professional"
 
-Generate a question that tests conceptual understanding rather than mere factual recall.
+- Questions could be of two types with parameters or without parameters.
+- Generate a question that tests conceptual understanding rather than mere factual recall.
