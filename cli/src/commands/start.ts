@@ -1,20 +1,20 @@
-import { spawn } from "child_process";
-import os from "os";
-import path from "path";
-import { findProjectRoot } from "../findRoot.ts";
+import { spawn } from 'child_process';
+import os from 'os';
+import path from 'path';
+import { findProjectRoot } from '../findRoot.ts';
 
-function runProcess(name: string, cwd: string, script: string = "dev") {
+function runProcess(name: string, cwd: string, script: string = 'dev') {
   return new Promise((resolve, reject) => {
     console.log(`⏳ Starting ${name} in ${cwd} with script '${script}'...`);
 
-    const isWindows = os.platform() === "win32";
-    const proc = spawn("pnpm", ["run", script], {
+    const isWindows = os.platform() === 'win32';
+    const proc = spawn('pnpm', ['run', script], {
       cwd,
-      stdio: "inherit",
-      shell: isWindows // shell: true required for Windows
+      stdio: 'inherit',
+      shell: isWindows, // shell: true required for Windows
     });
 
-    proc.on("exit", (code) => {
+    proc.on('exit', (code) => {
       if (code === 0) {
         console.log(`✅ ${name} exited cleanly.`);
         resolve(true);
@@ -26,6 +26,7 @@ function runProcess(name: string, cwd: string, script: string = "dev") {
   });
 }
 
+<<<<<<< Updated upstream
 function runFirebaseEmulator(name: string, cwd: string, script: string = "dev") {
   return new Promise((resolve, reject) => {
     console.log(`⏳ Starting ${name} in ${cwd} with script '${script}'...`);
@@ -50,30 +51,34 @@ function runFirebaseEmulator(name: string, cwd: string, script: string = "dev") 
 }
 
 
+=======
+>>>>>>> Stashed changes
 export async function runStart() {
-  console.log("🚀 Launching services...");
+  console.log('🚀 Launching services...');
 
   const root = findProjectRoot();
 
   if (!root) {
-    console.error("❌ Please run this command from within the vibe project directory.");
+    console.error('❌ Please run this command from within the vibe project directory.');
     process.exit(1);
   }
 
-  const backendDir = path.join(root, "backend");
-  const frontendDir = path.join(root, "frontend");
-  const docsDir = path.join(root, "docs");
+  const backendDir = path.join(root, 'backend');
+  const frontendDir = path.join(root, 'frontend');
+  const docsDir = path.join(root, 'docs');
 
   // Extract command-line arguments
   const args = process.argv.slice(2);
-  if (args.includes("help")){
-    console.log("Usage: vibe start [backend|frontend|docs|all]");
-    console.log("Starts the specified services. If no arguments are provided, Frontend and Backend services will be started.");
-    console.log("Options:");
-    console.log("  backend  Start the backend service");
-    console.log("  frontend Start the frontend service");
-    console.log("  docs     Start the documentation service");
-    console.log("  all      Start all services");
+  if (args.includes('help')) {
+    console.log('Usage: vibe start [backend|frontend|docs|all]');
+    console.log(
+      'Starts the specified services. If no arguments are provided, Frontend and Backend services will be started.'
+    );
+    console.log('Options:');
+    console.log('  backend  Start the backend service');
+    console.log('  frontend Start the frontend service');
+    console.log('  docs     Start the documentation service');
+    console.log('  all      Start all services');
     process.exit(0);
   }
   // Determine which services to start
@@ -83,8 +88,13 @@ export async function runStart() {
   const startAuthEmu = args.includes('auth') || args.includes('emulators') || args.includes('all');
   const startFunctionsEmu = args.includes('functions') || args.includes('emulators') || args.includes('all');
 
+<<<<<<< Updated upstream
   if (!startBackend && !startFrontend && !startDocs && !startAuthEmu && !startFunctionsEmu) {
     console.error("❌ Incorrect args passed.");
+=======
+  if (!startBackend && !startFrontend && !startDocs) {
+    console.error('❌ Incorrect args passed.');
+>>>>>>> Stashed changes
     process.exit(1);
   }
 
@@ -92,15 +102,15 @@ export async function runStart() {
     const processes = [];
 
     if (startBackend) {
-      processes.push(runProcess("Backend", backendDir, "dev"));
+      processes.push(runProcess('Backend', backendDir, 'dev'));
     }
 
     if (startFrontend) {
-      processes.push(runProcess("Frontend", frontendDir, "dev"));
+      processes.push(runProcess('Frontend', frontendDir, 'dev'));
     }
 
     if (startDocs) {
-      processes.push(runProcess("Docs", docsDir, "start"));
+      processes.push(runProcess('Docs', docsDir, 'start'));
     }
 
     if (startAuthEmu) {
@@ -113,7 +123,7 @@ export async function runStart() {
 
     await Promise.all(processes);
   } catch (err) {
-    console.error("❌ One or more services failed to start.");
+    console.error('❌ One or more services failed to start.');
     process.exit(1);
   }
 }

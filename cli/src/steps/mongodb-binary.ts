@@ -1,20 +1,19 @@
 #!/usr/bin/env node
-import fs from "fs";
-import path from "path";
-import { MongoMemoryServer } from "mongodb-memory-server";
-import { findProjectRoot } from "../findRoot.ts";
-
+import fs from 'fs';
+import path from 'path';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { findProjectRoot } from '../findRoot.ts';
 
 const rootDir = findProjectRoot();
-const statePath = path.join(rootDir, ".vibe.json");
+const statePath = path.join(rootDir, '.vibe.json');
 
 // Step name constant
-const STEP_NAME = "MongoDB Test Binaries";
+const STEP_NAME = 'MongoDB Test Binaries';
 
 // Read .vibe.json state
 function readState(): Record<string, any> {
   if (fs.existsSync(statePath)) {
-    return JSON.parse(fs.readFileSync(statePath, "utf8"));
+    return JSON.parse(fs.readFileSync(statePath, 'utf8'));
   }
   return {};
 }
@@ -28,11 +27,11 @@ function writeState(state: Record<string, any>) {
 const state = readState();
 
 if (state[STEP_NAME]) {
-  console.log("✅ MongoDB binaries already ensured. Skipping.");
+  console.log('✅ MongoDB binaries already ensured. Skipping.');
   process.exit(0);
 }
 
-console.log("⬇️  Ensuring MongoDB binaries for mongodb-memory-server...");
+console.log('⬇️  Ensuring MongoDB binaries for mongodb-memory-server...');
 
 try {
   const mongod = await MongoMemoryServer.create();
@@ -41,9 +40,9 @@ try {
 
   state[STEP_NAME] = true;
   writeState(state);
-  console.log("✅ MongoDB test binaries downloaded and ready.");
+  console.log('✅ MongoDB test binaries downloaded and ready.');
 } catch (err) {
-  console.error("❌ Failed to download MongoDB binaries.");
+  console.error('❌ Failed to download MongoDB binaries.');
   console.error(err);
   process.exit(1);
 }

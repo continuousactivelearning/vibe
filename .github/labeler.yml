@@ -1,25 +1,25 @@
 frontend:
   - changed-files:
-      - any-glob-to-any-file: ["frontend/**"]
+      - any-glob-to-any-file: ['frontend/**']
 
 backend:
   - changed-files:
-      - any-glob-to-any-file: ["backend/**"]
+      - any-glob-to-any-file: ['backend/**']
 
 devops:
   - changed-files:
       - any-glob-to-any-file:
-        - ".github/**"
-        - ".husky/**"
+          - '.github/**'
+          - '.husky/**'
 
 docs:
   - changed-files:
       - any-glob-to-any-file:
-        - "**/README.md"
-        - "**/docs/**"
+          - '**/README.md'
+          - '**/docs/**'
 
 dependencies:
   - changed-files:
       - any-glob-to-any-file:
-        - "frontend/package*.json"
-        - "backend/package*.json"
+          - 'frontend/package*.json'
+          - 'backend/package*.json'

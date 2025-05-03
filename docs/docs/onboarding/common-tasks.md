@@ -12,23 +12,26 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 ### Creating a New Component
 
 1. **Plan your component**
+
    - Define props and state
    - Sketch the component structure
 
 2. **Create component file**
+
    ```bash
    touch src/components/ui/index.tsx
    ```
 
 3. **Implement the component**
+
    ```tsx
    import React from 'react';
-   
+
    interface YourComponentProps {
      title: string;
      // Add other props as needed
    }
-   
+
    export function YourComponent({ title }: YourComponentProps) {
      return (
        <div className="p-4 bg-white rounded shadow">
@@ -46,15 +49,17 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 ### Adding a New Page
 
 1. **Create page file**
+
    ```bash
    touch src/pages/YourNewPage.tsx
    ```
 
 2. **Implement the page**
+
    ```tsx
    import React from 'react';
    import { Layout } from '@/components/Layout';
-   
+
    export default function YourNewPage() {
      return (
        <Layout>
@@ -76,27 +81,29 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 ### Creating a New API Endpoint
 
 1. **Identify the module**
+
    - Determine which module your endpoint belongs to
    - If it's a new feature, consider creating a new module
 
 2. **Create input types**
+
    ```typescript
    // src/modules/your-module/classes/your-input-types.ts
    import { IsString, IsNotEmpty } from 'class-validator';
-   
+
    export class CreateYourResourceBody {
      @IsString()
      @IsNotEmpty()
      name: string;
-     
+
      // Add other properties with validation
    }
-   
+
    // For query parameters
    export class GetYourResourceQueryParams {
      // Query params properties
    }
-   
+
    // For route parameters
    export class GetYourResourceParams {
      // Route params properties
@@ -104,17 +111,18 @@ This document provides step-by-step guides for common tasks you'll encounter as 
    ```
 
 3. **Create or update controller**
+
    ```typescript
    // src/modules/your-module/controllers/your-controller.ts
    import { Controller, Post, Body } from 'routing-controllers';
    import { Service } from 'typedi';
    import { CreateYourResourceBody } from '../classes/your-input-types';
-   
+
    @Controller('/your-endpoint')
    @Service()
    export class YourController {
      constructor(private yourService: YourService) {}
-     
+
      @Post('/')
      async createSomething(@Body() body: CreateYourResourceBody) {
        return this.yourService.createSomething(body);
@@ -123,11 +131,12 @@ This document provides step-by-step guides for common tasks you'll encounter as 
    ```
 
 4. **Implement the service**
+
    ```typescript
    // src/modules/your-module/services/your-service.ts
    import { Service } from 'typedi';
    import { CreateYourResourceBody } from '../classes/your-input-types';
-   
+
    @Service()
    export class YourService {
      async createSomething(body: CreateYourResourceBody) {
@@ -146,13 +155,16 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 ### Updating Existing Documentation
 
 1. **Locate the documentation**
+
    - Find the relevant Markdown file in the `/docs` directory
 
 2. **Make your changes**
+
    - Update content as needed
    - Follow the existing formatting style
 
 3. **Test locally**
+
    ```bash
    cd docs
    pnpm start
@@ -165,10 +177,12 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 ### Creating New Documentation
 
 1. **Determine the appropriate location**
+
    - Choose the right section for your documentation
    - Create a new file with `.md` extension
 
 2. **Add frontmatter**
+
    ```markdown
    ---
    title: Your Documentation Title
@@ -177,6 +191,7 @@ This document provides step-by-step guides for common tasks you'll encounter as 
    ```
 
 3. **Write your content**
+
    - Use clear headings and subheadings
    - Include code examples where helpful
    - Add links to related documentation
@@ -192,6 +207,7 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 **Problem**: TypeScript errors during build
 
 **Solution**:
+
 1. Check error messages carefully
 2. Fix type definitions or add proper typing
 3. If using third-party libraries, check if types are installed:
@@ -204,6 +220,7 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 **Problem**: Server crashes on startup
 
 **Solution**:
+
 1. Check logs for specific error messages
 2. Verify environment variables are set correctly
 3. Make sure database connection is properly configured
@@ -214,6 +231,7 @@ This document provides step-by-step guides for common tasks you'll encounter as 
 **Problem**: Merge conflicts
 
 **Solution**:
+
 1. Pull latest changes from the main branch
 2. Resolve conflicts in each file
 3. Test your changes after resolving conflicts

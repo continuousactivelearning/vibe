@@ -58,7 +58,7 @@ The updated course version containing the new section.
 
 HTTPError(500) on internal errors.
 
-***
+---
 
 #### move()
 
@@ -96,7 +96,7 @@ UpdateError if neither beforeSectionId nor afterSectionId is provided.
 
 HTTPError(500) on internal processing errors.
 
-***
+---
 
 #### update()
 

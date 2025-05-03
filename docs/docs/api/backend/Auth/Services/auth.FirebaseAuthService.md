@@ -71,7 +71,7 @@ ChangePasswordError - If passwords don't match or user doesn't exist
 
 [`IAuthService`](../Interfaces/auth.IAuthService.md).[`changePassword`](../Interfaces/auth.IAuthService.md#changepassword)
 
-***
+---
 
 ### signup()
 
@@ -103,7 +103,7 @@ Error - If user creation fails in either Firebase or the repository
 
 [`IAuthService`](../Interfaces/auth.IAuthService.md).[`signup`](../Interfaces/auth.IAuthService.md#signup)
 
-***
+---
 
 ### verifyToken()
 

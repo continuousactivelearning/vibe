@@ -26,7 +26,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Optional: place the section after this section ID.
 
-***
+---
 
 ### beforeSectionId?
 
@@ -36,7 +36,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Optional: place the section before this section ID.
 
-***
+---
 
 ### createdAt
 
@@ -50,7 +50,7 @@ Creation timestamp (auto-managed).
 
 `ISection.createdAt`
 
-***
+---
 
 ### description
 
@@ -65,7 +65,7 @@ Maximum 1000 characters.
 
 `ISection.description`
 
-***
+---
 
 ### itemsGroupId?
 
@@ -79,7 +79,7 @@ ItemsGroup ID associated with this section (auto-managed).
 
 `ISection.itemsGroupId`
 
-***
+---
 
 ### name
 
@@ -94,7 +94,7 @@ Maximum 255 characters.
 
 `ISection.name`
 
-***
+---
 
 ### order
 
@@ -108,7 +108,7 @@ Order string for section placement (auto-managed).
 
 `ISection.order`
 
-***
+---
 
 ### sectionId?
 
@@ -122,7 +122,7 @@ Unique section ID (auto-generated).
 
 `ISection.sectionId`
 
-***
+---
 
 ### updatedAt
 

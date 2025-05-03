@@ -1,14 +1,17 @@
 import * as dotenv from 'dotenv';
-dotenv.config(); // { path: `.env.${process.env.NODE_ENV}` }
+dotenv.config();
 
-export function env(key: string, defaultValue: null | string = null): string {
-  return process.env[key] ?? (defaultValue as string);
-}
+export const env = {
+  get: (key: string, defaultValue: string | null = null): string =>
+    process.env[key] ?? (defaultValue as string),
 
-export function envOrFail(key: string): string {
-  if (typeof process.env[key] === 'undefined') {
-    throw new Error(`Environment variable ${key} is not set.`);
-  }
+  MONGO_URI: process.env.MONGO_URI ?? '',
+  MONGO_DB_NAME: process.env.MONGO_DB_NAME ?? '',
 
-  return process.env[key] as string;
-}
+  require: (key: string): string => {
+    if (typeof process.env[key] === 'undefined') {
+      throw new Error(`Environment variable ${key} is not set.`);
+    }
+    return process.env[key] as string;
+  },
+};

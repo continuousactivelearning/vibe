@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Optional: move after this section ID.
 
-***
+---
 
 ### beforeSectionId?
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Optional: move before this section ID.
 
-***
+---
 
 ### bothNotAllowed
 
@@ -42,7 +42,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Validation helper — only one of before/after should be used.
 
-***
+---
 
 ### onlyOneAllowed
 

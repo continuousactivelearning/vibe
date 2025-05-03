@@ -31,7 +31,7 @@ Max length is 1000 characters.
 
 `Partial.description`
 
-***
+---
 
 ### name
 

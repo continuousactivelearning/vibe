@@ -30,7 +30,7 @@ ISO date string for quiz deadline.
 
 `IQuizDetails.deadline`
 
-***
+---
 
 ### questions
 
@@ -44,7 +44,7 @@ List of quiz question IDs (auto-managed).
 
 `IQuizDetails.questions`
 
-***
+---
 
 ### questionVisibility
 
@@ -58,7 +58,7 @@ Number of quiz questions visible to students.
 
 `IQuizDetails.questionVisibility`
 
-***
+---
 
 ### releaseTime
 

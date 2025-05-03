@@ -26,7 +26,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 Optional: Move the module after this ID.
 
-***
+---
 
 ### beforeModuleId?
 
@@ -36,7 +36,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 Optional: Move the module before this ID.
 
-***
+---
 
 ### createdAt
 
@@ -50,7 +50,7 @@ Module creation timestamp (auto-managed).
 
 `IModule.createdAt`
 
-***
+---
 
 ### description
 
@@ -65,7 +65,7 @@ Maximum 1000 characters.
 
 `IModule.description`
 
-***
+---
 
 ### moduleId?
 
@@ -79,7 +79,7 @@ Unique module ID (auto-generated).
 
 `IModule.moduleId`
 
-***
+---
 
 ### name
 
@@ -94,7 +94,7 @@ Maximum 255 characters.
 
 `IModule.name`
 
-***
+---
 
 ### order
 
@@ -108,7 +108,7 @@ Order string for module placement (auto-managed).
 
 `IModule.order`
 
-***
+---
 
 ### sections
 
@@ -122,7 +122,7 @@ Array of section objects (auto-managed).
 
 `IModule.sections`
 
-***
+---
 
 ### updatedAt
 

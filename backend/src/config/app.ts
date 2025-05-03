@@ -1,4 +1,6 @@
 import {env} from '../utils/env';
+import 'reflect-metadata';
+import './di';
 
 function getAppPath() {
   let currentDir = __dirname;
@@ -8,13 +10,12 @@ function getAppPath() {
 }
 
 export const appConfig = {
-  node: env('NODE_ENV') || 'development',
-  isProduction: env('NODE_ENV') === 'production',
-  isStaging: env('NODE_ENV') === 'staging',
-  isDevelopment: env('NODE_ENV') === 'development',
-  name: env('APP_NAME'),
-  port: Number(env('APP_PORT')) || 4000,
-  routePrefix: env('APP_ROUTE_PREFIX'),
-  url: env('APP_URL'),
-  appPath: getAppPath(),
+  node: process.env.NODE_ENV || 'development',
+  isProduction: process.env.NODE_ENV === 'production',
+  isStaging: process.env.NODE_ENV === 'staging',
+  isDevelopment: process.env.NODE_ENV === 'development',
+  name: process.env.APP_NAME,
+  port: Number(process.env.APP_PORT) || 4000,
+  routePrefix: process.env.APP_ROUTE_PREFIX,
+  url: process.env.APP_URL,
 };

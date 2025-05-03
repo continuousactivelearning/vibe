@@ -340,17 +340,102 @@ export class CourseRepository implements ICourseRepository {
     }
   }
 
+  async deleteSection(
+    versionId: string,
+    moduleId: string,
+    sectionId: string,
+  ): Promise<boolean> {
+    await this.init();
+    try {
+      const courseVersion = await this.courseVersionCollection.findOne({
+        _id: new ObjectId(versionId),
+      });
+
+      if (!courseVersion) {
+        throw new ItemNotFoundError('Course Version not found');
+      }
+
+      const module = courseVersion.modules.find(m =>
+        new ObjectId(m.moduleId).equals(new ObjectId(moduleId)),
+      );
+
+      if (!module) {
+        throw new ItemNotFoundError('Module not found');
+      }
+
+      const sectionIndex = module.sections.findIndex(s =>
+        new ObjectId(s.sectionId).equals(new ObjectId(sectionId)),
+      );
+
+      if (sectionIndex === -1) {
+        throw new ItemNotFoundError('Section not found');
+      }
+
+      const section = module.sections[sectionIndex];
+      if (section.itemsGroupId) {
+        const deleteResult = await this.itemsGroupCollection.deleteOne({
+          _id: new ObjectId(section.itemsGroupId),
+        });
+
+        if (deleteResult.deletedCount !== 1) {
+          throw new DeleteError('Failed to delete associated items group');
+        }
+      }
+
+      module.sections.splice(sectionIndex, 1);
+      module.updatedAt = new Date();
+      courseVersion.updatedAt = new Date();
+
+      const updateResult = await this.courseVersionCollection.updateOne(
+        {_id: new ObjectId(versionId)},
+        {
+          $set: {
+            modules: courseVersion.modules,
+            updatedAt: courseVersion.updatedAt,
+          },
+        },
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        throw new UpdateError(
+          'Failed to update course version after section deletion',
+        );
+      }
+
+      return true;
+    } catch (error) {
+      if (error instanceof ItemNotFoundError || error instanceof DeleteError) {
+        throw error;
+      }
+      throw new DeleteError(
+        `Failed to delete section: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  async deleteItemsGroup(itemsGroupId: string): Promise<boolean> {
+    await this.init();
+    try {
+      const result = await this.itemsGroupCollection.deleteOne({
+        _id: new ObjectId(itemsGroupId),
+      });
+      return result.deletedCount === 1;
+    } catch (error) {
+      throw new DeleteError(
+        `Failed to delete items group: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   async deleteModule(
     versionId: string,
     moduleId: string,
   ): Promise<boolean | null> {
     await this.init();
     try {
-      // Convert versionId and moduleId to ObjectId
       const versionObjectId = new ObjectId(versionId);
       const moduleObjectId = new ObjectId(moduleId);
 
-      // Find the course version
       const courseVersion = await this.courseVersionCollection.findOne({
         _id: versionObjectId,
       });
@@ -359,7 +444,6 @@ export class CourseRepository implements ICourseRepository {
         throw new NotFoundError('Course Version not found');
       }
 
-      // Find the module to delete
       const module = courseVersion.modules.find(m =>
         new ObjectId(m.moduleId).equals(moduleObjectId),
       );
@@ -389,7 +473,6 @@ export class CourseRepository implements ICourseRepository {
         }
       }
 
-      // Remove the module from the course version
       const updatedModules = courseVersion.modules.filter(
         m => !new ObjectId(m.moduleId).equals(moduleObjectId),
       );

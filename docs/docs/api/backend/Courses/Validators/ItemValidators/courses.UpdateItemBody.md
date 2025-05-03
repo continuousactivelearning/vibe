@@ -27,7 +27,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:24
 
 MongoDB ID of the item (auto-managed).
 
-***
+---
 
 ### afterItemId?
 
@@ -37,7 +37,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:30
 
 Optional: reorder after this item.
 
-***
+---
 
 ### beforeItemId?
 
@@ -47,7 +47,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:31
 
 Optional: reorder before this item.
 
-***
+---
 
 ### blogDetails?
 
@@ -57,7 +57,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:32
 
 Updated blog details (if type is BLOG).
 
-***
+---
 
 ### createdAt
 
@@ -67,7 +67,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:28
 
 Created at timestamp (auto-managed).
 
-***
+---
 
 ### description
 
@@ -81,7 +81,7 @@ Updated description (optional).
 
 `IBaseItem.description`
 
-***
+---
 
 ### itemDetails
 
@@ -95,7 +95,7 @@ Item details (auto-managed).
 
 `IBaseItem.itemDetails`
 
-***
+---
 
 ### name
 
@@ -109,7 +109,7 @@ Updated name (optional).
 
 `IBaseItem.name`
 
-***
+---
 
 ### order
 
@@ -123,7 +123,7 @@ Order (auto-managed).
 
 `IBaseItem.order`
 
-***
+---
 
 ### quizDetails?
 
@@ -133,7 +133,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:33
 
 Updated quiz details (if type is QUIZ).
 
-***
+---
 
 ### sectionId
 
@@ -143,7 +143,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:26
 
 Section ID (auto-managed).
 
-***
+---
 
 ### type
 
@@ -157,7 +157,7 @@ Updated type, if changing item category.
 
 `IBaseItem.type`
 
-***
+---
 
 ### updatedAt
 
@@ -167,7 +167,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:28
 
 Updated at timestamp (auto-managed).
 
-***
+---
 
 ### videoDetails?
 

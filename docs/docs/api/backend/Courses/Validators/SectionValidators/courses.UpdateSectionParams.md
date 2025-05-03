@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Module ID where the section exists.
 
-***
+---
 
 ### sectionId
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Section ID to be updated.
 
-***
+---
 
 ### versionId
 

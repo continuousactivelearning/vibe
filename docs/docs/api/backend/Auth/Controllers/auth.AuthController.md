@@ -65,7 +65,7 @@ HttpError(400) - If password validation fails
 
 HttpError(500) - If an unexpected server error occurs
 
-***
+---
 
 ### signup()
 
@@ -94,7 +94,7 @@ A plain JavaScript object representation of the newly created user
 
 HttpError - If user creation fails for any reason
 
-***
+---
 
 ### verifyToken()
 

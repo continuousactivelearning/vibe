@@ -57,7 +57,7 @@ The updated course version with the new module.
 
 InternalServerError on any failure during module creation.
 
-***
+---
 
 #### move()
 
@@ -96,7 +96,7 @@ UpdateError if neither beforeModuleId nor afterModuleId is provided.
 
 HTTPError(500) for other internal errors.
 
-***
+---
 
 #### update()
 

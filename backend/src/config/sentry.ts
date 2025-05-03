@@ -1,3 +1,3 @@
 import {env} from 'utils/env';
 
-export const sentryDSN = env('SENTRY_DSN');
+export const sentryDSN = process.env.SENTRY_DSN;

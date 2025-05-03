@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:39
 
 Module ID inside the version
 
-***
+---
 
 ### sectionId
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:40
 
 Section ID inside the module
 
-***
+---
 
 ### versionId
 

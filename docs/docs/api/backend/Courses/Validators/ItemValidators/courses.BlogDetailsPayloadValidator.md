@@ -30,7 +30,7 @@ Full blog content in markdown or plain text.
 
 `IBlogDetails.content`
 
-***
+---
 
 ### points
 
@@ -44,7 +44,7 @@ Points assigned to the blog submission.
 
 `IBlogDetails.points`
 
-***
+---
 
 ### tags
 

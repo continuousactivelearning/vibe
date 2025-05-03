@@ -36,7 +36,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:2
 
 `ICourseVersion._id`
 
-***
+---
 
 ### courseId
 
@@ -48,7 +48,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:2
 
 `ICourseVersion.courseId`
 
-***
+---
 
 ### createdAt
 
@@ -60,7 +60,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:4
 
 `ICourseVersion.createdAt`
 
-***
+---
 
 ### description
 
@@ -72,7 +72,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:3
 
 `ICourseVersion.description`
 
-***
+---
 
 ### modules
 
@@ -84,7 +84,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:3
 
 `ICourseVersion.modules`
 
-***
+---
 
 ### updatedAt
 
@@ -96,7 +96,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/CourseVersion.ts:4
 
 `ICourseVersion.updatedAt`
 
-***
+---
 
 ### version
 

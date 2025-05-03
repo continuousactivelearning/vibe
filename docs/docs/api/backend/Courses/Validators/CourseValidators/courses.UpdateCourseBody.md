@@ -32,7 +32,7 @@ Must be between 3 and 1000 characters.
 
 `Partial.description`
 
-***
+---
 
 ### name
 
@@ -47,7 +47,7 @@ Must be between 3 and 255 characters.
 
 `Partial.name`
 
-***
+---
 
 ### nameOrDescription
 

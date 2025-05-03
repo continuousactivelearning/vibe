@@ -31,7 +31,7 @@ This is auto-populated and should remain empty in the request body.
 
 `Partial.courseId`
 
-***
+---
 
 ### description
 
@@ -45,7 +45,7 @@ A brief description of the course version.
 
 `Partial.description`
 
-***
+---
 
 ### version
 

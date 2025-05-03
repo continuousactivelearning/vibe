@@ -57,7 +57,7 @@ The updated itemsGroup and version.
 
 HTTPError(500) on internal errors.
 
-***
+---
 
 #### delete()
 
@@ -85,7 +85,7 @@ The updated itemsGroup and version.
 
 HTTPError(500) on internal errors.
 
-***
+---
 
 #### move()
 
@@ -123,7 +123,7 @@ BadRequestError if both afterItemId and beforeItemId are missing.
 
 HTTPError(500) on internal errors.
 
-***
+---
 
 #### readAll()
 
@@ -151,7 +151,7 @@ The list of items within the section.
 
 HTTPError(500) on internal errors.
 
-***
+---
 
 #### update()
 

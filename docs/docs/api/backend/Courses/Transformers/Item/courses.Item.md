@@ -40,7 +40,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:33](https:
 
 `IBaseItem.description`
 
-***
+---
 
 ### itemDetails
 
@@ -52,7 +52,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:41](https:
 
 `IBaseItem.itemDetails`
 
-***
+---
 
 ### itemId?
 
@@ -64,7 +64,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:27](https:
 
 `IBaseItem.itemId`
 
-***
+---
 
 ### name
 
@@ -76,7 +76,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:30](https:
 
 `IBaseItem.name`
 
-***
+---
 
 ### order
 
@@ -88,7 +88,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:39](https:
 
 `IBaseItem.order`
 
-***
+---
 
 ### type
 
