@@ -1,8 +1,7 @@
-name: "Pull Request Labeler"
+name: 'Pull Request Labeler'
 on:
   pull_request_target:
     types: [opened, reopened, synchronize]
-
 
 jobs:
   triage:
@@ -14,7 +13,7 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           sync-labels: true
-    
+
       - name: Add 'revert' label to relevant PRs
         if: contains(github.event.pull_request.title, 'Revert')
         uses: actions/github-script@v7

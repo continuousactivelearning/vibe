@@ -24,13 +24,14 @@ Defined in: [backend/src/modules/auth/classes/validators/AuthValidators.ts:84](h
 
 The new password to set for the user account.
 Must meet strong password requirements:
+
 - At least 8 characters long
 - Contains at least one uppercase letter
 - Contains at least one lowercase letter
 - Contains at least one number
 - Contains at least one special character
 
-***
+---
 
 ### newPasswordConfirm
 

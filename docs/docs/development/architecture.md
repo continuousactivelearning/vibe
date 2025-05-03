@@ -6,20 +6,21 @@ ViBe is a full-stack, serverless web application built for continuous active lea
 
 ## 🌐 Tech Stack Overview
 
-| Layer       | Tech Used                      |
-|-------------|--------------------------------|
-| Frontend    | React (Vite)            |
-| Backend     | Express.js                     |
-| Database    | MongoDB (Atlas)                |
-| Auth        | Google Firebase Authentication |
-| Hosting     | Google Cloud Functions         |
-| Storage     | Firebase Storage (or GCP Buckets) |
+| Layer    | Tech Used                         |
+| -------- | --------------------------------- |
+| Frontend | React (Vite)                      |
+| Backend  | Express.js                        |
+| Database | MongoDB (Atlas)                   |
+| Auth     | Google Firebase Authentication    |
+| Hosting  | Google Cloud Functions            |
+| Storage  | Firebase Storage (or GCP Buckets) |
 
 ---
 
 ## ⚙️ Serverless Architecture
 
 The ViBe backend is composed of several independent Express modules, each deployed as a **Google Cloud Function**. This allows:
+
 - Independent scaling of services
 - Faster cold starts per function
 - Logical separation of business concerns

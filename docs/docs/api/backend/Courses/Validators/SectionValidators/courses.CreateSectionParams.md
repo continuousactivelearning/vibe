@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/SectionValidators.ts
 
 Module ID where the new section will be added.
 
-***
+---
 
 ### versionId
 

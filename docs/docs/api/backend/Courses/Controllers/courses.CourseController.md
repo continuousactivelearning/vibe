@@ -51,7 +51,7 @@ The created course object.
 
 HttpError - If the course creation fails.
 
-***
+---
 
 ### read()
 
@@ -79,7 +79,7 @@ The course data if found.
 
 HttpError - If the course is not found or if an error occurs.
 
-***
+---
 
 ### update()
 

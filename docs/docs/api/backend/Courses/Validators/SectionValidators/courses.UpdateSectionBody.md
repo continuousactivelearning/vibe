@@ -31,7 +31,7 @@ New description of the section (optional).
 
 `Partial.description`
 
-***
+---
 
 ### name
 
@@ -45,7 +45,7 @@ New name of the section (optional).
 
 `Partial.name`
 
-***
+---
 
 ### nameOrDescription
 

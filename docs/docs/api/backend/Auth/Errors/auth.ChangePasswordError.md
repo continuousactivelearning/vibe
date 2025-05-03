@@ -38,55 +38,55 @@ The error message describing what went wrong
 
 > `optional` **cause**: `unknown`
 
-Defined in: node\_modules/.pnpm/typescript@5.8.3/node\_modules/typescript/lib/lib.es2022.error.d.ts:26
+Defined in: node_modules/.pnpm/typescript@5.8.3/node_modules/typescript/lib/lib.es2022.error.d.ts:26
 
 #### Inherited from
 
 `Error.cause`
 
-***
+---
 
 ### message
 
 > **message**: `string`
 
-Defined in: node\_modules/.pnpm/typescript@5.8.3/node\_modules/typescript/lib/lib.es5.d.ts:1077
+Defined in: node_modules/.pnpm/typescript@5.8.3/node_modules/typescript/lib/lib.es5.d.ts:1077
 
 #### Inherited from
 
 `Error.message`
 
-***
+---
 
 ### name
 
 > **name**: `string`
 
-Defined in: node\_modules/.pnpm/typescript@5.8.3/node\_modules/typescript/lib/lib.es5.d.ts:1076
+Defined in: node_modules/.pnpm/typescript@5.8.3/node_modules/typescript/lib/lib.es5.d.ts:1076
 
 #### Inherited from
 
 `Error.name`
 
-***
+---
 
 ### stack?
 
 > `optional` **stack**: `string`
 
-Defined in: node\_modules/.pnpm/typescript@5.8.3/node\_modules/typescript/lib/lib.es5.d.ts:1078
+Defined in: node_modules/.pnpm/typescript@5.8.3/node_modules/typescript/lib/lib.es5.d.ts:1078
 
 #### Inherited from
 
 `Error.stack`
 
-***
+---
 
 ### prepareStackTrace()?
 
 > `static` `optional` **prepareStackTrace**: (`err`, `stackTraces`) => `any`
 
-Defined in: node\_modules/.pnpm/@types+node@22.14.0/node\_modules/@types/node/globals.d.ts:143
+Defined in: node_modules/.pnpm/@types+node@22.14.0/node_modules/@types/node/globals.d.ts:143
 
 Optional override for formatting stack traces
 
@@ -112,13 +112,13 @@ https://v8.dev/docs/stack-trace-api#customizing-stack-traces
 
 `Error.prepareStackTrace`
 
-***
+---
 
 ### stackTraceLimit
 
 > `static` **stackTraceLimit**: `number`
 
-Defined in: node\_modules/.pnpm/@types+node@22.14.0/node\_modules/@types/node/globals.d.ts:145
+Defined in: node_modules/.pnpm/@types+node@22.14.0/node_modules/@types/node/globals.d.ts:145
 
 #### Inherited from
 
@@ -130,7 +130,7 @@ Defined in: node\_modules/.pnpm/@types+node@22.14.0/node\_modules/@types/node/gl
 
 > `static` **captureStackTrace**(`targetObject`, `constructorOpt`?): `void`
 
-Defined in: node\_modules/.pnpm/@types+node@22.14.0/node\_modules/@types/node/globals.d.ts:136
+Defined in: node_modules/.pnpm/@types+node@22.14.0/node_modules/@types/node/globals.d.ts:136
 
 Create .stack property on a target object
 

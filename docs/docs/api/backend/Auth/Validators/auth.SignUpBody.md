@@ -25,7 +25,7 @@ The email address of the new user.
 Must be a valid email format as defined by the IsEmail validator.
 Used as the primary login identifier and for account recovery.
 
-***
+---
 
 ### firstName
 
@@ -37,7 +37,7 @@ The first name of the user.
 Must contain only alphabetic characters (no numbers or special characters).
 Used for personalization and display purposes.
 
-***
+---
 
 ### lastName
 
@@ -49,7 +49,7 @@ The last name of the user.
 Must contain only alphabetic characters (no numbers or special characters).
 Used for personalization and display purposes.
 
-***
+---
 
 ### password
 

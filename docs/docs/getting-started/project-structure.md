@@ -71,7 +71,6 @@ The backend is written in **TypeScript** using **TypeDI** for dependency injecti
 
 This structure promotes **separation of concerns**, **testability**, and **code reusability**, making it scalable for large codebases.
 
-
 ---
 
 ### 🔍 Notes
@@ -79,4 +78,3 @@ This structure promotes **separation of concerns**, **testability**, and **code 
 - **Modular Structure**: Each module inside `src/modules/` may/may not be independent and may contain its own controllers, services, routes, and DB access logic.
 - **Shared Layer**: All cross-cutting concerns (like database, error handling, interfaces) are located inside `src/shared/` for reuse.
 - **TypeDI & Routing-controllers**: Dependency injection and route handling are managed via `TypeDI` and `routing-controllers`.
-

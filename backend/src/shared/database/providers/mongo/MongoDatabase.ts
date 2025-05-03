@@ -7,6 +7,8 @@ import {
 } from 'mongodb';
 import {IDatabase} from 'shared/database/interfaces/IDatabase';
 import {Service} from 'typedi';
+import dotenv from 'dotenv';
+dotenv.config();
 
 /**
  * @class MongoDatabase
@@ -84,3 +86,4 @@ export class MongoDatabase implements IDatabase<Db> {
     return this.database.collection<T>(name);
   }
 }
+console.log('MongoDB URI:', process.env.MONGODB_URI);

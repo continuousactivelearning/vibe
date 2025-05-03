@@ -1,45 +1,43 @@
-import { themes as prismThemes } from "prism-react-renderer";
-import type { Config } from "@docusaurus/types";
-import type * as Preset from "@docusaurus/preset-classic";
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
+import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: "ViBe",
-  tagline: "Reimagining Learning, One Question at a Time",
-  favicon: "img/favicon.ico",
+  title: 'ViBe',
+  tagline: 'Reimagining Learning, One Question at a Time',
+  favicon: 'img/favicon.ico',
 
   // Set the production url of your site here
-  url: "https://continuousactivelearning.github.io",
+  url: 'https://continuousactivelearning.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: "/vibe/",
-  deploymentBranch: "gh-pages",
+  baseUrl: '/vibe/',
+  deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
   markdown: {
     mermaid: true,
   },
 
-
-
   plugins: [
     [
-      "docusaurus-plugin-typedoc",
+      'docusaurus-plugin-typedoc',
       {
         categorizeByGroup: true,
         hideBreadcrumbs: true,
         hidePageTitle: true,
         entryPoints: [
-          "../backend/src/modules/courses/index.ts",
-          "../backend/src/modules/auth/index.ts",
+          '../backend/src/modules/courses/index.ts',
+          '../backend/src/modules/auth/index.ts',
         ],
-        entryFileName:"Backend.md",
-        entryPointStrategy: "expand",
-        tsconfig: "../backend/tsconfig.json",
-        out: "./docs/api/backend",
-        exclude: ["**/tests/**"],
-        router: "category",
+        entryFileName: 'Backend.md',
+        entryPointStrategy: 'expand',
+        tsconfig: '../backend/tsconfig.json',
+        out: './docs/api/backend',
+        exclude: ['**/tests/**'],
+        router: 'category',
         sidebar: {
           fullNames: false,
         },
@@ -49,72 +47,71 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: "continuousactivelearning", // Usually your GitHub org/user name.
-  projectName: "vibe", // Usually your repo name.
+  organizationName: 'continuousactivelearning', // Usually your GitHub org/user name.
+  projectName: 'vibe', // Usually your repo name.
 
-  onBrokenLinks: "throw",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenLinks: 'throw',
+  onBrokenMarkdownLinks: 'warn',
 
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
   i18n: {
-    defaultLocale: "en",
-    locales: ["en"],
+    defaultLocale: 'en',
+    locales: ['en'],
   },
 
   presets: [
     [
-      "classic",
+      'classic',
       {
         docs: {
-          sidebarPath: "./sidebars.ts",
+          sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/continuousactivelearning/vibe/edit/main/docs/",
+          editUrl: 'https://github.com/continuousactivelearning/vibe/edit/main/docs/',
         },
         blog: {
           showReadingTime: true,
           feedOptions: {
-            type: ["rss", "atom"],
+            type: ['rss', 'atom'],
             xslt: true,
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
           // Useful options to enforce blogging best practices
-          onInlineTags: "warn",
-          onInlineAuthors: "warn",
-          onUntruncatedBlogPosts: "warn",
+          onInlineTags: 'warn',
+          onInlineAuthors: 'warn',
+          onUntruncatedBlogPosts: 'warn',
         },
         theme: {
-          customCss: "./src/css/custom.css",
+          customCss: './src/css/custom.css',
         },
       } satisfies Preset.Options,
     ],
   ],
   themeConfig: {
     // Replace with your project's social card
-    image: "img/docusaurus-social-card.jpg",
+    image: 'img/docusaurus-social-card.jpg',
     navbar: {
-      title: "ViBe",
+      title: 'ViBe',
       logo: {
-        alt: "Vikram Betaal(ViBe) Logo",
-        src: "img/logo.png",
+        alt: 'Vikram Betaal(ViBe) Logo',
+        src: 'img/logo.png',
       },
       items: [
         {
-          type: "docSidebar",
-          sidebarId: "tutorialSidebar",
-          position: "left",
-          label: "Documentation",
+          type: 'docSidebar',
+          sidebarId: 'tutorialSidebar',
+          position: 'left',
+          label: 'Documentation',
         },
         {
-          href: "https://github.com/continuousactivelearning/vibe",
-          label: "GitHub",
-          position: "right",
+          href: 'https://github.com/continuousactivelearning/vibe',
+          label: 'GitHub',
+          position: 'right',
         },
       ],
     },
@@ -126,36 +123,36 @@ const config: Config = {
       contextualSearch: true,
     },
     footer: {
-      style: "dark",
+      style: 'dark',
       links: [
         {
-          title: "Docs",
+          title: 'Docs',
           items: [
             {
-              label: "Documentation",
-              to: "/docs/getting-started/intro",
+              label: 'Documentation',
+              to: '/docs/getting-started/intro',
             },
           ],
         },
         {
-          title: "Community",
+          title: 'Community',
           items: [
             {
-              label: "GitHub",
-              href: "https://github.com/continuousactivelearning/vibe",
+              label: 'GitHub',
+              href: 'https://github.com/continuousactivelearning/vibe',
             },
             {
-              label: "LinkedIn",
-              href: "https://www.linkedin.com/company/educationdesignlab/?viewAsMember=true",
+              label: 'LinkedIn',
+              href: 'https://www.linkedin.com/company/educationdesignlab/?viewAsMember=true',
             },
           ],
         },
         {
-          title: "More",
+          title: 'More',
           items: [
             {
-              label: "Blog",
-              to: "/blog",
+              label: 'Blog',
+              to: '/blog',
             },
           ],
         },

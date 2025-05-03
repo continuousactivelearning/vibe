@@ -1,20 +1,20 @@
 #!/usr/bin/env node
-import fs from "fs";
-import path from "path";
-import { execSync } from "child_process";
-import { findProjectRoot } from "../findRoot.ts";
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { findProjectRoot } from '../findRoot.ts';
 
 const rootDir = findProjectRoot();
-const backendDir = path.join(rootDir, "backend");
-const statePath = path.join(rootDir, ".vibe.json");
+const backendDir = path.join(rootDir, 'backend');
+const statePath = path.join(rootDir, '.vibe.json');
 
 // Step name for state tracking
-const STEP_NAME = "Emulators";
+const STEP_NAME = 'Emulators';
 
 // Load setup state
 function readState(): Record<string, any> {
   if (fs.existsSync(statePath)) {
-    return JSON.parse(fs.readFileSync(statePath, "utf8"));
+    return JSON.parse(fs.readFileSync(statePath, 'utf8'));
   }
   return {};
 }
@@ -28,15 +28,15 @@ const state = readState();
 
 // Skip step if already done
 if (state[STEP_NAME]) {
-  console.log("✅ Firebase emulators already initialized. Skipping.");
+  console.log('✅ Firebase emulators already initialized. Skipping.');
   process.exit(0);
 }
 
-const firebasercPath = path.join(backendDir, ".firebaserc");
-const firebaseJsonPath = path.join(backendDir, "firebase.json");
+const firebasercPath = path.join(backendDir, '.firebaserc');
+const firebaseJsonPath = path.join(backendDir, 'firebase.json');
 
 if (fs.existsSync(firebasercPath) && fs.existsSync(firebaseJsonPath)) {
-  console.log("Config files already exist.");
+  console.log('Config files already exist.');
   state[STEP_NAME] = true;
   writeState(state);
   process.exit(0);
@@ -53,16 +53,16 @@ Please choose ONLY the following emulators when prompted:
 `);
 
 try {
-  execSync("firebase init emulators", {
+  execSync('firebase init emulators', {
     cwd: backendDir,
-    stdio: "inherit"
+    stdio: 'inherit',
   });
 
   state[STEP_NAME] = true;
   writeState(state);
 
-  console.log("✅ Firebase emulators initialized successfully.");
+  console.log('✅ Firebase emulators initialized successfully.');
 } catch (err) {
-  console.error("❌ Failed to initialize Firebase emulators.");
+  console.error('❌ Failed to initialize Firebase emulators.');
   process.exit(1);
 }

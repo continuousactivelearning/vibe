@@ -40,7 +40,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:40](http
 
 `IModule.createdAt`
 
-***
+---
 
 ### description
 
@@ -52,7 +52,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:29](http
 
 `IModule.description`
 
-***
+---
 
 ### moduleId?
 
@@ -64,7 +64,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:23](http
 
 `IModule.moduleId`
 
-***
+---
 
 ### name
 
@@ -76,7 +76,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:26](http
 
 `IModule.name`
 
-***
+---
 
 ### order
 
@@ -88,7 +88,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:32](http
 
 `IModule.order`
 
-***
+---
 
 ### sections
 
@@ -100,7 +100,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Module.ts:36](http
 
 `IModule.sections`
 
-***
+---
 
 ### updatedAt
 

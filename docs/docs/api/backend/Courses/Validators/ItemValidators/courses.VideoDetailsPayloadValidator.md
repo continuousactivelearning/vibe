@@ -30,7 +30,7 @@ End time of the clip in HH:MM:SS format.
 
 `IVideoDetails.endTime`
 
-***
+---
 
 ### points
 
@@ -44,7 +44,7 @@ Points assigned to the video interaction.
 
 `IVideoDetails.points`
 
-***
+---
 
 ### startTime
 
@@ -58,7 +58,7 @@ Start time of the clip in HH:MM:SS format.
 
 `IVideoDetails.startTime`
 
-***
+---
 
 ### URL
 

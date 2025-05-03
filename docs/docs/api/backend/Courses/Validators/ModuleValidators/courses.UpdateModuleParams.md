@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 ID of the module to be updated.
 
-***
+---
 
 ### versionId
 
