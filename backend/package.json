@@ -74,5 +74,13 @@
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.2",
     "typedi": "^0.10.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "^5.8.2"
+    }
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

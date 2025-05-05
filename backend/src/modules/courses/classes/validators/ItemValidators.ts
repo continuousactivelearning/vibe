@@ -21,7 +21,68 @@ import {
   ItemType,
   IVideoDetails,
 } from 'shared/interfaces/IUser';
+import {IsBoolean} from 'class-validator';
+import {ArrayNotEmpty} from 'class-validator';
 
+import {
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
+} from 'class-validator';
+
+// Custom parameter validation decorator
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
+}
+
+function ParametersInQuestionText(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'parametersInQuestionText',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const {questionText, parameters} =
+            args.object as SelectOneFromLotValidator;
+
+          if (!Array.isArray(parameters) || typeof questionText !== 'string') {
+            return false;
+          }
+
+          const missingParams = parameters.filter(
+            param =>
+              !new RegExp(`<QParam>${escapeRegExp(param)}</QParam>`).test(
+                questionText,
+              ),
+          );
+
+          return missingParams.length === 0;
+        },
+        defaultMessage(args: ValidationArguments) {
+          const {parameters} = args.object as SelectOneFromLotValidator;
+          const {questionText} = args.object as SelectOneFromLotValidator;
+
+          if (!Array.isArray(parameters) || typeof questionText !== 'string') {
+            return 'Invalid parameters or questionText';
+          }
+
+          const missingParams = parameters.filter(
+            param =>
+              !new RegExp(`<QParam>${escapeRegExp(param)}</QParam>`).test(
+                questionText,
+              ),
+          );
+
+          return `Missing parameters in questionText: ${missingParams.join(', ')}`;
+        },
+      },
+    });
+  };
+}
+
+// ...existing class definitions...
 /**
  * Video item details for embedded video learning content.
  *
@@ -476,7 +537,102 @@ class MoveItemParams {
   @IsString()
   itemId: string;
 }
+/**
+ * Validator for Select One from Lot (SOL) question type.
+ *
+ * @category Courses/Validators/ItemValidators
+ */
+class SelectOneFromLotValidator {
+  /**
+   * Unique ID for the lot (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  lotId: string;
 
+  /**
+   * Question text with <QParam></QParam> tags for parameters (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  questionText: string;
+
+  /**
+   * List of parameters used in the question text (optional).
+   */
+  @IsOptional()
+  @IsString({each: true})
+  parameters?: string[];
+
+  /**
+   * List of lot items (required).
+   * Each item must have a unique ID and a description.
+   */
+
+  @IsNotEmpty()
+  @ArrayNotEmpty()
+  @ValidateNested({each: true})
+  @Type(() => LotItemValidator)
+  lotItems: LotItemValidator[];
+
+  /**
+   * Time limit for the question in seconds (optional).
+   */
+  @IsOptional()
+  @IsPositive()
+  timeLimit?: number;
+
+  /**
+   * Points assigned to the question (required).
+   */
+  @IsNotEmpty()
+  @IsDecimal()
+  points: number;
+
+  /**
+   * Hints for the question (optional).
+   */
+  @IsOptional()
+  @IsString({each: true})
+  hints?: string[];
+
+  /**
+   * Explanation for the correct answer (optional).
+   */
+  @IsOptional()
+  @IsString()
+  explanation?: string;
+}
+
+/**
+ * Validator for individual lot items in the SOL question type.
+ *
+ * @category Courses/Validators/ItemValidators
+ */
+class LotItemValidator {
+  /**
+   * Unique ID for the lot item (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  /**
+   * Description of the lot item (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  description: string;
+
+  /**
+   * Indicates if this item is the correct answer (required).
+   */
+  @IsNotEmpty()
+  @IsBoolean()
+  isCorrect: boolean;
+}
+
+export {SelectOneFromLotValidator, LotItemValidator};
 /**
  * Route parameters for deleting an item.
  *

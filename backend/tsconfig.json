@@ -108,7 +108,7 @@
     /* Ensure that casing is correct in imports. */
 
     /* Type Checking */
-    "strict": false,
+    "strict": true,
 
     /* Enable all strict type-checking options. */
     // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
@@ -139,6 +139,7 @@
 
     "sourceMap": true,
     "inlineSources": true,
+    
 
     // Set `sourceRoot` to  "/" to strip the build path prefix
     // from generated source code references.
@@ -146,6 +147,7 @@
     "sourceRoot": "/",
   
   },
+  "include": ["src"],
   "exclude": [".docusaurus", "build", "../docusaraus-docs/src/**/*.tsx"]
 
 }
