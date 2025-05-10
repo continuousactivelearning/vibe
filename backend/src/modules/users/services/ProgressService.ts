@@ -483,6 +483,85 @@ class ProgressService {
       throw new InternalServerError('Progress could not be updated');
     }
   }
+
+  async verifyResetProgressModuleExist(
+    courseVersionId: string,
+    moduleId: string,
+    sectionId: string,
+    itemId: string,
+  ): Promise<void> {
+    // Check if module exists in the course version
+    const module = await this.courseRepo.readModule(courseVersionId, moduleId);
+    if (!module) {
+      throw new NotFoundError('Module not found in the course version');
+    }
+
+    const section = await this.courseRepo.readSection(
+      courseVersionId,
+      moduleId,
+      sectionId,
+    );
+
+    if (!section) {
+      throw new NotFoundError('Section not found in the Module');
+    }
+
+    const item = await this.courseRepo.readItem(courseVersionId, itemId);
+
+    if (!item) {
+      throw new NotFoundError('Item not found in the Section');
+    }
+  }
+
+  /**
+   * Reset student progress to the given item id in the course.
+   */
+  async resetProgress(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    moduleId: string,
+    sectionId: string,
+    itemId: string,
+  ) {
+    await this.verifyDetails(userId, courseId, courseVersionId);
+
+    await this.verifyResetProgressModuleExist(
+      courseVersionId,
+      moduleId,
+      sectionId,
+      itemId,
+    );
+
+    // Check if user progress exists
+    const progress = await this.progressRepository.findProgress(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+    if (!progress) {
+      throw new NotFoundError('Progress not found');
+    }
+
+    const newProgress = {
+      completed: false,
+      currentModule: moduleId,
+      currentSection: sectionId,
+      currentItem: itemId,
+    };
+
+    const resetProgress = await this.progressRepository.updateProgress(
+      userId,
+      courseId,
+      courseVersionId,
+      newProgress,
+    );
+
+    if (!resetProgress) {
+      throw new InternalServerError('Progress could not be reset');
+    }
+    return resetProgress;
+  }
 }
 
 export {ProgressService};

@@ -20,6 +20,7 @@ import {
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {NotFoundError} from 'routing-controllers';
+import {Module, Section} from 'modules';
 
 @Service()
 export class CourseRepository implements ICourseRepository {
@@ -416,6 +417,47 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
+
+  async readModule(courseVersionId: string, moduleId: string): Promise<Module> {
+    await this.init();
+    const courseVersion = await this.readVersion(courseVersionId);
+
+    const module = courseVersion.modules.find(m =>
+      new ObjectId(m.moduleId).equals(new ObjectId(moduleId)),
+    );
+
+    if (!module) {
+      throw new NotFoundError('Module not found');
+    }
+    return module;
+  }
+
+  async readSection(
+    courseVersionId: string,
+    moduleId: string,
+    sectionId: string,
+  ): Promise<Section> {
+    await this.init();
+    const courseVersion = await this.readVersion(courseVersionId);
+
+    const module = courseVersion.modules.find(m =>
+      new ObjectId(m.moduleId).equals(new ObjectId(moduleId)),
+    );
+
+    if (!module) {
+      throw new NotFoundError('Module not found');
+    }
+
+    const section = module.sections.find(s =>
+      new ObjectId(s.sectionId).equals(new ObjectId(sectionId)),
+    );
+
+    if (!section) {
+      throw new NotFoundError('Section not found');
+    }
+    return section;
+  }
+
   async getFirstOrderItems(courseVersionId: string): Promise<{
     moduleId: ObjectId;
     sectionId: ObjectId;

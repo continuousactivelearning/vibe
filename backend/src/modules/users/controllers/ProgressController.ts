@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import {
+  Authorized,
   Body,
   Get,
   HttpCode,
@@ -154,6 +155,56 @@ export class UpdateProgressParams {
   courseVersionId: string;
 }
 
+export class ResetItemProgressParams {
+  /**
+   * User ID of the student whose item progress is being reset
+   */
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;
+
+  /**
+   * ID of the course which the item belongs to
+   */
+  @IsMongoId()
+  @IsString()
+  @IsNotEmpty()
+  courseId: string;
+
+  /**
+   * ID of the courseVersion which the item belongs to
+   */
+  @IsMongoId()
+  @IsString()
+  @IsNotEmpty()
+  courseVersionId: string;
+
+  /**
+   * ID of the module which needs to be assigned to the currentModule in progress
+   */
+  @IsMongoId()
+  @IsString()
+  @IsNotEmpty()
+  moduleId: string;
+
+  /**
+   * ID of the section which needs to be assigned to the currentSection in progress
+   */
+  @IsMongoId()
+  @IsString()
+  @IsNotEmpty()
+  sectionId: string;
+
+  /**
+   * ID of the item which needs to be assigned to the currentSection in progress
+   */
+  @IsMongoId()
+  @IsString()
+  @IsNotEmpty()
+  itemId: string;
+}
+
 @JsonController('/users', {transformResponse: true})
 @Service()
 /**
@@ -243,6 +294,30 @@ class ProgressController {
       itemId,
       watchItemId,
     );
+  }
+
+  @Authorized(['admin'])
+  @Post(
+    '/:userId/progress/reset/courses/:courseId/versions/:courseVersionId/modules/:moduleId/sections/:sectionId/items/:itemId',
+  )
+  @HttpCode(200)
+  async resetItemProgress(@Params() params: ResetItemProgressParams) {
+    const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+      params;
+
+    const resetProgressResponse = await this.progressService.resetProgress(
+      userId,
+      courseId,
+      courseVersionId,
+      moduleId,
+      sectionId,
+      itemId,
+    );
+    if (!resetProgressResponse) {
+      throw new InternalServerError('Failed to reset progress');
+    }
+
+    return resetProgressResponse;
   }
 }
 export {ProgressController};

@@ -8,10 +8,7 @@ import {
   Post,
 } from 'routing-controllers';
 import {Inject, Service} from 'typedi';
-import {
-  EnrollmentParams,
-  ResetItemProgressParams,
-} from '../classes/validators/EnrollmentValidators';
+import {EnrollmentParams} from '../classes/validators/EnrollmentValidators';
 import {EnrollmentService} from '../services';
 import {
   Enrollment,
@@ -49,24 +46,5 @@ export class EnrollmentController {
       responseData.enrollment,
       responseData.progress,
     );
-  }
-
-  @Authorized(['admin'])
-  @Post(
-    '/:userId/progress/reset/courses/:courseId/modules/:moduleId/sections/:sectionId/items/:itemId',
-  )
-  @HttpCode(200)
-  async resetItemProgress(@Params() params: ResetItemProgressParams) {
-    const {userId, courseId, moduleId, sectionId, itemId} = params;
-
-    const resetProgressResponse = await this.enrollmentService.resetProgress(
-      userId,
-      courseId,
-      moduleId,
-      sectionId,
-      itemId,
-    );
-
-    return instanceToPlain(resetProgressResponse);
   }
 }
