@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import {
+  Authorized,
   HttpCode,
   HttpError,
   JsonController,
@@ -14,6 +15,7 @@ import {
   EnrollUserResponse,
   Progress,
 } from '../classes/transformers';
+import {instanceToPlain} from 'class-transformer';
 
 /**
  * Controller for managing student enrollments in courses.

@@ -512,4 +512,54 @@ describe('Progress Controller Integration Tests', () => {
       expect(progressResponse.body.currentModule).not.toBe(itemId);
     });
   });
+
+  describe('Reset Item Progress', () => {
+    it('should reset the item progress', async () => {
+      const {userId, courseId, courseVersionId, moduleId, sectionId, itemId} =
+        f;
+      // Start the item progress
+      const resetProgressItemBody: StartItemBody = {
+        itemId,
+        moduleId,
+        sectionId,
+      };
+
+      const resetProgressItemResponse = await request(app)
+        .post(
+          `/users/${userId}/progress/reset/courses/${courseId}/versions/${courseVersionId}/modules/${moduleId}/sections/${sectionId}/items/${itemId}`,
+        )
+        .send(resetProgressItemBody)
+        .expect(200);
+
+      //log the response
+      console.log(
+        'Reset Item Progress Response:',
+        resetProgressItemResponse.body,
+      );
+
+      // Expect the response to contain the progress data
+      expect(resetProgressItemResponse.body).toHaveProperty('userId');
+      expect(resetProgressItemResponse.body.userId).toBe(userId);
+
+      expect(resetProgressItemResponse.body).toHaveProperty('courseId');
+      expect(resetProgressItemResponse.body.courseId).toBe(courseId);
+
+      expect(resetProgressItemResponse.body).toHaveProperty('courseVersionId');
+      expect(resetProgressItemResponse.body.courseVersionId).toBe(
+        courseVersionId,
+      );
+
+      expect(resetProgressItemResponse.body).toHaveProperty('currentModule');
+      expect(resetProgressItemResponse.body.currentModule).toBe(moduleId);
+
+      expect(resetProgressItemResponse.body).toHaveProperty('currentSection');
+      expect(resetProgressItemResponse.body.currentSection).toBe(sectionId);
+
+      expect(resetProgressItemResponse.body).toHaveProperty('currentItem');
+      expect(resetProgressItemResponse.body.currentItem).toBe(itemId);
+
+      expect(resetProgressItemResponse.body).toHaveProperty('completed');
+      expect(resetProgressItemResponse.body.completed).toBe(false);
+    });
+  });
 });
