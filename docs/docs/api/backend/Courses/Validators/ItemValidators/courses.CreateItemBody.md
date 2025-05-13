@@ -26,7 +26,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:13
 
 MongoDB ID (auto-assigned).
 
-***
+---
 
 ### afterItemId?
 
@@ -36,7 +36,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:17
 
 Place item after this item ID (optional).
 
-***
+---
 
 ### beforeItemId?
 
@@ -46,7 +46,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:18
 
 Place item before this item ID (optional).
 
-***
+---
 
 ### blogDetails?
 
@@ -56,7 +56,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:22
 
 Nested blog details (required if type is BLOG).
 
-***
+---
 
 ### createdAt
 
@@ -66,7 +66,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:19
 
 Item creation timestamp (auto-managed).
 
-***
+---
 
 ### description
 
@@ -80,7 +80,7 @@ Description of the item (required).
 
 `IBaseItem.description`
 
-***
+---
 
 ### itemDetails
 
@@ -94,7 +94,7 @@ Item details (depends on type) – video, blog, or quiz.
 
 `IBaseItem.itemDetails`
 
-***
+---
 
 ### name
 
@@ -108,7 +108,7 @@ Title of the item (required).
 
 `IBaseItem.name`
 
-***
+---
 
 ### order
 
@@ -122,7 +122,7 @@ Order key for item placement (auto-managed).
 
 `IBaseItem.order`
 
-***
+---
 
 ### quizDetails?
 
@@ -132,7 +132,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:23
 
 Nested quiz details (required if type is QUIZ).
 
-***
+---
 
 ### sectionId
 
@@ -142,7 +142,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:15
 
 Section ID to which the item belongs (auto-managed).
 
-***
+---
 
 ### type
 
@@ -156,7 +156,7 @@ Type of the item: VIDEO, BLOG, or QUIZ.
 
 `IBaseItem.type`
 
-***
+---
 
 ### updatedAt
 
@@ -166,7 +166,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:19
 
 Item update timestamp (auto-managed).
 
-***
+---
 
 ### videoDetails?
 

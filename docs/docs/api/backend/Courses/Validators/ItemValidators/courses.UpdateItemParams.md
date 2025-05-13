@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:45
 
 Target item ID to update
 
-***
+---
 
 ### moduleId
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:44
 
 Module ID inside the version
 
-***
+---
 
 ### sectionId
 
@@ -42,7 +42,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:44
 
 Section ID inside the module
 
-***
+---
 
 ### versionId
 

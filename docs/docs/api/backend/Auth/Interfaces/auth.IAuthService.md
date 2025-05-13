@@ -40,7 +40,7 @@ A promise that resolves to a confirmation object with success status and message
 
 Error - If password change fails or validation errors occur
 
-***
+---
 
 ### signup()
 
@@ -59,7 +59,7 @@ stores the user information in the database.
 [`SignUpBody`](../Validators/auth.SignUpBody.md)
 
 The validated payload containing user registration information
-              including email, password, first name, and last name
+including email, password, first name, and last name
 
 #### Returns
 
@@ -71,7 +71,7 @@ A promise that resolves to the newly created user object
 
 Error - If user creation fails for any reason
 
-***
+---
 
 ### verifyToken()
 

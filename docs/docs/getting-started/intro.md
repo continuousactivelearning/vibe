@@ -5,8 +5,24 @@ title: Installation
 This guide will help you set up ViBe on your local machine for development.
 
 ---
+<<<<<<< Updated upstream
 You can clone the repository or directly download the setup file and run it to start the setup process.
 ## 🚀 Clone the Repository (Optional)
+=======
+
+## 🧰 Requirements
+
+Before you begin, make sure you have the following installed:
+
+| Tool       | Required Version | Notes                                       |
+| ---------- | ---------------- | ------------------------------------------- |
+| **Git**    | any              | For cloning the repository                  |
+| **Python** | 3.8+             | Used to bootstrap both frontend and backend |
+
+---
+
+## 🚀 Clone the Repository
+>>>>>>> Stashed changes
 
 ```bash
 git clone https://github.com/continuousactivelearning/vibe.git
@@ -27,6 +43,7 @@ chmod +x scripts/setup-unix.sh
 ```
 
 This script will:
+
 - Check required dependencies
 - Install backend dependencies
 - Install frontend dependencies

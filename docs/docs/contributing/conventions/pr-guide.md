@@ -7,7 +7,7 @@ title: Pull Request Convention
 We follow a structured format for writing pull request titles and descriptions to keep our change history consistent and clear. Use the following format when creating a PR.
 
 **Format**  
-*(Note: "Title:" and "Description:" are only for explanation purposes and should not be included in your actual PR.)*
+_(Note: "Title:" and "Description:" are only for explanation purposes and should not be included in your actual PR.)_
 
 ```
 Title:
@@ -22,6 +22,7 @@ Description:
 ```
 
 - **`<type>`** is one of:
+
   - `feat` (feature)
   - `fix` (bug fix)
   - `doc` (documentation)
@@ -32,23 +33,27 @@ Description:
   - `perf` (performance improvement)
 
 - **`<optional-scope>`** is the name of the module or directory affected by the change. For example:
+
   - `auth` for authentication-related changes.
   - `courses` for course management.
   - `item` for item/section functionalities.
-  
+
   This part is optional but helps to quickly identify the context of the change.
 
 - **`<subject>`** should:
+
   - Use imperative, present tense (e.g., "implement", "fix", "update").
   - Not be capitalized.
   - Not end with a dot.
 
 - **`<body>`** should:
+
   - Provide the motivation for the change.
   - Describe the previous behavior and how the change improves or fixes it.
   - Use imperative, present tense.
 
 - **`<footer>`** is optional and may contain:
+
   - **Breaking changes:** All breaking changes must be listed with a description, justification, and migration notes.
   - **Referencing issues:** Closed bugs should be referenced on separate lines, prefixed with "Closes" (e.g., `Closes #123, #456`).
 

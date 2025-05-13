@@ -5,20 +5,29 @@
 	"license": "MIT",
 	"author": "adityabmv",
 	"devDependencies": {
-		"husky": "^9.1.7",
-		"lint-staged": "^15.5.0"
+	  "@typescript-eslint/eslint-plugin": "^8.31.1",
+	  "@typescript-eslint/parser": "^8.31.1",
+	  "eslint": "^9.26.0",
+	  "husky": "^9.1.7",
+	  "lint-staged": "^15.5.0"
 	},
 	"scripts": {
-		"prepare": "husky",
-		"binaries": "pnpx ts-node scripts/preload-mongo-binary.ts",
-		"vibe": "pnpx ts-node cli/src/cli.ts"
+	  "prepare": "husky",
+	  "binaries": "pnpx ts-node scripts/preload-mongo-binary.ts",
+	  "vibe": "pnpx ts-node scripts/cli/src/cli.ts",
+	  "lint": "eslint .",
+	  "format": "prettier --write ."
 	},
 	"lint-staged": {
-		"backend/**/*.{js,jsx,ts,tsx}": [
-			"pnpm --filter backend lint"
-		]
+	  "backend/**/*.{js,jsx,ts,tsx}": [
+		"pnpm --filter backend lint"
+	  ]
 	},
-	"dependencies": {
-		"vibe": "link:cli"
+	"prettier": {
+	  "singleQuote": true,
+	  "trailingComma": "es5",
+	  "printWidth": 100,
+	  "endOfLine": "lf"
 	}
-}
+  }
+  

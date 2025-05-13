@@ -5,7 +5,6 @@ sidebar_position: 1
 
 Thank you for your interest in contributing to our project! We welcome contributions from everyone. To ensure a smooth and efficient process, please follow these guidelines when making changes and submitting your code.
 
-
 ## Getting Started
 
 1. **Fork the Repository:**  
@@ -13,6 +12,7 @@ Thank you for your interest in contributing to our project! We welcome contribut
 
 2. **Clone Your Fork:**  
    Clone your fork locally to start working on your changes:
+
    ```bash
    git clone https://github.com/your-username/repository-name.git
    cd repository-name
@@ -29,6 +29,7 @@ Thank you for your interest in contributing to our project! We welcome contribut
 ## Code Standards
 
 ### Linting and Formatting
+
 Before committing your changes, please ensure that your code is properly linted and formatted. This helps maintain a clean and consistent codebase.
 
 - **Lint your code:**  
@@ -43,15 +44,17 @@ Before committing your changes, please ensure that your code is properly linted 
   ```
 
 ### Documentation
+
 - **Update Documentation:**  
   If your changes affect the functionality or add new features, update the documentation accordingly. Clear documentation helps others understand and use your code.
 - **Code Comments:**  
   Add or update inline comments where necessary. This helps maintain readability and makes future maintenance easier.
 
 ### Tests
+
 - **Run Existing Tests:**  
   Before submitting your PR, ensure that all existing tests pass.
-- **Add or Update Tests:**  
+- **Add or Update Tests:**
   - If you are adding a new feature, include tests for that feature.
   - If you are fixing or updating an existing feature, modify or add tests as required.
 - **Continuous Integration:**  

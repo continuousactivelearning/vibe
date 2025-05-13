@@ -1,6 +1,6 @@
 import {env} from '../utils/env';
 
 export const dbConfig = {
-  url: env('DB_URL'),
-  dbName: env('DB_NAME') || 'vibe',
+  url: process.env.DB_URL,
+  dbName: process.env.DB_NAME || 'vibe',
 };

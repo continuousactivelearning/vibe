@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:49
 
 ItemId
 
-***
+---
 
 ### itemsGroupId
 

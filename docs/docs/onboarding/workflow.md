@@ -12,17 +12,16 @@ This guide outlines the day-to-day workflow and expectations for interns at ViBe
 1. **Set up your development environment**
    - Follow the [Installation Guide](../getting-started/intro.md)
    - Make sure all tools and dependencies are properly installed
-   
 2. **Introduce yourself in GitHub Discussions**
-    - Introduce yourself in [#introduction](https://github.com/continuousactivelearning/vibe/discussions/249) on GitHub discussions.
-   
-4. **Review documentation**
+   - Introduce yourself in [#introduction](https://github.com/continuousactivelearning/vibe/discussions/249) on GitHub discussions.
+3. **Review documentation**
    - Read through this onboarding documentation
    - Familiarize yourself with the [Project Structure](../getting-started/project-structure.md)
 
 ## Daily Workflow
 
 ### Communicate
+
 Be prepared to share:
 
 1. What you accomplished yesterday
@@ -35,17 +34,24 @@ Be prepared to share:
 2. Each task will include:
    - Description of the feature or bug fix
    - Due date (if applicable)
+<<<<<<< Updated upstream
 3. If you want to work on a particular Issue, comment on it. Soon, one of the managers of the repository will assign you the issue if he/she deems fit. 
 4. Further, see [Contributing](../contributing/how-to-contribute.md) to learn how to properly contribute to the project.
+=======
+3. If you want to work on a particular Issue, comment on it. Soon, one of the managers of the repository will assign you the issue if he/she deems fit.
+4. Further, see [Contributing](../category/contributing/) to learn how to properly contribute to the project.
+>>>>>>> Stashed changes
 
 ### Code Review Process
 
 1. **Respond to feedback**
+
    - Address all comments and feedback from reviewers
    - Make requested changes and push updates
    - Respond to each comment to mark it as resolved
 
 2. **Iterate as needed**
+
    - Be prepared to make multiple rounds of changes
    - Ask questions if you need clarification on feedback
 
@@ -58,6 +64,7 @@ Be prepared to share:
 ### Weekly Check-ins
 
 We schedule weekly meetings to:
+
 - Review your progress
 - Provide feedback
 - Address any concerns
@@ -66,12 +73,14 @@ We schedule weekly meetings to:
 ### Learning Resources
 
 Take advantage of our recommended resources:
+
 - Review the [Tech Stack Overview](./tech-stack.md) for learning materials
 - Ask for code walkthroughs when dealing with unfamiliar parts of the codebase
 
 ### Contribution Expectations
 
 As an intern, you're expected to:
+
 1. Complete assigned tasks within reasonable timeframes
 2. Actively communicate about progress and blockers
 3. Seek help when needed rather than getting stuck

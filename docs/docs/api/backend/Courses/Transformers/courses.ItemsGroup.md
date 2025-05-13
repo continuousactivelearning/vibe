@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:99](https:
 
 Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:88](https://github.com/continuousactivelearning/vibe/blob/9a2d9d7201b944582c5d0ed5f0f7a4de13abde0f/backend/src/modules/courses/classes/transformers/Item.ts#L88)
 
-***
+---
 
 ### items
 
@@ -40,7 +40,7 @@ Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:88](https:
 
 Defined in: [backend/src/modules/courses/classes/transformers/Item.ts:92](https://github.com/continuousactivelearning/vibe/blob/9a2d9d7201b944582c5d0ed5f0f7a4de13abde0f/backend/src/modules/courses/classes/transformers/Item.ts#L92)
 
-***
+---
 
 ### sectionId
 

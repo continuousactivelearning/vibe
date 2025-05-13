@@ -61,7 +61,7 @@ HttpError(404) if the course is not found
 
 HttpError(500) on any other internal error
 
-***
+---
 
 #### read()
 

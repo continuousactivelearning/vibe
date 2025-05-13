@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:35
 
 Move after this item (optional).
 
-***
+---
 
 ### beforeItemId?
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:36
 
 Move before this item (optional).
 
-***
+---
 
 ### bothNotAllowed
 
@@ -42,7 +42,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ItemValidators.ts:37
 
 Validation helper – both afterItemId and beforeItemId cannot be present at the same time.
 
-***
+---
 
 ### onlyOneAllowed
 

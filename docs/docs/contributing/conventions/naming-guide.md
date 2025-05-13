@@ -1,7 +1,5 @@
 ---
-
 title: Naming Conventions
-
 ---
 
 # Naming Conventions
@@ -12,7 +10,8 @@ This document outlines the naming conventions for our TypeScript codebase, as en
 
 ## Files
 
-- **Files Containing a Single Class or Function:**  
+- **Files Containing a Single Class or Function:**
+
   - **Class File:** If a file contains a single class, the file name should exactly match the class name (using PascalCase).  
     _Example:_ A file containing the `UserService` class should be named `UserService.ts`.
   - **Function File:** If a file contains a single function, the file name should exactly match the function name (using camelCase).  

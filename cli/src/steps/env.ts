@@ -1,16 +1,16 @@
 #!/usr/bin/env node
-import fs from "fs";
-import path from "path";
-import { findProjectRoot } from "../findRoot.ts";
+import fs from 'fs';
+import path from 'path';
+import { findProjectRoot } from '../findRoot.ts';
 import password from '@inquirer/password';
 
 const rootDir = findProjectRoot();
-const backendDir = path.join(rootDir, "backend");
-const statePath = path.join(rootDir, ".vibe.json");
-const envPath = path.join(backendDir, ".env");
+const backendDir = path.join(rootDir, 'backend');
+const statePath = path.join(rootDir, '.vibe.json');
+const envPath = path.join(backendDir, '.env');
 
 // Constants
-const STEP_NAME = "Env Variables";
+const STEP_NAME = 'Env Variables';
 
 async function getMongoUri() {
   const userPassword = await password({
@@ -19,7 +19,8 @@ async function getMongoUri() {
   });
 
   const encodedPassword = encodeURIComponent(userPassword);
-  const uriTemplate = 'mongodb+srv://Vibe:<db_password>@vibe-test.jt5wz7s.mongodb.net/?retryWrites=true&w=majority&appName=vibe-test';
+  const uriTemplate =
+    'mongodb+srv://Vibe:<db_password>@vibe-test.jt5wz7s.mongodb.net/?retryWrites=true&w=majority&appName=vibe-test';
   const finalUri = uriTemplate.replace('<db_password>', encodedPassword);
 
   console.log('\nYour MongoDB URI:');
@@ -31,7 +32,7 @@ async function getMongoUri() {
 // Read state
 function readState(): Record<string, any> {
   if (fs.existsSync(statePath)) {
-    return JSON.parse(fs.readFileSync(statePath, "utf8"));
+    return JSON.parse(fs.readFileSync(statePath, 'utf8'));
   }
   return {};
 }
@@ -43,13 +44,13 @@ function writeState(state: Record<string, any>) {
 
 // Validate MongoDB URI
 function isValidMongoUri(uri: string): boolean {
-  return uri.startsWith("mongodb://") || uri.startsWith("mongodb+srv://");
+  return uri.startsWith('mongodb://') || uri.startsWith('mongodb+srv://');
 }
 
 const state = readState();
 
 if (state[STEP_NAME]) {
-  console.log("✅ Environment variables already set. Skipping.");
+  console.log('✅ Environment variables already set. Skipping.');
   process.exit(0);
 }
 

@@ -22,7 +22,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 Optional: Move the module after this ID.
 
-***
+---
 
 ### beforeModuleId?
 
@@ -32,7 +32,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 Optional: Move the module before this ID.
 
-***
+---
 
 ### bothNotAllowed
 
@@ -42,7 +42,7 @@ Defined in: [backend/src/modules/courses/classes/validators/ModuleValidators.ts:
 
 Validation helper: both afterModuleId and beforeModuleId should not be used together.
 
-***
+---
 
 ### onlyOneAllowed
 
