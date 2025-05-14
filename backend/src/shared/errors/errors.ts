@@ -52,6 +52,6 @@ export class NotAuthorizedError extends HttpError {
 export class AlreadyExists extends HttpError {
   constructor(message: string) {
     super(409, message);
-    this.name = 'UserAlreadyExistsError';
+    this.name = 'AlreadyExistsError';
   }
 }
