@@ -1,6 +1,9 @@
 import 'reflect-metadata';
 import {IsEmpty, IsNotEmpty, IsString, IsMongoId} from 'class-validator';
-import {ICourseVersion} from 'shared/interfaces/Models';
+import {ICourse, ICourseVersion, IModule} from 'shared/interfaces/Models';
+import {JSONSchema} from 'class-validator-jsonschema';
+import {ObjectId} from 'mongodb';
+import {ID} from 'shared/types';
 
 /**
  * DTO for creating a new course version.
@@ -77,9 +80,78 @@ class DeleteCourseVersionParams {
   courseId: string;
 }
 
+class CourseVersionDataResponse implements ICourseVersion {
+  @JSONSchema({
+    description: 'Unique identifier for the courseVersion',
+    example: '60d5ec49b3f1c8e4a8f8b8c1',
+    type: 'string',
+    format: 'Mongo Object ID',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  _id?: ID;
+
+  @JSONSchema({
+    description: 'ID of the course this version belongs to',
+    example: '60d5ec49b3f1c8e4a8f8b8c1',
+    type: 'string',
+    format: 'Mongo Object ID',
+  })
+  @IsNotEmpty()
+  courseId: ID;
+
+  @JSONSchema({
+    description: 'Version label or identifier',
+    example: 'v1.0',
+    type: 'string',
+  })
+  @IsNotEmpty()
+  version: string;
+
+  @JSONSchema({
+    description: 'Description of the courseVersion',
+    example: 'This course covers the basics of JAVA programming.',
+    type: 'string',
+  })
+  @IsNotEmpty()
+  description: string;
+
+  @JSONSchema({
+    description: 'List of modules in the course version',
+    type: 'array',
+    items: {
+      $ref: '#/components/schemas/IModule',
+    },
+  })
+  modules: IModule[];
+
+  @JSONSchema({
+    title: 'CourseVersion Created At',
+    description: 'Timestamp when the courseVersion was created',
+    example: '2023-10-01T12:00:00Z',
+    type: 'string',
+    format: 'date-time',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  createdAt: Date | null;
+
+  @JSONSchema({
+    title: 'CourseVersion Updated At',
+    description: 'Timestamp when the courseVersion was last updated',
+    example: '2023-10-01T12:00:00Z',
+    type: 'string',
+    format: 'date-time',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  updatedAt: Date | null;
+}
+
 export {
   CreateCourseVersionBody,
   CreateCourseVersionParams,
   ReadCourseVersionParams,
   DeleteCourseVersionParams,
+  CourseVersionDataResponse,
 };

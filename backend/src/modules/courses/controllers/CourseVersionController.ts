@@ -19,56 +19,54 @@ import {DeleteError, ReadError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {CourseVersion} from '../classes/transformers/CourseVersion';
 import {
+  OpenAPI,
+  routingControllersToSpec,
+  ResponseSchema,
+} from 'routing-controllers-openapi';
+import {
   CreateCourseVersionParams,
   CreateCourseVersionBody,
   ReadCourseVersionParams,
   DeleteCourseVersionParams,
+  CourseVersionDataResponse,
 } from '../classes/validators/CourseVersionValidators';
+import {CourseVersionService} from '../services';
+import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 
+@OpenAPI({
+  tags: ['CourseVersions'],
+})
 @JsonController('/courses')
 @Service()
 export class CourseVersionController {
   constructor(
+    @Inject('CourseVersionService')
+    private readonly courseVersionService: CourseVersionService,
     @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
   ) {}
 
   @Authorized(['admin', 'instructor'])
-  @Post('/:id/versions')
+  @Post('/:id/versions', {transformResponse: true})
   @HttpCode(201)
+  @ResponseSchema(CourseVersionDataResponse, {
+    description: 'CourseVersion created successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @OpenAPI({
+    summary: 'Create CourseVersion',
+    description: 'Creates a new courseVersion with the provided details.',
+  })
   async create(
     @Params() params: CreateCourseVersionParams,
     @Body() body: CreateCourseVersionBody,
   ) {
     const {id} = params;
-    try {
-      //Fetch Course from DB
-      const course = await this.courseRepo.read(id);
-
-      //Create Version
-      let version = new CourseVersion(body);
-      version.courseId = new ObjectId(id);
-      version = (await this.courseRepo.createVersion(version)) as CourseVersion;
-
-      //Add Version to Course
-      course.versions.push(version._id);
-      course.updatedAt = new Date();
-
-      //Update Course
-      const updatedCourse = await this.courseRepo.update(id, course);
-
-      return {
-        course: instanceToPlain(updatedCourse),
-        version: instanceToPlain(version),
-      };
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      if (error instanceof ReadError) {
-        throw new HttpError(500, error.message);
-      }
-      throw new HttpError(500, error.message);
-    }
+    const createdCourseVersion =
+      await this.courseVersionService.createCourseVersion(id, body);
+    return createdCourseVersion;
   }
 
   @Authorized(['admin', 'instructor', 'student'])

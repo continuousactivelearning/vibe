@@ -3,7 +3,7 @@ import {instanceToPlain} from 'class-transformer';
 import {Course} from 'modules/courses/classes/transformers/Course';
 import {CourseVersion} from 'modules/courses/classes/transformers/CourseVersion';
 import {Item, ItemsGroup} from 'modules/courses/classes/transformers/Item';
-import {Collection, ObjectId} from 'mongodb';
+import {ClientSession, Collection, MongoClient, ObjectId} from 'mongodb';
 import {ICourseRepository} from 'shared/database/interfaces/ICourseRepository';
 import {
   CreateError,
@@ -36,6 +36,15 @@ export class CourseRepository implements ICourseRepository {
     this.itemsGroupCollection =
       await this.db.getCollection<ItemsGroup>('itemsGroup');
   }
+
+  async getDBClient(): Promise<MongoClient> {
+    const client = await this.db.getClient();
+    if (!client) {
+      throw new Error('MongoDB client is not initialized');
+    }
+    return client;
+  }
+
   async create(course: Course): Promise<Course | null> {
     await this.init();
     const result = await this.courseCollection.insertOne(course);
@@ -48,26 +57,33 @@ export class CourseRepository implements ICourseRepository {
       return null;
     }
   }
-  async read(id: string): Promise<ICourse | null> {
+  async read(id: string, session?: ClientSession): Promise<ICourse | null> {
     await this.init();
-    const course = await this.courseCollection.findOne({
-      _id: new ObjectId(id),
-    });
+    const course = await this.courseCollection.findOne(
+      {
+        _id: new ObjectId(id),
+      },
+      {session},
+    );
     if (course) {
       return Object.assign(new Course(), course) as Course;
     } else {
       return null;
     }
   }
-  async update(id: string, course: Partial<ICourse>): Promise<ICourse | null> {
+  async update(
+    id: string,
+    course: Partial<ICourse>,
+    session?: ClientSession,
+  ): Promise<ICourse | null> {
     await this.init();
-    await this.read(id);
+    await this.read(id, session);
 
     const {_id: _, ...fields} = course;
     const res = await this.courseCollection.findOneAndUpdate(
       {_id: new ObjectId(id)},
       {$set: fields},
-      {returnDocument: 'after'},
+      {returnDocument: 'after', session},
     );
 
     if (res) {
@@ -82,15 +98,21 @@ export class CourseRepository implements ICourseRepository {
   }
   async createVersion(
     courseVersion: CourseVersion,
+    session?: ClientSession,
   ): Promise<CourseVersion | null> {
     await this.init();
     try {
-      const result =
-        await this.courseVersionCollection.insertOne(courseVersion);
+      const result = await this.courseVersionCollection.insertOne(
+        courseVersion,
+        {session},
+      );
       if (result.acknowledged) {
-        const newCourseVersion = await this.courseVersionCollection.findOne({
-          _id: result.insertedId,
-        });
+        const newCourseVersion = await this.courseVersionCollection.findOne(
+          {
+            _id: result.insertedId,
+          },
+          {session},
+        );
 
         return instanceToPlain(
           Object.assign(new CourseVersion(), newCourseVersion),
