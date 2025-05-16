@@ -1,4 +1,5 @@
 import {
+  ClientSession,
   Collection,
   Db,
   Document,
@@ -82,5 +83,12 @@ export class MongoDatabase implements IDatabase<Db> {
       throw new Error('Database is not connected');
     }
     return this.database.collection<T>(name);
+  }
+
+  /**
+   * Returns a new MongoDB ClientSession for transactions.
+   */
+  public getSession(): ClientSession {
+    return this.client.startSession();
   }
 }
