@@ -4,20 +4,19 @@ import {Inject, Service} from 'typedi';
 import {CreateCourseVersionBody} from '../classes/validators';
 import {CourseVersion} from '../classes/transformers';
 import {ObjectId, ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
-import {ICourse} from 'shared/interfaces/Models';
+import {ICourseVersion} from 'shared/interfaces/Models';
 
 @Service()
-class CourseVersionService {
+export class CourseVersionService {
   constructor(
     @Inject('CourseRepo')
     private readonly courseRepo: ICourseRepository,
   ) {}
 
-  async createCourseVersion(
-    id: string,
+  public async createCourseVersion(
+    courseId: string,
     body: CreateCourseVersionBody,
-  ): Promise<CourseVersion> {
-    // Start a session for the transaction
+  ): Promise<ICourseVersion> {
     const session = (await this.courseRepo.getDBClient()).startSession();
 
     const transactionOptions = {
@@ -26,49 +25,54 @@ class CourseVersionService {
       writeConcern: new WriteConcern('majority'),
     };
 
-    let version: CourseVersion | null = null;
+    let newVersion: ICourseVersion;
 
     try {
-      // Start the transaction
-      await session.withTransaction(async () => {
-        // Read the course
-        const course = await this.courseRepo.read(id, session);
-        if (!course) {
-          throw new NotFoundError(
-            'No course found with the specified ID. Please verify the ID and try again.',
-          );
-        }
+      await session.startTransaction(transactionOptions);
 
-        // Create a new course version
-        version = new CourseVersion(body);
-        version.courseId = new ObjectId(id);
+      // Step 1: Fetch course
+      const course = await this.courseRepo.read(courseId, session);
+      if (!course) {
+        throw new NotFoundError(`Course with ID ${courseId} not found.`);
+      }
 
-        version = (await this.courseRepo.createVersion(
-          version,
-          session,
-        )) as CourseVersion;
-        if (!version) {
-          throw new InternalServerError(
-            'Failed to create course version. Please try again later.',
-          );
-        }
+      // Step 2: Create new version
+      newVersion = new CourseVersion(body);
+      newVersion.courseId = new ObjectId(courseId);
 
-        course.versions.push(version._id);
-        course.updatedAt = new Date();
+      const createdVersion = await this.courseRepo.createVersion(
+        newVersion,
+        session,
+      );
+      if (!createdVersion) {
+        throw new InternalServerError('Failed to create course version.');
+      }
 
-        // Update the course with the new version
-        const updatedCourse = await this.courseRepo.update(id, course, session);
-        if (!updatedCourse) {
-          throw new InternalServerError(
-            'Failed to update course with new version. Please try again later.',
-          );
-        }
-      }, transactionOptions);
+      newVersion = createdVersion;
+
+      // Step 3: Update course metadata
+      course.versions.push(createdVersion._id);
+      course.updatedAt = new Date();
+
+      const updatedCourse = await this.courseRepo.update(
+        courseId,
+        course,
+        session,
+      );
+      if (!updatedCourse) {
+        throw new InternalServerError(
+          'Failed to update course with new version.',
+        );
+      }
+
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
     } finally {
       await session.endSession();
     }
-    return version;
+
+    return newVersion;
   }
 }
-
-export {CourseVersionService};
