@@ -1,5 +1,5 @@
 import {Body, JsonController, Param, Post, Res} from 'routing-controllers';
-import {CreateOtlQuestionValidator} from '../classes/validators/CreateOtlQuestionValidator';
+import {CreateOTLQuestionBody} from '../classes/validators/CreateOtlQuestionValidator';
 import {Response} from 'express';
 
 @JsonController('/quizzes')
@@ -7,16 +7,9 @@ export class QuizController {
   @Post('/:quizId/questions')
   async createOtlQuestion(
     @Param('quizId') quizId: string,
-    @Body() body: CreateOtlQuestionValidator,
+    @Body() body: CreateOTLQuestionBody,
     @Res() res: Response,
   ) {
-    // Validate questionText to check if <QParam> is present
-    if (body.isParameterized && !body.questionText.includes('<QParam>')) {
-      return res.status(400).json({
-        message: 'Missing <QParam> in questionText',
-      });
-    }
-
     // Validate lotId and lotItems
     if (!body.lot.lotId || body.lot.lotItems.length === 0) {
       return res.status(404).json({
@@ -25,7 +18,7 @@ export class QuizController {
     }
 
     // Validate if itemId in solution orders exists in lotItems
-    const lotItemIds = body.lot.lotItems.map(item => item.id);
+    const lotItemIds = body.lot.lotItems.map(item => item.lotItemId);
     const invalidOrders = body.solution.orders.filter(
       order => !lotItemIds.includes(order.itemId),
     );

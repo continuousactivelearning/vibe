@@ -6,20 +6,70 @@ import {
   ValidateNested,
   IsArray,
   IsDefined,
+  ValidateIf,
+  registerDecorator,
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import {Type} from 'class-transformer';
+
+/** ----------- Custom Validator Starts Here ----------- **/
+@ValidatorConstraint({async: false})
+class QParamMatchesParametersConstraint
+  implements ValidatorConstraintInterface
+{
+  validate(_: any, args: ValidationArguments) {
+    const obj = args.object as any;
+    if (!obj.isParameterized) return true;
+
+    const questionText = obj.questionText || '';
+    const parameters = obj.parameters || [];
+
+    // Extract values within <QParam>...</QParam>
+    const paramMatches = questionText.match(/<QParam>(.*?)<\/QParam>/g) || [];
+    const extractedParamNames = paramMatches.map(m =>
+      m.replace(/<\/?QParam>/g, ''),
+    );
+
+    if (extractedParamNames.length !== parameters.length) return false;
+
+    const paramNamesSet = new Set(parameters.map((p: any) => p.parameterName));
+    return extractedParamNames.every(name => paramNamesSet.has(name));
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'If parameterized, <QParam> tags in questionText must match parameter names and count.';
+  }
+}
+
+function QParamMatchesParameters() {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'QParamMatchesParameters',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: {message: 'QParam tags must match parameters'},
+      validator: QParamMatchesParametersConstraint,
+    });
+  };
+}
+/** ----------- Custom Validator Ends Here ----------- **/
 
 class Parameter {
   @IsString()
   parameterName: string;
 
   @IsArray()
-  allowedValued: string[]; // confirm spelling
+  allowedValues: string[];
+
+  @IsString()
+  type: 'string' | 'number' | 'boolean' | 'decimal';
 }
 
 class LotItem {
   @IsString()
-  id: string;
+  lotItemId: string;
 
   @IsString()
   lotItemText: string;
@@ -58,11 +108,12 @@ class MetaDetails {
   isAIGenerated: boolean;
 }
 
-export class CreateOtlQuestionValidator {
+export class CreateOTLQuestionBody {
   @IsString()
   questionType: string;
 
   @IsString()
+  @QParamMatchesParameters() // <== Custom validator here
   questionText: string;
 
   @IsString()
@@ -74,10 +125,12 @@ export class CreateOtlQuestionValidator {
   @IsBoolean()
   isParameterized: boolean;
 
+  @ValidateIf(o => o.isParameterized)
   @IsOptional()
-  @ValidateNested()
+  @IsArray()
+  @ValidateNested({each: true})
   @Type(() => Parameter)
-  parameters?: Parameter;
+  parameters: Parameter[];
 
   @IsDefined()
   @ValidateNested()

@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import request from 'supertest';
 import {createExpressServer} from 'routing-controllers';
 import {QuizController} from '../controllers/QuizController';
+import {CreateOTLQuestionBody} from '../classes/validators/CreateOtlQuestionValidator';
 
 const app = createExpressServer({
   controllers: [QuizController],
@@ -10,41 +11,85 @@ const app = createExpressServer({
 describe('POST /quizzes/:quizId/questions', () => {
   const baseUrl = '/quizzes/quiz123/questions';
 
-  it('should return 200 for valid request', async () => {
-    const res = await request(app)
-      .post(baseUrl)
-      .send({
-        questionType: 'OTL',
-        questionText: 'Order the following: <QParam>a</QParam>',
-        hintText: 'Order correctly',
-        difficulty: 2,
-        isParameterized: true,
-        parameters: {
+  it('should return 200 for valid parameterized request', async () => {
+    const question: CreateOTLQuestionBody = {
+      questionType: 'OTL',
+      questionText: 'Order the following: <QParam>a</QParam>',
+      hintText: 'Order correctly',
+      difficulty: 2,
+      isParameterized: true,
+      parameters: [
+        {
           parameterName: 'a',
-          allowedValued: ['one', 'two'],
+          allowedValues: ['one', 'two'],
+          type: 'string',
         },
-        lot: {
-          lotId: 'lot1',
-          lotItems: [
-            {id: 'item1', lotItemText: 'First'},
-            {id: 'item2', lotItemText: 'Second'},
-          ],
-        },
-        solution: {
-          orders: [
-            {itemId: 'item1', order: 1},
-            {itemId: 'item2', order: 2},
-          ],
-        },
-        metaDetails: {
-          isStudentGenerated: true,
-          isAIGenerated: false,
-        },
-        timeLimit: 60,
-        points: 10,
-      });
+      ],
+      lot: {
+        lotId: 'lot1',
+        lotItems: [
+          {lotItemId: 'item1', lotItemText: 'First'},
+          {lotItemId: 'item2', lotItemText: 'Second'},
+        ],
+      },
+      solution: {
+        orders: [
+          {itemId: 'item1', order: 1},
+          {itemId: 'item2', order: 2},
+        ],
+      },
+      metaDetails: {
+        isStudentGenerated: true,
+        isAIGenerated: false,
+      },
+      timeLimit: 60,
+      points: 10,
+    };
+
+    const res = await request(app).post(baseUrl).send(question);
 
     expect(res.status).toBe(200);
+    expect(res.body.message).toBe('Validated Question Successfully');
+  });
+
+  it('should return 400 when QParam is present in question text and not in parameters', async () => {
+    const question: CreateOTLQuestionBody = {
+      questionType: 'OTL',
+      questionText: 'Order the following: <QParam>a</QParam>',
+      hintText: 'Order correctly',
+      difficulty: 2,
+      isParameterized: true,
+      parameters: [
+        {
+          parameterName: 'b',
+          allowedValues: ['one', 'two'],
+          type: 'string',
+        },
+      ],
+      lot: {
+        lotId: 'lot1',
+        lotItems: [
+          {lotItemId: 'item1', lotItemText: 'First'},
+          {lotItemId: 'item2', lotItemText: 'Second'},
+        ],
+      },
+      solution: {
+        orders: [
+          {itemId: 'item1', order: 1},
+          {itemId: 'item2', order: 2},
+        ],
+      },
+      metaDetails: {
+        isStudentGenerated: true,
+        isAIGenerated: false,
+      },
+      timeLimit: 60,
+      points: 10,
+    };
+
+    const res = await request(app).post(baseUrl).send(question);
+
+    expect(res.status).toBe(400);
     expect(res.body.message).toBe('Validated Question Successfully');
   });
 
