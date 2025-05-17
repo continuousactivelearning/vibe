@@ -4,6 +4,7 @@ import {Inject, Service} from 'typedi';
 import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {Enrollment} from '../classes/transformers/Enrollment';
 import {ObjectId} from 'mongodb';
 import {ICourseVersion} from 'shared/interfaces/Models';
@@ -15,6 +16,7 @@ export class EnrollmentService {
     private readonly enrollmentRepo: EnrollmentRepository,
     @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
     @Inject('UserRepo') private readonly userRepo: UserRepository,
+    @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
   ) {}
 
   async enrollUser(userId: string, courseId: string, courseVersionId: string) {
@@ -101,7 +103,7 @@ export class EnrollmentService {
     )[0];
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       firstSection.itemsGroupId.toString(),
     );
 
