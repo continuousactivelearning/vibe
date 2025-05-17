@@ -13,7 +13,6 @@ import {
   NotFoundError,
   InternalServerError,
 } from 'routing-controllers';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {Inject, Service} from 'typedi';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {
@@ -23,9 +22,11 @@ import {
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
   CourseVersionNotFoundErrorResponse,
+  CourseVersionDeleteResponse,
 } from '../classes/validators/CourseVersionValidators';
 import {CourseVersionService} from '../services';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {CourseVersion} from '../classes/transformers';
 
 @OpenAPI({
   tags: ['CourseVersions'],
@@ -36,7 +37,6 @@ export class CourseVersionController {
   constructor(
     @Inject('CourseVersionService')
     private readonly courseVersionService: CourseVersionService,
-    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
   ) {}
 
   @Authorized(['admin', 'instructor'])
@@ -56,7 +56,7 @@ export class CourseVersionController {
   async create(
     @Params() params: CreateCourseVersionParams,
     @Body() body: CreateCourseVersionBody,
-  ) {
+  ): Promise<CourseVersion> {
     const {id} = params;
     const createdCourseVersion =
       await this.courseVersionService.createCourseVersion(id, body);
@@ -82,7 +82,9 @@ export class CourseVersionController {
     description:
       'Retrieves a courseVersion with the provided Course Version id.',
   })
-  async read(@Params() params: ReadCourseVersionParams) {
+  async read(
+    @Params() params: ReadCourseVersionParams,
+  ): Promise<CourseVersion> {
     const {id} = params;
     const retrievedCourseVersion =
       await this.courseVersionService.readCourseVersion(id);
@@ -92,7 +94,7 @@ export class CourseVersionController {
   @Authorized(['admin', 'instructor'])
   @Delete('/:courseId/versions/:versionId')
   @HttpCode(201)
-  @ResponseSchema(CourseVersionDataResponse, {
+  @ResponseSchema(CourseVersionDeleteResponse, {
     description: 'CourseVersion deleted successfully',
   })
   @ResponseSchema(BadRequestErrorResponse, {
@@ -106,9 +108,11 @@ export class CourseVersionController {
   @OpenAPI({
     summary: 'delete CourseVersion',
     description:
-      'Deletes a courseVersion with the provided Course id and courseVersionId.',
+      'Delete a courseVersion with the provided Course id and courseVersionId.',
   })
-  async delete(@Params() params: DeleteCourseVersionParams) {
+  async delete(
+    @Params() params: DeleteCourseVersionParams,
+  ): Promise<{message: string}> {
     const {courseId, versionId} = params;
     if (!versionId || !courseId) {
       throw new BadRequestError('Version ID is required');

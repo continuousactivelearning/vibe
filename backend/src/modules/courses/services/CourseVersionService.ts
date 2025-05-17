@@ -6,6 +6,7 @@ import {CourseVersion} from '../classes/transformers';
 import {ObjectId, ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {ICourseVersion} from 'shared/interfaces/Models';
 import {DeleteError} from 'shared/errors/errors';
+import {instanceToPlain} from 'class-transformer';
 
 @Service()
 export class CourseVersionService {
@@ -23,10 +24,10 @@ export class CourseVersionService {
   public async createCourseVersion(
     courseId: string,
     body: CreateCourseVersionBody,
-  ): Promise<ICourseVersion> {
+  ): Promise<CourseVersion> {
     const session = (await this.courseRepo.getDBClient()).startSession();
 
-    let newVersion: ICourseVersion;
+    let newVersion: CourseVersion;
 
     try {
       await session.startTransaction(this.transactionOptions);
@@ -49,7 +50,9 @@ export class CourseVersionService {
         throw new InternalServerError('Failed to create course version.');
       }
 
-      newVersion = createdVersion;
+      newVersion = instanceToPlain(
+        Object.assign(new CourseVersion(), createdVersion),
+      ) as CourseVersion;
 
       // Step 3: Update course metadata
       course.versions.push(createdVersion._id);
@@ -79,10 +82,10 @@ export class CourseVersionService {
 
   public async readCourseVersion(
     courseVersionId: string,
-  ): Promise<ICourseVersion> {
+  ): Promise<CourseVersion> {
     const session = (await this.courseRepo.getDBClient()).startSession();
 
-    let version: ICourseVersion;
+    let version: CourseVersion;
 
     try {
       await session.startTransaction(this.transactionOptions);
@@ -97,7 +100,9 @@ export class CourseVersionService {
         );
       }
 
-      version = readVersion;
+      version = instanceToPlain(
+        Object.assign(new CourseVersion(), readVersion),
+      ) as CourseVersion;
 
       await session.commitTransaction();
     } catch (error) {
@@ -113,10 +118,10 @@ export class CourseVersionService {
   public async deleteCourseVersion(
     courseId: string,
     courseVersionId: string,
-  ): Promise<ICourseVersion> {
+  ): Promise<CourseVersion> {
     const session = (await this.courseRepo.getDBClient()).startSession();
 
-    let removedVersion: ICourseVersion;
+    let removedVersion: CourseVersion;
 
     try {
       await session.startTransaction(this.transactionOptions);
@@ -150,7 +155,9 @@ export class CourseVersionService {
         throw new DeleteError('Failed to delete course version');
       }
 
-      removedVersion = readCourseVersion;
+      removedVersion = instanceToPlain(
+        Object.assign(new CourseVersion(), removedVersion),
+      ) as CourseVersion;
       await session.commitTransaction();
     } catch (error) {
       await session.abortTransaction();

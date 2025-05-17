@@ -160,6 +160,17 @@ class CourseVersionNotFoundErrorResponse {
   message: string;
 }
 
+class CourseVersionDeleteResponse {
+  @JSONSchema({
+    description: 'The successfull message delete.',
+    example: 'Course Version Deleted Successfully',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  message: string;
+}
+
 export {
   CreateCourseVersionBody,
   CreateCourseVersionParams,
@@ -167,4 +178,5 @@ export {
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
   CourseVersionNotFoundErrorResponse,
+  CourseVersionDeleteResponse,
 };
