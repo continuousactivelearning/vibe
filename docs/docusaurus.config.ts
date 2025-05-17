@@ -125,7 +125,7 @@ const config: Config = {
           type: 'docSidebar',
           sidebarId: 'newSidebar',
           position: 'left',
-          label: 'Mern-Tutorial',       // <-- your new section name
+          label: 'MERN Tutorial',       // <-- your new section name
           docsPluginId: 'newdocs',  // <-- point at the plugin instance
          },
         {
