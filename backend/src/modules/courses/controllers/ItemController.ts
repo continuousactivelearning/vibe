@@ -46,7 +46,12 @@ export class ItemController {
     @Body() body: CreateItemBody,
   ) {
     const {versionId, moduleId, sectionId} = params;
-    return this.itemService.createItem(versionId, moduleId, sectionId, body);
+    return await this.itemService.createItem(
+      versionId,
+      moduleId,
+      sectionId,
+      body,
+    );
   }
 
   @Authorized(['admin', 'instructor'])
@@ -57,7 +62,7 @@ export class ItemController {
   })
   async readAll(@Params() params: ReadAllItemsParams) {
     const {versionId, moduleId, sectionId} = params;
-    return this.itemService.readAllItems(versionId, moduleId, sectionId);
+    return await this.itemService.readAllItems(versionId, moduleId, sectionId);
   }
 
   @Authorized(['admin', 'instructor'])
@@ -71,7 +76,7 @@ export class ItemController {
     @Body() body: UpdateItemBody,
   ) {
     const {versionId, moduleId, sectionId, itemId} = params;
-    return this.itemService.updateItem(
+    return await this.itemService.updateItem(
       versionId,
       moduleId,
       sectionId,
@@ -88,7 +93,7 @@ export class ItemController {
   })
   async delete(@Params() params: DeleteItemParams) {
     const {itemsGroupId, itemId} = params;
-    return this.itemService.deleteItem(itemsGroupId, itemId);
+    return await this.itemService.deleteItem(itemsGroupId, itemId);
   }
 
   @Authorized(['admin', 'instructor'])
@@ -100,7 +105,7 @@ export class ItemController {
   })
   async move(@Params() params: MoveItemParams, @Body() body: MoveItemBody) {
     const {versionId, moduleId, sectionId, itemId} = params;
-    return this.itemService.moveItem(
+    return await this.itemService.moveItem(
       versionId,
       moduleId,
       sectionId,

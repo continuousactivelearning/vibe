@@ -9,31 +9,42 @@ import {
 import {ObjectId, ClientSession} from 'mongodb';
 
 export interface IItemRepository {
-  createItem(item: IBaseItem): Promise<IBaseItem | null>;
-  readItem(courseVersionId: string, itemId: string): Promise<IBaseItem | null>;
-  updateItem(
+  readItem(
+    courseVersionId: string,
     itemId: string,
-    item: Partial<IBaseItem>,
+    session?: ClientSession,
   ): Promise<IBaseItem | null>;
-  deleteItem(itemGroupsId: string, itemId: string): Promise<boolean>;
-  createItemsGroup(itemsGroup: ItemsGroup): Promise<ItemsGroup | null>;
-  readItemsGroup(itemsGroupId: string): Promise<ItemsGroup | null>;
+
+  deleteItem(
+    itemGroupsId: string,
+    itemId: string,
+    session?: ClientSession,
+  ): Promise<boolean>;
+
+  createItemsGroup(
+    itemsGroup: ItemsGroup,
+    session?: ClientSession,
+  ): Promise<ItemsGroup | null>;
+
+  readItemsGroup(
+    itemsGroupId: string,
+    session?: ClientSession,
+  ): Promise<ItemsGroup | null>;
+
   updateItemsGroup(
     itemsGroupId: string,
     itemsGroup: ItemsGroup,
     session?: ClientSession,
   ): Promise<ItemsGroup | null>;
-  getFirstOrderItems(courseVersionId: string): Promise<{
+
+  getFirstOrderItems(
+    courseVersionId: string,
+    session?: ClientSession,
+  ): Promise<{
     moduleId: ObjectId;
     sectionId: ObjectId;
     itemId: ObjectId;
   }>;
-  readVersion(versionId: string): Promise<ICourseVersion | null>;
-  updateVersion(
-    versionId: string,
-    version: ICourseVersion,
-    session?: ClientSession,
-  ): Promise<ICourseVersion | null>;
 
   // createVideoDetails(details: IVideoDetails): Promise<string>;
   // createQuizDetails(details: IQuizDetails): Promise<string>;
@@ -42,8 +53,4 @@ export interface IItemRepository {
   // readVideoDetails(detailsId: string): Promise<IVideoDetails | null>;
   // readQuizDetails(detailsId: string): Promise<IQuizDetails | null>;
   // readBlogDetails(detailsId: string): Promise<IBlogDetails | null>;
-
-  withTransaction<T>(
-    fn: (repo: IItemRepository, session: ClientSession) => Promise<T>,
-  ): Promise<T>;
 }

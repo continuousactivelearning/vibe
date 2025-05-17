@@ -665,7 +665,7 @@ class ProgressService {
     }
 
     // Check if the watch time is greater than the item duration
-    const item = await this.courseRepo.readItem(courseVersionId, itemId);
+    const item = await this.itemRepo.readItem(courseVersionId, itemId);
     if (!item) {
       throw new NotFoundError('Item not found in Course Version');
     }

@@ -1,5 +1,4 @@
 import {
-  ClientSession,
   Collection,
   Db,
   Document,
@@ -67,6 +66,14 @@ export class MongoDatabase implements IDatabase<Db> {
   }
 
   /**
+   * Retrieves the client.
+   * @returns {Promise<MongoClient>} The connected database instance.
+   */
+  public async getClient(): Promise<MongoClient> {
+    return this.client;
+  }
+
+  /**
    * Retrieves a collection from the connected database.
    * @template T
    * @param {string} name - The name of the collection to retrieve.
@@ -83,12 +90,5 @@ export class MongoDatabase implements IDatabase<Db> {
       throw new Error('Database is not connected');
     }
     return this.database.collection<T>(name);
-  }
-
-  /**
-   * Returns a new MongoDB ClientSession for transactions.
-   */
-  public getSession(): ClientSession {
-    return this.client.startSession();
   }
 }
