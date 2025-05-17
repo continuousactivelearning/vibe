@@ -86,6 +86,7 @@ export class CourseVersionController {
     @Params() params: ReadCourseVersionParams,
   ): Promise<CourseVersion> {
     const {id} = params;
+    console.log(id);
     const retrievedCourseVersion =
       await this.courseVersionService.readCourseVersion(id);
     return retrievedCourseVersion;
