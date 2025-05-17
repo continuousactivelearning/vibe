@@ -23,6 +23,7 @@ import {isMongoId} from 'class-validator';
 import {ProgressService} from '../services/ProgressService';
 import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from '../../../config/db';
 import {IUser, IWatchTime} from 'shared/interfaces/Models';
@@ -59,6 +60,7 @@ describe('Progress Controller Integration Tests', () => {
       Container.get<ProgressRepository>('ProgressRepo'),
       Container.get<CourseRepository>('CourseRepo'),
       Container.get<UserRepository>('UserRepo'),
+      Container.get<ItemRepository>('ItemRepo'),
     );
 
     // Remove the old ProgressService from the container
