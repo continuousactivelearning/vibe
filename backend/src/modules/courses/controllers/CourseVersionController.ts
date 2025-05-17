@@ -1,5 +1,3 @@
-import {instanceToPlain} from 'class-transformer';
-import {ObjectId} from 'mongodb';
 import 'reflect-metadata';
 import {
   Authorized,
@@ -13,22 +11,18 @@ import {
   BadRequestError,
   HttpCode,
   NotFoundError,
+  InternalServerError,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {DeleteError, ReadError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
-import {CourseVersion} from '../classes/transformers/CourseVersion';
-import {
-  OpenAPI,
-  routingControllersToSpec,
-  ResponseSchema,
-} from 'routing-controllers-openapi';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {
   CreateCourseVersionParams,
   CreateCourseVersionBody,
   ReadCourseVersionParams,
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
+  CourseVersionNotFoundErrorResponse,
 } from '../classes/validators/CourseVersionValidators';
 import {CourseVersionService} from '../services';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
@@ -71,41 +65,65 @@ export class CourseVersionController {
 
   @Authorized(['admin', 'instructor', 'student'])
   @Get('/versions/:id')
+  @HttpCode(201)
+  @ResponseSchema(CourseVersionDataResponse, {
+    description: 'CourseVersion retrieved successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(CourseVersionNotFoundErrorResponse, {
+    description: 'CourseVersion not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Read CourseVersion',
+    description:
+      'Retrieves a courseVersion with the provided Course Version id.',
+  })
   async read(@Params() params: ReadCourseVersionParams) {
     const {id} = params;
-    try {
-      const version = await this.courseRepo.readVersion(id);
-      return instanceToPlain(version);
-    } catch (error) {
-      if (error instanceof ReadError) {
-        throw new HttpError(500, error.message);
-      }
-      if (error instanceof NotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      throw new HttpError(500, error.message);
-    }
+    const retrievedCourseVersion =
+      await this.courseVersionService.readCourseVersion(id);
+    return retrievedCourseVersion;
   }
 
   @Authorized(['admin', 'instructor'])
   @Delete('/:courseId/versions/:versionId')
+  @HttpCode(201)
+  @ResponseSchema(CourseVersionDataResponse, {
+    description: 'CourseVersion deleted successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(CourseVersionNotFoundErrorResponse, {
+    description: 'CourseVersion not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'delete CourseVersion',
+    description:
+      'Deletes a courseVersion with the provided Course id and courseVersionId.',
+  })
   async delete(@Params() params: DeleteCourseVersionParams) {
     const {courseId, versionId} = params;
     if (!versionId || !courseId) {
       throw new BadRequestError('Version ID is required');
     }
-    try {
-      const version = await this.courseRepo.deleteVersion(courseId, versionId);
-      return {
-        message: `Version with the ID ${versionId} has been deleted successfully.`,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      if (error instanceof DeleteError) {
-        throw new HttpError(500, error.message);
-      }
+    const deletedVersion = await this.courseVersionService.deleteCourseVersion(
+      courseId,
+      versionId,
+    );
+    if (!deletedVersion) {
+      throw new InternalServerError(
+        'Failed to Delete Version, Please try again later',
+      );
     }
+    return {
+      message: `Version with the ID ${versionId} has been deleted successfully.`,
+    };
   }
 }

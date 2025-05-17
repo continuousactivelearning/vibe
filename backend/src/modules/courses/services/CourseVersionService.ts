@@ -5,6 +5,7 @@ import {CreateCourseVersionBody} from '../classes/validators';
 import {CourseVersion} from '../classes/transformers';
 import {ObjectId, ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {ICourseVersion} from 'shared/interfaces/Models';
+import {DeleteError} from 'shared/errors/errors';
 
 @Service()
 export class CourseVersionService {
@@ -13,22 +14,22 @@ export class CourseVersionService {
     private readonly courseRepo: ICourseRepository,
   ) {}
 
+  private readonly transactionOptions = {
+    readPreference: ReadPreference.primary,
+    readConcern: new ReadConcern('snapshot'),
+    writeConcern: new WriteConcern('majority'),
+  };
+
   public async createCourseVersion(
     courseId: string,
     body: CreateCourseVersionBody,
   ): Promise<ICourseVersion> {
     const session = (await this.courseRepo.getDBClient()).startSession();
 
-    const transactionOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-
     let newVersion: ICourseVersion;
 
     try {
-      await session.startTransaction(transactionOptions);
+      await session.startTransaction(this.transactionOptions);
 
       // Step 1: Fetch course
       const course = await this.courseRepo.read(courseId, session);
@@ -74,5 +75,90 @@ export class CourseVersionService {
     }
 
     return newVersion;
+  }
+
+  public async readCourseVersion(
+    courseVersionId: string,
+  ): Promise<ICourseVersion> {
+    const session = (await this.courseRepo.getDBClient()).startSession();
+
+    let version: ICourseVersion;
+
+    try {
+      await session.startTransaction(this.transactionOptions);
+
+      const readVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!readVersion) {
+        throw new InternalServerError(
+          'Failed to update course with new version.',
+        );
+      }
+
+      version = readVersion;
+
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+
+    return version;
+  }
+
+  public async deleteCourseVersion(
+    courseId: string,
+    courseVersionId: string,
+  ): Promise<ICourseVersion> {
+    const session = (await this.courseRepo.getDBClient()).startSession();
+
+    let removedVersion: ICourseVersion;
+
+    try {
+      await session.startTransaction(this.transactionOptions);
+
+      const readCourseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!readCourseVersion) {
+        throw new InternalServerError(
+          'Failed to update course with new version.',
+        );
+      }
+
+      const course = await this.courseRepo.read(courseId, session);
+      if (!course) {
+        throw new NotFoundError(`Course with ID ${courseId} not found.`);
+      }
+
+      const itemGroupsIds = readCourseVersion.modules.flatMap(module =>
+        module.sections.map(section => new ObjectId(section.itemsGroupId)),
+      );
+
+      const versionDeleteResult = await this.courseRepo.deleteVersion(
+        courseId,
+        courseVersionId,
+        itemGroupsIds,
+        session,
+      );
+      if (versionDeleteResult.deletedCount !== 1) {
+        throw new DeleteError('Failed to delete course version');
+      }
+
+      removedVersion = readCourseVersion;
+      await session.commitTransaction();
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+
+    return removedVersion;
   }
 }

@@ -23,11 +23,20 @@ export interface ICourseRepository {
     courseVersion: ICourseVersion,
     session?: ClientSession,
   ): Promise<ICourseVersion | null>;
-  readVersion(versionId: string): Promise<ICourseVersion | null>;
+  readVersion(
+    versionId: string,
+    session?: ClientSession,
+  ): Promise<ICourseVersion | null>;
   updateVersion(
     versionId: string,
     courseVersion: ICourseVersion,
   ): Promise<ICourseVersion | null>;
+  deleteVersion(
+    courseId: string,
+    versionId: string,
+    itemGroupsIds: ObjectId[],
+    session?: ClientSession,
+  );
 
   createItemsGroup(itemsGroup: ItemsGroup): Promise<ItemsGroup | null>;
   readItemsGroup(itemsGroupId: string): Promise<ItemsGroup | null>;

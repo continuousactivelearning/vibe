@@ -148,10 +148,23 @@ class CourseVersionDataResponse implements ICourseVersion {
   updatedAt: Date | null;
 }
 
+class CourseVersionNotFoundErrorResponse {
+  @JSONSchema({
+    description: 'The error message.',
+    example:
+      'No course Version found with the specified ID. Please verify the ID and try again.',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  message: string;
+}
+
 export {
   CreateCourseVersionBody,
   CreateCourseVersionParams,
   ReadCourseVersionParams,
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
+  CourseVersionNotFoundErrorResponse,
 };
