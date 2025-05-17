@@ -46,6 +46,16 @@ export function setupUsersModuleDependencies(): void {
     );
   }
 
+  if (!Container.has('ItemRepo')) {
+    Container.set(
+      'ItemRepo',
+      new ItemRepository(
+        Container.get<MongoDatabase>('Database'),
+        Container.get<CourseRepository>('CourseRepo'),
+      ),
+    );
+  }
+
   if (!Container.has('UserRepo')) {
     Container.set(
       'UserRepo',
