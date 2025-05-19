@@ -9,6 +9,7 @@ import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {dbConfig} from '../../../config/db';
 import {CourseVersionService} from '../services';
+import {SectionService} from '../services/SectionService';
 
 jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
@@ -30,6 +31,11 @@ describe('Item Controller Integration Tests', () => {
       Container.get<CourseRepository>('CourseRepo'),
     );
     Container.set('CourseVersionService', courseVersionService);
+    const sectionService = new SectionService(
+      Container.get<ItemRepository>('ItemRepo'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('SectionService', sectionService);
     app = useExpressServer(App, coursesModuleOptions);
   });
 
