@@ -2,6 +2,7 @@ import {coursesModuleOptions} from 'modules/courses';
 import {MongoMemoryReplSet} from 'mongodb-memory-server';
 import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import Container from 'typedi';
 import Express from 'express';
@@ -30,10 +31,16 @@ describe('Course Version Controller Integration Tests', () => {
       Container.get<MongoDatabase>('Database'),
     );
     Container.set('CourseRepo', courseRepo);
+    const itemRepo = new ItemRepository(
+      Container.get<MongoDatabase>('Database'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('ItemRepo', itemRepo);
     const courseVersionService = new CourseVersionService(
       Container.get<CourseRepository>('CourseRepo'),
     );
     const sectionService = new SectionService(
+      Container.get<ItemRepository>('ItemRepo'),
       Container.get<CourseRepository>('CourseRepo'),
     );
     Container.set('CourseVersionService', courseVersionService);
