@@ -283,7 +283,7 @@ describe('Course Version Controller Integration Tests', () => {
           throw new ReadError('Mocked error from another test');
         });
         const endPoint2 = `/courses/versions/${versionId}`;
-        const readResponse = await request(app).get(endPoint2).expect(400);
+        const readResponse = await request(app).get(endPoint2).expect(500);
       });
     });
   });
