@@ -41,20 +41,4 @@ export interface ICourseRepository {
     itemGroupsIds: ObjectId[],
     session?: ClientSession,
   ): Promise<DeleteResult | null>;
-
-  createItemsGroup(
-    itemsGroup: ItemsGroup,
-    session?: ClientSession,
-  ): Promise<ItemsGroup | null>;
-  readItemsGroup(itemsGroupId: string): Promise<ItemsGroup | null>;
-  updateItemsGroup(
-    itemsGroupId: string,
-    itemsGroup: ItemsGroup,
-  ): Promise<ItemsGroup | null>;
-
-  getFirstOrderItems(courseVersionId: string): Promise<{
-    moduleId: ObjectId;
-    sectionId: ObjectId;
-    itemId: ObjectId;
-  }>;
 }

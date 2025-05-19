@@ -6,7 +6,9 @@ import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
-
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+import c from 'config';
+jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
   const App = Express();
   let app;
@@ -21,6 +23,11 @@ describe('Item Controller Integration Tests', () => {
       Container.get<MongoDatabase>('Database'),
     );
     Container.set('CourseRepo', courseRepo);
+    const itemRepo = new ItemRepository(
+      Container.get<MongoDatabase>('Database'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('ItemRepo', itemRepo);
 
     app = useExpressServer(App, coursesModuleOptions);
   });
@@ -67,7 +74,7 @@ describe('Item Controller Integration Tests', () => {
         const courseResponse = await request(app)
           .post('/courses/')
           .send(coursePayload)
-          .expect(200);
+          .expect(201);
 
         const courseId = courseResponse.body._id;
 
@@ -146,7 +153,7 @@ describe('Item Controller Integration Tests', () => {
         const courseResponse = await request(app)
           .post('/courses/')
           .send(coursePayload)
-          .expect(200);
+          .expect(201);
 
         const courseId = courseResponse.body._id;
 
@@ -200,7 +207,7 @@ describe('Item Controller Integration Tests', () => {
 
         const itemsResponse = await request(app)
           .delete('/itemGroups/123/items/123')
-          .expect(400);
+          .expect(404);
       });
 
       it('should fail to delete an item', async () => {

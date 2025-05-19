@@ -11,6 +11,7 @@ import {
   Put,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {ReadError, UpdateError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {ItemsGroup} from '../classes/transformers/Item';
@@ -38,11 +39,19 @@ import {CourseVersion} from '../classes/transformers';
 @Service()
 export class SectionController {
   constructor(
+    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
     @Inject('sectionService')
     private readonly sectionService: SectionService,
   ) {
     if (!this.sectionService) {
       throw new Error('Course Service is not properly injected');
+    }
+    if (!this.itemRepo) {
+      throw new Error('ItemRepository is not properly injected');
+    }
+    if (!this.itemRepo) {
+      throw new Error('ItemRepository is not properly injected');
     }
   }
 

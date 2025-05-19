@@ -7,6 +7,7 @@ import {
   NotFoundError,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 import {
   IBlogDetails,
@@ -33,6 +34,9 @@ class ProgressService {
 
     @Inject('UserRepo')
     private readonly userRepo: UserRepository,
+
+    @Inject('ItemRepo')
+    private readonly itemRepo: ItemRepository,
   ) {}
 
   /**
@@ -63,7 +67,7 @@ class ProgressService {
     )[0];
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       firstSection.itemsGroupId.toString(),
     );
 
@@ -117,7 +121,7 @@ class ProgressService {
     )[0];
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       firstSection.itemsGroupId.toString(),
     );
 
@@ -172,7 +176,7 @@ class ProgressService {
     }
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       section.itemsGroupId.toString(),
     );
 
@@ -228,7 +232,7 @@ class ProgressService {
     }
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       section.itemsGroupId.toString(),
     );
 
@@ -358,7 +362,7 @@ class ProgressService {
       .find(module => module.moduleId === moduleId)
       ?.sections.find(section => section.sectionId === sectionId)?.itemsGroupId;
     // 1.2 Get items from itemsGroupId
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       itemsGroupId?.toString(),
     );
     // 1.3 Sort items in itemsGroup by order
@@ -393,7 +397,7 @@ class ProgressService {
       currentSection = firstSection?.sectionId.toString();
 
       // Get first itemId in the next section
-      const itemsGroup = await this.courseRepo.readItemsGroup(
+      const itemsGroup = await this.itemRepo.readItemsGroup(
         firstSection?.itemsGroupId.toString(),
       );
       const firstItem = itemsGroup.items.sort((a, b) =>
@@ -413,7 +417,7 @@ class ProgressService {
       currentSection = nextSection?.sectionId.toString();
 
       // Get first itemId in the next section
-      const itemsGroup = await this.courseRepo.readItemsGroup(
+      const itemsGroup = await this.itemRepo.readItemsGroup(
         nextSection?.itemsGroupId.toString(),
       );
       const firstItem = itemsGroup.items.sort((a, b) =>
@@ -443,7 +447,7 @@ class ProgressService {
       currentSection = nextSection?.sectionId.toString();
 
       // Get first itemId in the next section
-      const itemsGroup = await this.courseRepo.readItemsGroup(
+      const itemsGroup = await this.itemRepo.readItemsGroup(
         nextSection?.itemsGroupId.toString(),
       );
       const firstItem = itemsGroup.items.sort((a, b) =>
@@ -661,7 +665,7 @@ class ProgressService {
     }
 
     // Check if the watch time is greater than the item duration
-    const item = await this.courseRepo.readItem(courseVersionId, itemId);
+    const item = await this.itemRepo.readItem(courseVersionId, itemId);
     if (!item) {
       throw new NotFoundError('Item not found in Course Version');
     }
