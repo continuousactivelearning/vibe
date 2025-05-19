@@ -168,6 +168,7 @@ export class CourseRepository implements ICourseRepository {
   async updateVersion(
     versionId: string,
     courseVersion: CourseVersion,
+    session?: ClientSession,
   ): Promise<ICourseVersion | null> {
     await this.init();
     try {
@@ -175,12 +176,14 @@ export class CourseRepository implements ICourseRepository {
       const result = await this.courseVersionCollection.updateOne(
         {_id: new ObjectId(versionId)},
         {$set: fields},
+        {session},
       );
       if (result.modifiedCount === 1) {
         const updatedCourseVersion = await this.courseVersionCollection.findOne(
           {
             _id: new ObjectId(versionId),
           },
+          {session},
         );
         return instanceToPlain(
           Object.assign(new CourseVersion(), updatedCourseVersion),

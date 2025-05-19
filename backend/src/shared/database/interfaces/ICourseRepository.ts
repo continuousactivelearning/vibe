@@ -33,6 +33,7 @@ export interface ICourseRepository {
   updateVersion(
     versionId: string,
     courseVersion: ICourseVersion,
+    session?: ClientSession,
   ): Promise<ICourseVersion | null>;
   deleteVersion(
     courseId: string,
