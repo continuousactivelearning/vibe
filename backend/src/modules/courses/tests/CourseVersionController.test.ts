@@ -1,6 +1,5 @@
 import {coursesModuleOptions} from 'modules/courses';
-import {MongoMemoryReplSet} from 'mongodb-memory-server';
-import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
+import {useExpressServer} from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import Container from 'typedi';
@@ -14,16 +13,8 @@ import {SectionService} from '../services/SectionService';
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
   let app;
-  let mongoServer: MongoMemoryReplSet;
 
   beforeAll(async () => {
-    // Start an in-memory MongoDB server
-    // mongoServer = await MongoMemoryReplSet.create({
-    //   replSet: {count: 1, storageEngine: 'ephemeralForTest'},
-    // });
-    // await mongoServer.waitUntilRunning();
-    // const mongoUri = mongoServer.getUri();
-
     // Set up the real MongoDatabase and CourseRepository
     Container.set('Database', new MongoDatabase(dbConfig.url, 'vibe'));
     const courseRepo = new CourseRepository(
