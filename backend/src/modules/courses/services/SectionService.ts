@@ -1,5 +1,6 @@
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {ICourseRepository} from 'shared/database';
+import {IItemRepository} from 'shared/database/';
 import {Inject, Service} from 'typedi';
 import {CourseVersion, ItemsGroup, Section} from '../classes/transformers';
 import {CreateSectionBody, MoveSectionBody} from '../classes/validators';
@@ -7,10 +8,11 @@ import {NotFoundError} from 'routing-controllers';
 import {ReadError, UpdateError} from 'shared/errors/errors';
 import {ICourseVersion} from 'shared/interfaces/Models';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
-
 @Service()
 export class SectionService {
   constructor(
+    @Inject('ItemRepo')
+    private readonly itemRepo: IItemRepository,
     @Inject('CourseRepo')
     private readonly courseRepo: ICourseRepository,
   ) {}
@@ -45,7 +47,7 @@ export class SectionService {
 
       //Create ItemsGroup
       let itemsGroup = new ItemsGroup(section.sectionId);
-      itemsGroup = await this.courseRepo.createItemsGroup(itemsGroup, session);
+      itemsGroup = await this.itemRepo.createItemsGroup(itemsGroup, session);
 
       //Assign ItemsGroup to Section
       section.itemsGroupId = itemsGroup._id;
