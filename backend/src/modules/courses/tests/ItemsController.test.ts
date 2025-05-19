@@ -6,6 +6,8 @@ import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+import c from 'config';
 jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
   const App = Express();
@@ -21,6 +23,11 @@ describe('Item Controller Integration Tests', () => {
       Container.get<MongoDatabase>('Database'),
     );
     Container.set('CourseRepo', courseRepo);
+    const itemRepo = new ItemRepository(
+      Container.get<MongoDatabase>('Database'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('ItemRepo', itemRepo);
 
     app = useExpressServer(App, coursesModuleOptions);
   });
