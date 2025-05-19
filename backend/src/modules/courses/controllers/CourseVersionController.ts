@@ -15,6 +15,7 @@ import {
 } from 'routing-controllers';
 import {Inject, Service} from 'typedi';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
+import {CourseVersionService} from '../services';
 import {
   CreateCourseVersionParams,
   CreateCourseVersionBody,
@@ -22,14 +23,13 @@ import {
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
   CourseVersionNotFoundErrorResponse,
-  CourseVersionDeleteResponse,
+  CreateCourseVersionResponse,
 } from '../classes/validators/CourseVersionValidators';
-import {CourseVersionService} from '../services';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 import {CourseVersion} from '../classes/transformers';
 
 @OpenAPI({
-  tags: ['CourseVersions'],
+  tags: ['Course Versions'],
 })
 @JsonController('/courses')
 @Service()
@@ -42,16 +42,20 @@ export class CourseVersionController {
   @Authorized(['admin', 'instructor'])
   @Post('/:id/versions', {transformResponse: true})
   @HttpCode(201)
-  @ResponseSchema(CourseVersionDataResponse, {
-    description: 'CourseVersion created successfully',
+  @ResponseSchema(CreateCourseVersionResponse, {
+    description: 'Course version created successfully',
   })
   @ResponseSchema(BadRequestErrorResponse, {
     description: 'Bad Request Error',
     statusCode: 400,
   })
+  @ResponseSchema(CourseVersionNotFoundErrorResponse, {
+    description: 'Course not found',
+    statusCode: 404,
+  })
   @OpenAPI({
-    summary: 'Create CourseVersion',
-    description: 'Creates a new courseVersion with the provided details.',
+    summary: 'Create Course Version',
+    description: 'Creates a new version for a specific course.',
   })
   async create(
     @Params() params: CreateCourseVersionParams,
@@ -65,51 +69,47 @@ export class CourseVersionController {
 
   @Authorized(['admin', 'instructor', 'student'])
   @Get('/versions/:id')
-  @HttpCode(201)
   @ResponseSchema(CourseVersionDataResponse, {
-    description: 'CourseVersion retrieved successfully',
+    description: 'Course version retrieved successfully',
   })
   @ResponseSchema(BadRequestErrorResponse, {
     description: 'Bad Request Error',
     statusCode: 400,
   })
   @ResponseSchema(CourseVersionNotFoundErrorResponse, {
-    description: 'CourseVersion not found',
+    description: 'Course version not found',
     statusCode: 404,
   })
   @OpenAPI({
-    summary: 'Read CourseVersion',
-    description:
-      'Retrieves a courseVersion with the provided Course Version id.',
+    summary: 'Get Course Version',
+    description: 'Retrieves a course version by its ID.',
   })
   async read(
     @Params() params: ReadCourseVersionParams,
   ): Promise<CourseVersion> {
     const {id} = params;
-    console.log(id);
     const retrievedCourseVersion =
       await this.courseVersionService.readCourseVersion(id);
+    const retrievedCourseVersionExample = retrievedCourseVersion;
     return retrievedCourseVersion;
   }
 
   @Authorized(['admin', 'instructor'])
   @Delete('/:courseId/versions/:versionId')
-  @HttpCode(201)
-  @ResponseSchema(CourseVersionDeleteResponse, {
-    description: 'CourseVersion deleted successfully',
+  @ResponseSchema(DeleteCourseVersionParams, {
+    description: 'Course version deleted successfully',
   })
   @ResponseSchema(BadRequestErrorResponse, {
     description: 'Bad Request Error',
     statusCode: 400,
   })
   @ResponseSchema(CourseVersionNotFoundErrorResponse, {
-    description: 'CourseVersion not found',
+    description: 'Course or version not found',
     statusCode: 404,
   })
   @OpenAPI({
-    summary: 'delete CourseVersion',
-    description:
-      'Delete a courseVersion with the provided Course id and courseVersionId.',
+    summary: 'Delete Course Version',
+    description: 'Deletes a course version by its ID.',
   })
   async delete(
     @Params() params: DeleteCourseVersionParams,
