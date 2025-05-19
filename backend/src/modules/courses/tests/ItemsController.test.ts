@@ -7,7 +7,7 @@ import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {dbConfig} from 'config/db';
+import {dbConfig} from '../../../config/db';
 
 jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
