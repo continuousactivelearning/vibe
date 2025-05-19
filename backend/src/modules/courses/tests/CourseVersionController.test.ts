@@ -8,6 +8,7 @@ import Express from 'express';
 import request from 'supertest';
 import {ReadError} from 'shared/errors/errors';
 import {CourseVersionService} from '../services';
+import {dbConfig} from '../../../config/db';
 
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
@@ -16,13 +17,14 @@ describe('Course Version Controller Integration Tests', () => {
 
   beforeAll(async () => {
     // Start an in-memory MongoDB server
-    mongoServer = await MongoMemoryReplSet.create({
-      replSet: {count: 1},
-    });
-    const mongoUri = mongoServer.getUri();
+    // mongoServer = await MongoMemoryReplSet.create({
+    //   replSet: {count: 1, storageEngine: 'ephemeralForTest'},
+    // });
+    // await mongoServer.waitUntilRunning();
+    // const mongoUri = mongoServer.getUri();
 
     // Set up the real MongoDatabase and CourseRepository
-    Container.set('Database', new MongoDatabase(mongoUri, 'vibe'));
+    Container.set('Database', new MongoDatabase(dbConfig.url, 'vibe'));
     const courseRepo = new CourseRepository(
       Container.get<MongoDatabase>('Database'),
     );
@@ -38,7 +40,7 @@ describe('Course Version Controller Integration Tests', () => {
 
   afterAll(async () => {
     // Close the in-memory MongoDB server after the tests
-    await mongoServer.stop();
+    // await mongoServer.stop();
   });
   // Create course version
   describe('COURSE VERSION CREATION', () => {
@@ -71,13 +73,11 @@ describe('Course Version Controller Integration Tests', () => {
           .send(courseVersionPayload)
           .expect(201);
 
-        const versionResponseStatus = versionResponse.status;
-
         // Check if the response is correct
 
         // expect(versionResponse.body.course._id).toBe(courseId);
-        expect(versionResponse.body.version.version).toBe('New Course Version');
-        expect(versionResponse.body.version.description).toBe(
+        expect(versionResponse.body.version).toBe('New Course Version');
+        expect(versionResponse.body.description).toBe(
           'Course version description',
         );
 
@@ -201,17 +201,15 @@ describe('Course Version Controller Integration Tests', () => {
         const endPoint = `/courses/${courseId}/versions`;
         const versionResponse = await request(app)
           .post(endPoint)
-          .send(courseVersionPayload);
-        // .expect(201);
+          .send(courseVersionPayload)
+          .expect(201);
 
         // Get version id
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         // log the endpoint to request to
         const endPoint2 = `/courses/versions/${versionId}`;
-        const readResponse = await request(app).get(endPoint2).expect(201);
-
-        const readResponseStatus = readResponse.status;
+        const readResponse = await request(app).get(endPoint2).expect(200);
 
         expect(readResponse.body.version).toBe('New Course Version');
         expect(readResponse.body.description).toBe(
@@ -269,12 +267,11 @@ describe('Course Version Controller Integration Tests', () => {
 
         // Get version id
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         // log the endpoint to request to
 
         // Mock the database to throw ReadError
-
         const courseRepo = Container.get<CourseRepository>('CourseRepo');
 
         jest.spyOn(courseRepo, 'readVersion').mockImplementationOnce(() => {
@@ -334,7 +331,7 @@ describe('Course Version Controller Integration Tests', () => {
           .send(courseVersionPayload)
           .expect(201);
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)

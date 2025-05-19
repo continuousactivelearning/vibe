@@ -52,26 +52,29 @@ export class CourseRepository implements ICourseRepository {
     return client;
   }
 
-  async create(course: Course): Promise<Course | null> {
+  async create(
+    course: Course,
+    session?: ClientSession,
+  ): Promise<Course | null> {
     await this.init();
-    const result = await this.courseCollection.insertOne(course);
+    const result = await this.courseCollection.insertOne(course, {session});
     if (result.acknowledged) {
-      const newCourse = await this.courseCollection.findOne({
-        _id: result.insertedId,
-      });
+      const newCourse = await this.courseCollection.findOne(
+        {
+          _id: result.insertedId,
+        },
+        {session},
+      );
       return Object.assign(new Course(), newCourse) as Course;
     } else {
       return null;
     }
   }
-  async read(id: string, session?: ClientSession): Promise<ICourse | null> {
+  async read(id: string): Promise<ICourse | null> {
     await this.init();
-    const course = await this.courseCollection.findOne(
-      {
-        _id: new ObjectId(id),
-      },
-      {session},
-    );
+    const course = await this.courseCollection.findOne({
+      _id: new ObjectId(id),
+    });
     if (course) {
       return Object.assign(new Course(), course) as Course;
     } else {
@@ -84,7 +87,7 @@ export class CourseRepository implements ICourseRepository {
     session?: ClientSession,
   ): Promise<ICourse | null> {
     await this.init();
-    await this.read(id, session);
+    await this.read(id);
 
     const {_id: _, ...fields} = course;
     const res = await this.courseCollection.findOneAndUpdate(
