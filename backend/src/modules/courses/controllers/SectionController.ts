@@ -28,6 +28,8 @@ import {
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {SectionService} from '../services/SectionService';
+import {CourseVersion} from '../classes/transformers';
 
 @OpenAPI({
   tags: ['Course Sections'],
@@ -36,10 +38,11 @@ import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 @Service()
 export class SectionController {
   constructor(
-    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('sectionService')
+    private readonly sectionService: SectionService,
   ) {
-    if (!this.courseRepo) {
-      throw new Error('CourseRepository is not properly injected');
+    if (!this.sectionService) {
+      throw new Error('Course Service is not properly injected');
     }
   }
 
@@ -65,43 +68,20 @@ export class SectionController {
   async create(
     @Params() params: CreateSectionParams,
     @Body() body: CreateSectionBody,
-  ) {
+  ): Promise<CourseVersion> {
     try {
       const {versionId, moduleId} = params;
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
-
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
-
-      //Create Section
-      const section = new Section(body, module.sections);
-
-      //Create ItemsGroup
-      let itemsGroup = new ItemsGroup(section.sectionId);
-      itemsGroup = await this.courseRepo.createItemsGroup(itemsGroup);
-
-      //Assign ItemsGroup to Section
-      section.itemsGroupId = itemsGroup._id;
-
-      //Add Section to Module
-      module.sections.push(section);
-
-      //Update Module Update Date
-      module.updatedAt = new Date();
-
-      //Update Version Update Date
-      version.updatedAt = new Date();
-
-      //Update Version
-      const updatedVersion = await this.courseRepo.updateVersion(
+      const createdVersion = await this.sectionService.createSection(
         versionId,
-        version,
+        moduleId,
+        body,
       );
-
-      return {
-        version: instanceToPlain(updatedVersion),
-      };
+      if (!createdVersion) {
+        throw new UpdateError('Failed to create section');
+      }
+      return instanceToPlain(
+        Object.assign(new CourseVersion(), createdVersion),
+      ) as CourseVersion;
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
@@ -130,43 +110,21 @@ export class SectionController {
   async update(
     @Params() params: UpdateSectionParams,
     @Body() body: UpdateSectionBody,
-  ) {
+  ): Promise<CourseVersion> {
     try {
       const {versionId, moduleId, sectionId} = params;
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
-
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
-      if (!module) throw new ReadError('Module not found');
-
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-      if (!section) throw new ReadError('Section not found');
-
-      //Update Section
-      Object.assign(section, body.name ? {name: body.name} : {});
-      Object.assign(
-        section,
-        body.description ? {description: body.description} : {},
-      );
-      section.updatedAt = new Date();
-
-      //Update Module Update Date
-      module.updatedAt = new Date();
-
-      //Update Version Update Date
-      version.updatedAt = new Date();
-
-      //Update Version
-      const updatedVersion = await this.courseRepo.updateVersion(
+      const updatedVersion = await this.sectionService.updateSection(
         versionId,
-        version,
+        moduleId,
+        sectionId,
+        body,
       );
-
-      return {
-        version: instanceToPlain(updatedVersion),
-      };
+      if (!updatedVersion) {
+        throw new UpdateError('Failed to update section');
+      }
+      return instanceToPlain(
+        Object.assign(new CourseVersion(), updatedVersion),
+      ) as CourseVersion;
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
@@ -195,7 +153,7 @@ export class SectionController {
   async move(
     @Params() params: MoveSectionParams,
     @Body() body: MoveSectionBody,
-  ) {
+  ): Promise<CourseVersion> {
     try {
       const {versionId, moduleId, sectionId} = params;
       const {afterSectionId, beforeSectionId} = body;
@@ -206,47 +164,20 @@ export class SectionController {
         );
       }
 
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
-
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
-
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-
-      //Sort Sections based on order
-      const sortedSections = module.sections.sort((a, b) =>
-        a.order.localeCompare(b.order),
-      );
-
-      //Calculate New Order
-      const newOrder = calculateNewOrder(
-        sortedSections,
-        'sectionId',
+      const updatedVersion = await this.sectionService.moveSection(
+        versionId,
+        moduleId,
+        sectionId,
         afterSectionId,
         beforeSectionId,
       );
+      if (!updatedVersion) {
+        throw new UpdateError('Failed to move section');
+      }
 
-      //Update Section Order
-      section.order = newOrder;
-      section.updatedAt = new Date();
-
-      //Update Module Update Date
-      module.updatedAt = new Date();
-
-      //Update Version Update Date
-      version.updatedAt = new Date();
-
-      //Update Version
-      const updatedVersion = await this.courseRepo.updateVersion(
-        versionId,
-        version,
-      );
-
-      return {
-        version: instanceToPlain(updatedVersion),
-      };
+      return instanceToPlain(
+        Object.assign(new CourseVersion(), updatedVersion),
+      ) as CourseVersion;
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpError(500, error.message);

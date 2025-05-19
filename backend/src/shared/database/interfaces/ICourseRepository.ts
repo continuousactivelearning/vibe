@@ -33,6 +33,7 @@ export interface ICourseRepository {
   updateVersion(
     versionId: string,
     courseVersion: ICourseVersion,
+    session?: ClientSession,
   ): Promise<ICourseVersion | null>;
   deleteVersion(
     courseId: string,
@@ -41,7 +42,10 @@ export interface ICourseRepository {
     session?: ClientSession,
   ): Promise<DeleteResult | null>;
 
-  createItemsGroup(itemsGroup: ItemsGroup): Promise<ItemsGroup | null>;
+  createItemsGroup(
+    itemsGroup: ItemsGroup,
+    session?: ClientSession,
+  ): Promise<ItemsGroup | null>;
   readItemsGroup(itemsGroupId: string): Promise<ItemsGroup | null>;
   updateItemsGroup(
     itemsGroupId: string,

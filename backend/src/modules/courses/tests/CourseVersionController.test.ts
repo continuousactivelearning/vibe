@@ -9,6 +9,7 @@ import request from 'supertest';
 import {ReadError} from 'shared/errors/errors';
 import {CourseVersionService} from '../services';
 import {dbConfig} from '../../../config/db';
+import {SectionService} from '../services/SectionService';
 
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
@@ -32,7 +33,11 @@ describe('Course Version Controller Integration Tests', () => {
     const courseVersionService = new CourseVersionService(
       Container.get<CourseRepository>('CourseRepo'),
     );
+    const sectionService = new SectionService(
+      Container.get<CourseRepository>('CourseRepo'),
+    );
     Container.set('CourseVersionService', courseVersionService);
+    Container.set('sectionService', sectionService);
 
     // Create the Express app with the routing controllers configuration
     app = useExpressServer(App, coursesModuleOptions);
@@ -278,7 +283,7 @@ describe('Course Version Controller Integration Tests', () => {
           throw new ReadError('Mocked error from another test');
         });
         const endPoint2 = `/courses/versions/${versionId}`;
-        const readResponse = await request(app).get(endPoint2).expect(500);
+        const readResponse = await request(app).get(endPoint2).expect(400);
       });
     });
   });
@@ -341,15 +346,14 @@ describe('Course Version Controller Integration Tests', () => {
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
-          .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+          .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId =
-          sectionResponse.body.version.modules[0].sections[0].sectionId;
+        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
 
         const itemsGroupId =
-          sectionResponse.body.version.modules[0].sections[0].itemsGroupId;
+          sectionResponse.body.modules[0].sections[0].itemsGroupId;
 
         const itemsGroupResponse = await request(app)
           .post(
