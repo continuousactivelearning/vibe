@@ -7,18 +7,15 @@ import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import c from 'config';
+import {dbConfig} from 'config/db';
+
 jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
   const App = Express();
   let app;
-  let mongoServer: MongoMemoryServer;
 
   beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-
-    Container.set('Database', new MongoDatabase(mongoUri, 'vibe'));
+    Container.set('Database', new MongoDatabase(dbConfig.url, 'vibe'));
     const courseRepo = new CourseRepository(
       Container.get<MongoDatabase>('Database'),
     );
@@ -30,10 +27,6 @@ describe('Item Controller Integration Tests', () => {
     Container.set('ItemRepo', itemRepo);
 
     app = useExpressServer(App, coursesModuleOptions);
-  });
-
-  afterAll(async () => {
-    await mongoServer.stop();
   });
 
   describe('ITEM CREATION', () => {
