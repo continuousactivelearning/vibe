@@ -16,28 +16,25 @@ export class CourseVersionService {
   ) {}
 
   private readonly transactionOptions = {
-    readPreference: ReadPreference.primary,
-    readConcern: new ReadConcern('snapshot'),
+    readPreference: ReadPreference.PRIMARY,
+    readConcern: new ReadConcern('majority'),
     writeConcern: new WriteConcern('majority'),
   };
 
-  public async createCourseVersion(
+  async createCourseVersion(
     courseId: string,
     body: CreateCourseVersionBody,
   ): Promise<CourseVersion> {
-    const session = (await this.courseRepo.getDBClient()).startSession();
+    const course = await this.courseRepo.read(courseId);
+    if (!course) {
+      throw new NotFoundError('Course not found');
+    }
 
+    const session = (await this.courseRepo.getDBClient()).startSession();
     let newVersion: CourseVersion;
 
     try {
       await session.startTransaction(this.transactionOptions);
-
-      // Step 1: Fetch course
-      const course = await this.courseRepo.read(courseId, session);
-      if (!course) {
-        throw new NotFoundError(`Course with ID ${courseId} not found.`);
-      }
-
       // Step 2: Create new version
       newVersion = new CourseVersion(body);
       newVersion.courseId = new ObjectId(courseId);
@@ -95,9 +92,7 @@ export class CourseVersionService {
         session,
       );
       if (!readVersion) {
-        throw new InternalServerError(
-          'Failed to update course with new version.',
-        );
+        throw new InternalServerError('Failed to read course version.');
       }
 
       version = instanceToPlain(
@@ -136,7 +131,7 @@ export class CourseVersionService {
         );
       }
 
-      const course = await this.courseRepo.read(courseId, session);
+      const course = await this.courseRepo.read(courseId);
       if (!course) {
         throw new NotFoundError(`Course with ID ${courseId} not found.`);
       }

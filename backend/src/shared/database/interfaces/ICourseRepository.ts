@@ -13,8 +13,8 @@ import {ClientSession, DeleteResult, MongoClient, ObjectId} from 'mongodb';
 export interface ICourseRepository {
   getDBClient(): Promise<MongoClient>;
 
-  create(course: ICourse): Promise<ICourse | null>;
-  read(id: string, session?: ClientSession): Promise<ICourse | null>;
+  create(course: ICourse, session?: ClientSession): Promise<ICourse | null>;
+  read(id: string): Promise<ICourse | null>;
   update(
     id: string,
     course: Partial<ICourse>,
