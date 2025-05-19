@@ -12,6 +12,7 @@ class CourseService {
 
   async createCourse(course: Course): Promise<Course> {
     const createdCourse = await this.courseRepo.create(course);
+    console.log('Created Course:', createdCourse);
     if (!createdCourse) {
       throw new InternalServerError(
         'Failed to create course. Please try again later.',

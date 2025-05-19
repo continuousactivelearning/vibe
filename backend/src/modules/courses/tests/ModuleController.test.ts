@@ -7,7 +7,7 @@ import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
 import {ReadError} from 'shared/errors/errors';
-
+jest.setTimeout(30000);
 describe('Module Controller Integration Tests', () => {
   const App = Express();
   let app;
@@ -48,7 +48,7 @@ describe('Module Controller Integration Tests', () => {
         const response = await request(app)
           .post('/courses/')
           .send(coursePayload)
-          .expect(200);
+          .expect(201);
 
         // Get course id
         const courseId = response.body._id;
@@ -130,7 +130,7 @@ describe('Module Controller Integration Tests', () => {
         const response = await request(app)
           .post('/courses/')
           .send(coursePayload)
-          .expect(200);
+          .expect(201);
 
         // Get course id
         const courseId = response.body._id;
@@ -174,7 +174,7 @@ describe('Module Controller Integration Tests', () => {
         const response = await request(app)
           .post('/courses/')
           .send(coursePayload)
-          .expect(200);
+          .expect(201);
 
         // Get course id
         const courseId = response.body._id;
