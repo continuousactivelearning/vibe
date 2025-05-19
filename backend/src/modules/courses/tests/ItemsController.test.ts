@@ -8,6 +8,7 @@ import Express from 'express';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {dbConfig} from '../../../config/db';
+import {CourseVersionService} from '../services';
 
 jest.setTimeout(30000);
 describe('Item Controller Integration Tests', () => {
@@ -25,7 +26,10 @@ describe('Item Controller Integration Tests', () => {
       Container.get<CourseRepository>('CourseRepo'),
     );
     Container.set('ItemRepo', itemRepo);
-
+    const courseVersionService = new CourseVersionService(
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('CourseVersionService', courseVersionService);
     app = useExpressServer(App, coursesModuleOptions);
   });
 
@@ -74,21 +78,21 @@ describe('Item Controller Integration Tests', () => {
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
           .send(courseVersionPayload)
-          .expect(200);
+          .expect(201);
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
           .send(modulePayload)
-          .expect(200);
+          .expect(201);
 
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
           .post(`/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
-          .expect(200);
+          .expect(201);
 
         const sectionId =
           sectionResponse.body.version.modules[0].sections[0].sectionId;
@@ -98,7 +102,7 @@ describe('Item Controller Integration Tests', () => {
             `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
           )
           .send(itemPayload)
-          .expect(200);
+          .expect(201);
 
         expect(itemsGroupResponse.body.itemsGroup.items.length).toBe(1);
         expect(itemsGroupResponse.body.itemsGroup.items[0].name).toBe(

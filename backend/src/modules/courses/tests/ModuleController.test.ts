@@ -144,7 +144,7 @@ describe('Module Controller Integration Tests', () => {
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
           .send(courseVersionPayload)
-          .expect(200);
+          .expect(201);
 
         // Get version id
 
