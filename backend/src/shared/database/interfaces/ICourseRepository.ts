@@ -1,11 +1,14 @@
-import {ItemsGroup} from 'modules/courses/classes/transformers/index';
+import {
+  CourseVersion,
+  ItemsGroup,
+} from 'modules/courses/classes/transformers/index';
 import {
   ICourse,
   ICourseVersion,
   IEnrollment,
   IProgress,
 } from 'shared/interfaces/Models';
-import {ClientSession, MongoClient, ObjectId} from 'mongodb';
+import {ClientSession, DeleteResult, MongoClient, ObjectId} from 'mongodb';
 
 export interface ICourseRepository {
   getDBClient(): Promise<MongoClient>;
@@ -19,22 +22,24 @@ export interface ICourseRepository {
     course: Partial<ICourse>,
     session?: ClientSession,
   ): Promise<ICourse | null>;
-
   delete(id: string): Promise<boolean>;
 
   createVersion(
     courseVersion: ICourseVersion,
     session?: ClientSession,
   ): Promise<ICourseVersion | null>;
-
   readVersion(
     versionId: string,
     session?: ClientSession,
   ): Promise<ICourseVersion | null>;
-
   updateVersion(
     versionId: string,
     courseVersion: ICourseVersion,
-    session?: ClientSession,
   ): Promise<ICourseVersion | null>;
+  deleteVersion(
+    courseId: string,
+    versionId: string,
+    itemGroupsIds: ObjectId[],
+    session?: ClientSession,
+  ): Promise<DeleteResult | null>;
 }

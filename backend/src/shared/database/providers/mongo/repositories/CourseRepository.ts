@@ -22,6 +22,7 @@ import {
   IModule,
   IEnrollment,
   IProgress,
+  ICourseVersion,
 } from 'shared/interfaces/Models';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
@@ -164,7 +165,7 @@ export class CourseRepository implements ICourseRepository {
   async updateVersion(
     versionId: string,
     courseVersion: CourseVersion,
-  ): Promise<CourseVersion | null> {
+  ): Promise<ICourseVersion | null> {
     await this.init();
     try {
       const {_id: _, ...fields} = courseVersion;

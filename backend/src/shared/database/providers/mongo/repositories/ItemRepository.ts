@@ -136,21 +136,20 @@ export class ItemRepository implements IItemRepository {
     }
   }
 
-  async deleteItem(
-    itemsGroupId: string,
-    itemId: string,
-    session: ClientSession,
-  ): Promise<boolean> {
+  async deleteItem(itemGroupsId: string, itemId: string): Promise<boolean> {
     await this.init();
     try {
       const result = await this.itemsGroupCollection.updateOne(
-        {_id: new ObjectId(itemsGroupId)},
+        {_id: new ObjectId(itemGroupsId)},
         {$pull: {items: {itemId: new ObjectId(itemId)}}},
-        {session},
       );
-      return result.modifiedCount === 1;
+      if (result.modifiedCount === 1) {
+        return true;
+      } else {
+        throw new DeleteError('Failed to delete item');
+      }
     } catch (error) {
-      throw new DeleteError('deleteItem error: ' + error);
+      throw new DeleteError('Failed to delete item.\n More Details: ' + error);
     }
   }
 

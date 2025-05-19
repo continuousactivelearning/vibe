@@ -11,6 +11,7 @@ import {
   Put,
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {ReadError, UpdateError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {ItemsGroup} from '../classes/transformers/Item';
@@ -22,47 +23,50 @@ import {
   MoveSectionParams,
   UpdateSectionBody,
   UpdateSectionParams,
+  SectionDataResponse,
+  SectionNotFoundErrorResponse,
 } from '../classes/validators/SectionValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
+import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 
-/**
- * Controller for managing sections within course modules.
- * Handles creation, update, and reordering of sections under modules in course versions.
- *
- * @category Courses/Controllers
- * @categoryDescription
- * Provides endpoints for managing "sections" in a module,
- * including creating sections, updating section metadata,
- * and adjusting section order within a module.
- */
-
+@OpenAPI({
+  tags: ['Course Sections'],
+})
 @JsonController('/courses')
 @Service()
 export class SectionController {
   constructor(
     @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
   ) {
     if (!this.courseRepo) {
       throw new Error('CourseRepository is not properly injected');
     }
+    if (!this.itemRepo) {
+      throw new Error('ItemRepository is not properly injected');
+    }
   }
-
-  /**
-   * Create a new section under a specific module within a course version.
-   * Automatically generates and assigns a new ItemsGroup to the section.
-   *
-   * @param params - Route parameters including versionId and moduleId.
-   * @param body - Payload for creating the section (e.g., name, description).
-   * @returns The updated course version containing the new section.
-   *
-   * @throws HTTPError(500) on internal errors.
-   *
-   * @category Courses/Controllers
-   */
 
   @Authorized(['admin'])
   @Post('/versions/:versionId/modules/:moduleId/sections')
   @HttpCode(201)
+  @ResponseSchema(SectionDataResponse, {
+    description: 'Section created successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(SectionNotFoundErrorResponse, {
+    description: 'Section not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Create Section',
+    description:
+      'Creates a new section in the specified module and automatically generates an associated items group.',
+  })
   async create(
     @Params() params: CreateSectionParams,
     @Body() body: CreateSectionBody,
@@ -80,7 +84,7 @@ export class SectionController {
 
       //Create ItemsGroup
       let itemsGroup = new ItemsGroup(section.sectionId);
-      itemsGroup = await this.courseRepo.createItemsGroup(itemsGroup);
+      itemsGroup = await this.itemRepo.createItemsGroup(itemsGroup);
 
       //Assign ItemsGroup to Section
       section.itemsGroupId = itemsGroup._id;
@@ -110,20 +114,24 @@ export class SectionController {
     }
   }
 
-  /**
-   * Update an existing section's metadata (name or description).
-   *
-   * @param params - Route parameters including versionId, moduleId, and sectionId.
-   * @param body - Updated fields for the section.
-   * @returns The updated course version with modified section.
-   *
-   * @throws HTTPError(500) if the section or module is not found or if update fails.
-   *
-   * @category Courses/Controllers
-   */
-
   @Authorized(['admin'])
   @Put('/versions/:versionId/modules/:moduleId/sections/:sectionId')
+  @ResponseSchema(SectionDataResponse, {
+    description: 'Section updated successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(SectionNotFoundErrorResponse, {
+    description: 'Section not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Update Section',
+    description:
+      "Updates an existing section's name or description within a module.",
+  })
   async update(
     @Params() params: UpdateSectionParams,
     @Body() body: UpdateSectionBody,
@@ -171,21 +179,24 @@ export class SectionController {
     }
   }
 
-  /**
-   * Reorder a section within its module by calculating a new order key.
-   *
-   * @param params - Route parameters including versionId, moduleId, and sectionId.
-   * @param body - Positioning details: beforeSectionId or afterSectionId.
-   * @returns The updated course version with reordered sections.
-   *
-   * @throws UpdateError if neither beforeSectionId nor afterSectionId is provided.
-   * @throws HTTPError(500) on internal processing errors.
-   *
-   * @category Courses/Controllers
-   */
-
   @Authorized(['admin'])
   @Put('/versions/:versionId/modules/:moduleId/sections/:sectionId/move')
+  @ResponseSchema(SectionDataResponse, {
+    description: 'Section moved successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(SectionNotFoundErrorResponse, {
+    description: 'Section not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Move Section',
+    description:
+      'Reorders a section within its module by placing it before or after another section.',
+  })
   async move(
     @Params() params: MoveSectionParams,
     @Body() body: MoveSectionBody,

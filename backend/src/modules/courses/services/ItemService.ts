@@ -61,7 +61,6 @@ export class ItemService {
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
-        session,
       );
 
       await session.commitTransaction();
@@ -126,7 +125,6 @@ export class ItemService {
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
-        session,
       );
 
       await session.commitTransaction();
@@ -227,7 +225,6 @@ export class ItemService {
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
-        session,
       );
 
       await session.commitTransaction();
