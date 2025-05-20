@@ -1,26 +1,24 @@
-import express, { Request, Response, NextFunction } from 'express'; // Import NextFunction
+import express, {Request, Response, NextFunction} from 'express'; // Import NextFunction
 import ytdl from 'ytdl-core';
 import ytpl from 'ytpl';
 import fs from 'fs';
 import path from 'path';
-import { Whisper } from 'whisper-node';
-
-// Initialize Whisper (configure API key or local model path as needed)
-const whisper = new Whisper({ /* apiKey: process.env.WHISPER_API_KEY or model config */ });
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const whisper = require('whisper-node');
 
 // Ensure the tmp directory exists
 const tmpDir = path.resolve(__dirname, '../tmp');
-if (!fs.existsSync(tmpDir)){
-    fs.mkdirSync(tmpDir, { recursive: true });
+if (!fs.existsSync(tmpDir)) {
+  fs.mkdirSync(tmpDir, {recursive: true});
 }
 
 interface TranscriptSegment {
   id: string;
   startTime?: number; // Optional: Start time of the segment in seconds
-  endTime?: number;   // Optional: End time of the segment in seconds
+  endTime?: number; // Optional: End time of the segment in seconds
   text: string;
-  topic?: string;     // Optional: Identified topic for this segment
-  summary?: string;   // Optional: A brief summary of the segment
+  topic?: string; // Optional: Identified topic for this segment
+  summary?: string; // Optional: A brief summary of the segment
 }
 
 export class GenAIVideoController {
@@ -28,10 +26,15 @@ export class GenAIVideoController {
    * POST /genai/generate/transcript
    * Body: { url: string }
    */
-  static async generateTranscript(req: Request, res: Response, next: NextFunction) { // Add next parameter
-    const { url } = req.body;
+  static async generateTranscript(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    // Add next parameter
+    const {url} = req.body;
     if (!url) {
-      return res.status(400).json({ error: 'Missing YouTube URL' });
+      return res.status(400).json({error: 'Missing YouTube URL'});
     }
 
     try {
@@ -41,7 +44,7 @@ export class GenAIVideoController {
 
       if (isPlaylist) {
         // Fetch all video URLs from playlist
-        const playlist = await ytpl(url, { pages: Infinity });
+        const playlist = await ytpl(url, {pages: Infinity});
         playlist.items.forEach(item => {
           videoUrls.push(item.shortUrl); // Using shortUrl as url_simple might not be available in all ytpl versions
         });
@@ -50,7 +53,9 @@ export class GenAIVideoController {
         if (ytdl.validateURL(url)) {
           videoUrls.push(url);
         } else {
-          return res.status(400).json({ error: 'Invalid YouTube video or playlist URL' });
+          return res
+            .status(400)
+            .json({error: 'Invalid YouTube video or playlist URL'});
         }
       }
 
@@ -63,32 +68,38 @@ export class GenAIVideoController {
         const tempFile = path.resolve(tmpDir, `${titleSafe}.mp4`);
 
         // Download video to a temp directory
-        await new Promise<void>((resolve, reject) => { // Added void for Promise type
-          const stream = ytdl(videoUrl, { quality: 'highest' })
-            .pipe(fs.createWriteStream(tempFile));
+        await new Promise<void>((resolve, reject) => {
+          // Added void for Promise type
+          const stream = ytdl(videoUrl, {quality: 'highest'}).pipe(
+            fs.createWriteStream(tempFile),
+          );
           stream.on('finish', resolve);
           stream.on('error', reject);
         });
 
         // Generate transcript via Whisper STT
-        // Ensure whisper.transcribe is compatible with your Whisper library version
-        // The whisper-node library might expect a file path directly
-        const response = await whisper.transcribe(tempFile); // Assuming transcribe takes filepath
+        const response = await whisper(tempFile, {
+          modelName: 'base', // or any other model like 'tiny', 'small', 'medium', 'large'
+          apiKey: process.env.WHISPER_API_KEY, // Use environment variable for API key
+          language: 'en',
+        });
         transcripts.push({
           videoUrl,
           title: info.videoDetails.title,
-          transcript: Array.isArray(response) ? response.map(r => r.text).join(' ') : (response as any).text // Handling potential array or object response
+          transcript: Array.isArray(response)
+            ? response.map(r => r.text).join(' ')
+            : (response as any).text, // Handling potential array or object response
         });
 
         // Clean up temp file
         fs.unlinkSync(tempFile);
       }
 
-      return res.json({ transcripts });
+      return res.json({transcripts});
     } catch (err) {
       console.error('Error generating transcript:', err);
       // Pass error to Express error handling middleware
-      next(err); 
+      next(err);
     }
   }
 
@@ -96,19 +107,27 @@ export class GenAIVideoController {
    * POST /genai/generate/transcript/segment
    * Body: { transcript: string, options?: any } // options for future segmentation strategies
    */
-  static async segmentTranscript(req: Request, res: Response, next: NextFunction) {
-    const { transcript, options } = req.body;
+  static async segmentTranscript(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
+    const {transcript, options} = req.body;
 
     if (!transcript || typeof transcript !== 'string') {
-      return res.status(400).json({ error: 'Missing or invalid transcript text' });
+      return res
+        .status(400)
+        .json({error: 'Missing or invalid transcript text'});
     }
 
     try {
       // TODO: Implement actual transcript segmentation logic here.
       // This is a placeholder. Real segmentation would involve NLP techniques.
 
-      console.log(`Received transcript for segmentation (length: ${transcript.length})`);
-      console.log(`Segmentation options:`, options);
+      console.log(
+        `Received transcript for segmentation (length: ${transcript.length})`,
+      );
+      console.log('Segmentation options:', options);
 
       // Placeholder segmentation:
       const segments: TranscriptSegment[] = transcript
@@ -119,8 +138,10 @@ export class GenAIVideoController {
             id: `segment-${index + 1}-${Date.now()}`,
             text: segmentText,
             startTime: undefined, // Placeholder: Real start time cannot be derived from flat text here
-            endTime: undefined,   // Placeholder: Real end time cannot be derived from flat text here
-            topic: segmentText.substring(0, 50) + (segmentText.length > 50 ? '...' : ''), // Placeholder for title
+            endTime: undefined, // Placeholder: Real end time cannot be derived from flat text here
+            topic:
+              segmentText.substring(0, 50) +
+              (segmentText.length > 50 ? '...' : ''), // Placeholder for title
             // summary: "Placeholder summary" // Future: Add summarization
           };
         })
@@ -134,10 +155,12 @@ export class GenAIVideoController {
           text: segmentText,
           startTime: undefined,
           endTime: undefined,
-          topic: segmentText.substring(0, 50) + (segmentText.length > 50 ? '...' : ''),
+          topic:
+            segmentText.substring(0, 50) +
+            (segmentText.length > 50 ? '...' : ''),
         });
       }
-      
+
       console.log(`Generated ${segments.length} segments.`);
 
       return res.json({
@@ -155,13 +178,19 @@ export class GenAIVideoController {
 // Router setup
 const router = express.Router();
 // Ensure the handler is correctly passed
-router.post('/generate/transcript', (req: Request, res: Response, next: NextFunction) => {
-  GenAIVideoController.generateTranscript(req, res, next).catch(next); // Ensure promise rejections are caught and passed to next
-});
+router.post(
+  '/generate/transcript',
+  (req: Request, res: Response, next: NextFunction) => {
+    GenAIVideoController.generateTranscript(req, res, next).catch(next); // Ensure promise rejections are caught and passed to next
+  },
+);
 
 // Add new route for segmentation
-router.post('/generate/transcript/segment', (req: Request, res: Response, next: NextFunction) => {
-  GenAIVideoController.segmentTranscript(req, res, next).catch(next);
-});
+router.post(
+  '/generate/transcript/segment',
+  (req: Request, res: Response, next: NextFunction) => {
+    GenAIVideoController.segmentTranscript(req, res, next).catch(next);
+  },
+);
 
 export default router;

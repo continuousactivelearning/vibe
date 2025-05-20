@@ -15,7 +15,11 @@ import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from 'config/db';
 import * as firebase from 'firebase-admin';
 import {app} from 'firebase-admin';
-import {authModuleOptions, coursesModuleOptions, genaiVideoRouter /*, usersModuleOptions */ } from 'modules';
+import {
+  authModuleOptions,
+  coursesModuleOptions,
+  genaiVideoRouter /*, usersModuleOptions */,
+} from 'modules';
 
 export const application = Express();
 
@@ -74,7 +78,9 @@ if (!Container.has('Database')) {
 export const main = () => {
   const collectedControllers: Function[] = [];
 
-  const addControllers = (moduleOptions: RoutingControllersOptions | undefined) => {
+  const addControllers = (
+    moduleOptions: RoutingControllersOptions | undefined,
+  ) => {
     if (moduleOptions && moduleOptions.controllers) {
       moduleOptions.controllers.forEach(controller => {
         if (typeof controller === 'function') {
