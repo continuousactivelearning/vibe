@@ -9,6 +9,7 @@ import {
   DeleteResult,
   MongoClient,
   ObjectId,
+  UpdateResult,
 } from 'mongodb';
 import {ICourseRepository} from 'shared/database/interfaces/ICourseRepository';
 import {
@@ -23,10 +24,12 @@ import {
   IEnrollment,
   IProgress,
   ICourseVersion,
+  ISection,
 } from 'shared/interfaces/Models';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {NotFoundError} from 'routing-controllers';
+import {Module, Section} from 'modules';
 
 @Service()
 export class CourseRepository implements ICourseRepository {
@@ -251,6 +254,90 @@ export class CourseRepository implements ICourseRepository {
       );
     }
   }
+
+  async deleteSection(
+    versionId: string,
+    moduleId: string,
+    sectionId: string,
+    courseVersion: CourseVersion,
+    session?: ClientSession,
+  ): Promise<UpdateResult | null> {
+    await this.init();
+    try {
+      // Convert versionId and moduleId to ObjectId
+      const moduleObjectId = new ObjectId(moduleId);
+
+      // Find the module to delete
+      const module = courseVersion.modules.find(m =>
+        new ObjectId(m.moduleId).equals(moduleObjectId),
+      );
+
+      if (!module) {
+        throw new NotFoundError('Module not found');
+      }
+
+      // Cascade delete sections and items
+      if (module.sections.length > 0) {
+        const section = module.sections.find(
+          section => section.sectionId === sectionId,
+        );
+        const itemGroupId = section?.itemsGroupId;
+
+        try {
+          const itemDeletionResult = await this.itemsGroupCollection.deleteOne(
+            {
+              _id: itemGroupId,
+            },
+            {session},
+          );
+
+          if (!itemDeletionResult.acknowledged) {
+            throw new DeleteError('Failed to delete item groups');
+          }
+        } catch (error) {
+          throw new DeleteError('Item deletion failed');
+        }
+      } else {
+        throw new NotFoundError('Section not found');
+      }
+
+      // Remove the section from the course version
+      const updatedModules = courseVersion.modules.map(m => {
+        if (new ObjectId(m.moduleId).equals(moduleObjectId)) {
+          return {
+            ...m,
+            sections: m.sections.filter(
+              s => !new ObjectId(s.sectionId).equals(sectionId),
+            ),
+          };
+        }
+        return m;
+      });
+
+      const updateResult = await this.courseVersionCollection.updateOne(
+        {_id: new ObjectId(versionId)},
+        {$set: {modules: updatedModules}},
+        {session},
+      );
+
+      if (updateResult.modifiedCount !== 1) {
+        throw new DeleteError('Failed to update Section');
+      }
+
+      return updateResult;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      if (error instanceof DeleteError) {
+        throw error;
+      }
+      throw new DeleteError(
+        'Failed to delete Section.\n More Details: ' + error,
+      );
+    }
+  }
+
   async deleteModule(
     versionId: string,
     moduleId: string,

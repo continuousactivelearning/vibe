@@ -1,4 +1,11 @@
-import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
+import {
+  DeleteResult,
+  ObjectId,
+  ReadConcern,
+  ReadPreference,
+  UpdateResult,
+  WriteConcern,
+} from 'mongodb';
 import {ICourseRepository} from 'shared/database';
 import {IItemRepository} from 'shared/database/';
 import {Inject, Service} from 'typedi';
@@ -192,6 +199,52 @@ export class SectionService {
       }
 
       return updatedVersion;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async deleteSection(
+    versionId: string,
+    moduleId: string,
+    sectionId: string,
+  ): Promise<UpdateResult | null> {
+    const session = (await this.courseRepo.getDBClient()).startSession();
+
+    try {
+      await session.startTransaction(this.transactionOptions);
+
+      const readCourseVersion = await this.courseRepo.readVersion(
+        versionId,
+        session,
+      );
+
+      if (!readCourseVersion) {
+        throw new NotFoundError('Course Version not found');
+      }
+
+      const modules = readCourseVersion.modules;
+      if (!modules) {
+        throw new NotFoundError('Modules not found');
+      }
+
+      const deleteResult = await this.courseRepo.deleteSection(
+        versionId,
+        moduleId,
+        sectionId,
+        readCourseVersion,
+        session,
+      );
+
+      if (!deleteResult) {
+        throw new NotFoundError('Section not found');
+      }
+
+      await session.commitTransaction();
+      return deleteResult;
     } catch (error) {
       await session.abortTransaction();
       throw error;
