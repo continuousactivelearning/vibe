@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import {
   Authorized,
   Body,
+  Delete,
   HttpCode,
   HttpError,
   JsonController,
@@ -12,7 +13,7 @@ import {
 } from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {ReadError, UpdateError} from 'shared/errors/errors';
+import {DeleteError, ReadError, UpdateError} from 'shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {ItemsGroup} from '../classes/transformers/Item';
 import {Section} from '../classes/transformers/Section';
@@ -25,6 +26,8 @@ import {
   UpdateSectionParams,
   SectionDataResponse,
   SectionNotFoundErrorResponse,
+  SectionDeletedResponse,
+  DeleteSectionParams,
 } from '../classes/validators/SectionValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
@@ -192,5 +195,39 @@ export class SectionController {
         throw new HttpError(500, error.message);
       }
     }
+  }
+
+  @Authorized(['admin'])
+  @Delete('/versions/:versionId/modules/:moduleId/sections/:sectionId')
+  @ResponseSchema(SectionDeletedResponse, {
+    description: 'Section deleted successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(SectionNotFoundErrorResponse, {
+    description: 'Section not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Delete Section',
+    description: 'Permanently removes a section from a module.',
+  })
+  async delete(
+    @Params() params: DeleteSectionParams,
+  ): Promise<SectionDeletedResponse> {
+    const {versionId, moduleId, sectionId} = params;
+    const deletedSection = await this.sectionService.deleteSection(
+      versionId,
+      moduleId,
+      sectionId,
+    );
+    if (!deletedSection) {
+      throw new DeleteError('Failed to delete section');
+    }
+    return {
+      message: `Section ${params.sectionId} deleted in module ${params.moduleId}`,
+    };
   }
 }
