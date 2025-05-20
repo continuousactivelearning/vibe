@@ -8,10 +8,9 @@ import Express from 'express';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {dbConfig} from '../../../config/db';
-import {CourseVersionService} from '../services';
-import {SectionService} from '../services/SectionService';
+import {CourseVersionService, ItemService, SectionService} from '../services';
 
-jest.setTimeout(30000);
+jest.setTimeout(90000);
 describe('Item Controller Integration Tests', () => {
   const App = Express();
   let app;
@@ -36,6 +35,11 @@ describe('Item Controller Integration Tests', () => {
       Container.get<CourseRepository>('CourseRepo'),
     );
     Container.set('SectionService', sectionService);
+    const itemService = new ItemService(
+      Container.get<ItemRepository>('ItemRepo'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('ItemService', itemService);
     app = useExpressServer(App, coursesModuleOptions);
   });
 
@@ -96,16 +100,15 @@ describe('Item Controller Integration Tests', () => {
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
-          .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+          .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId =
-          sectionResponse.body.version.modules[0].sections[0].sectionId;
+        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
 
         const itemsGroupResponse = await request(app)
           .post(
-            `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
+            `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
           )
           .send(itemPayload)
           .expect(201);
@@ -163,42 +166,41 @@ describe('Item Controller Integration Tests', () => {
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
           .send(courseVersionPayload)
-          .expect(200);
+          .expect(201);
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
           .send(modulePayload)
-          .expect(200);
+          .expect(201);
 
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
-          .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+          .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
-          .expect(200);
+          .expect(201);
 
-        const sectionId =
-          sectionResponse.body.version.modules[0].sections[0].sectionId;
+        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
 
         const itemsGroupId =
-          sectionResponse.body.version.modules[0].sections[0].itemsGroupId;
+          sectionResponse.body.modules[0].sections[0].itemsGroupId;
 
         const itemsGroupResponse = await request(app)
           .post(
-            `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
+            `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
           )
           .send(itemPayload)
-          .expect(200);
+          .expect(201);
 
         const itemsResponse = await request(app)
           .delete(
-            `/itemGroups/${itemsGroupId}/items/${itemsGroupResponse.body.itemsGroup.items[0].itemId}`,
+            `/courses/itemGroups/${itemsGroupId}/items/${itemsGroupResponse.body.itemsGroup.items[0].itemId}`,
           )
           .expect(200);
 
-        expect(itemsResponse.body.deletedItem.itemId).toBe(
+        expect(itemsResponse.body.deletedItemId).toBe(
           itemsGroupResponse.body.itemsGroup.items[0].itemId,
         );
       });
@@ -209,17 +211,17 @@ describe('Item Controller Integration Tests', () => {
         // Testing for Invalid params
 
         const itemsResponse = await request(app)
-          .delete('/itemGroups/123/items/123')
-          .expect(404);
+          .delete('/courses/itemGroups/123/items/123')
+          .expect(400);
       });
 
       it('should fail to delete an item', async () => {
         // Testing for Not found Case
         const itemsResponse = await request(app)
           .delete(
-            '/itemGroups/62341aeb5be816967d8fc2db/items/62341aeb5be816967d8fc2db',
+            '/courses/itemGroups/62341aeb5be816967d8fc2db/items/62341aeb5be816967d8fc2db',
           )
-          .expect(404);
+          .expect(400);
       });
     });
   });

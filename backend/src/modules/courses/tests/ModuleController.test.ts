@@ -210,7 +210,7 @@ describe('Module Controller Integration Tests', () => {
         const moduleResponse = await request(app)
           .post(endPoint)
           .send(modulePayload)
-          .expect(500);
+          .expect(400);
       });
     });
   });

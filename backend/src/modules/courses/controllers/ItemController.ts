@@ -33,7 +33,7 @@ import {
 @OpenAPI({
   tags: ['Items'],
 })
-@JsonController('/items')
+@JsonController('/courses')
 @Service()
 export class ItemController {
   constructor(

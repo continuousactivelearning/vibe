@@ -41,7 +41,7 @@ export class SectionController {
   constructor(
     @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
     @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
-    @Inject('sectionService')
+    @Inject('SectionService')
     private readonly sectionService: SectionService,
   ) {
     if (!this.sectionService) {
