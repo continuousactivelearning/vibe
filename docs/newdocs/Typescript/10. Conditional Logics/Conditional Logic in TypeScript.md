@@ -33,7 +33,6 @@ By the end of this lesson, you will be able to:
 -   Organize decision logic into reusable functions.
     
 
-## 
 ## 3. Concept Introduction with Analogy
 
 **Analogy: The School Principal’s Decision Book**  
