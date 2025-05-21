@@ -2,20 +2,22 @@
 
 import * as React from "react"
 import {
-  AudioWaveform,
   BookOpen,
-  Bot,
-  Command,
-  Frame,
-  GalleryVerticalEnd,
-  Map,
-  PieChart,
+  GraduationCap,
+  Home,
+  LayoutDashboard,
+  LineChart,
+  Search,
   Settings2,
-  SquareTerminal,
+  Users,
+  CalendarDays,
+  MessageSquare,
+  FileText,
+  Clock,
+  BookMarked
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
-import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { TeamSwitcher } from "./team-switcher"
 import {
@@ -24,137 +26,131 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  SidebarSeparator
 } from "@/components/ui/sidebar"
 
-// This is sample data.
+// This is teacher-specific data
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
+    name: "John Doe",
+    email: "john.doe@example.com",
+    avatar: "/avatars/teacher.jpg",
   },
   teams: [
     {
-      name: "Acme Inc",
-      logo: GalleryVerticalEnd,
-      plan: "Enterprise",
-    },
-    {
-      name: "Acme Corp.",
-      logo: AudioWaveform,
-      plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
-    },
+      name: "Vibe Learning",
+      logo: GraduationCap,
+      plan: "Educator",
+    }
   ],
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
+      title: "Dashboard",
+      url: "/teacher/dashboard",
+      icon: LayoutDashboard,
       isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
+
     },
     {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
+      title: "Courses",
       url: "#",
       icon: BookOpen,
       items: [
         {
-          title: "Introduction",
-          url: "#",
+          title: "All Courses",
+          url: "/teacher/courses",
         },
         {
-          title: "Get Started",
-          url: "#",
+          title: "Create Course",
+          url: "/teacher/courses/create",
         },
         {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
+          title: "Manage Content",
+          url: "/teacher/courses/manage",
         },
       ],
+    },
+    {
+      title: "Students",
+      url: "#",
+      icon: Users,
+      items: [
+        {
+          title: "All Students",
+          url: "/teacher/students",
+        },
+        {
+          title: "Performance",
+          url: "/teacher/students/performance",
+        },
+        {
+          title: "Engagement",
+          url: "/teacher/students/engagement",
+        },
+      ],
+    },
+    {
+      title: "Analytics",
+      url: "#",
+      icon: LineChart,
+      items: [
+        {
+          title: "Dashboard",
+          url: "/teacher/analytics",
+        },
+        {
+          title: "Reports",
+          url: "/teacher/analytics/reports",
+        },
+      ],
+    },
+    {
+      title: "Schedule",
+      url: "#",
+      icon: CalendarDays,
+      items: [
+        {
+          title: "Calendar",
+          url: "/teacher/schedule/calendar",
+        },
+        {
+          title: "Appointments",
+          url: "/teacher/schedule/appointments",
+        },
+      ],
+    },
+    {
+      title: "Resources",
+      url: "#",
+      icon: BookMarked,
+      items: [
+        {
+          title: "Library",
+          url: "/teacher/resources/library",
+        },
+        {
+          title: "My Resources",
+          url: "/teacher/resources/my-resources",
+        },
+      ],
+    },
+    {
+      type: "separator" as const, // Use 'as const' to make this a literal type
+    },
+    {
+      title: "Messages",
+      url: "/teacher/messages",
+      icon: MessageSquare,
+      isCollapsible: false,
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/teacher/settings",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
+      isCollapsible: false,
     },
   ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
-    },
-  ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -164,7 +160,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />
