@@ -64,9 +64,12 @@ export class UserRepository implements IUserRepository {
   /**
    * Finds a user by email.
    */
-  async findByEmail(email: string): Promise<IUser | null> {
+  async findByEmail(
+    email: string,
+    session?: ClientSession,
+  ): Promise<IUser | null> {
     await this.init();
-    const user = await this.usersCollection.findOne({email});
+    const user = await this.usersCollection.findOne({email}, {session});
     return this.transformUser(user);
   }
 

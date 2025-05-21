@@ -20,6 +20,7 @@ import {
   ChangePasswordResponse,
   TokenVerificationResponse,
   AuthErrorResponse,
+  VerifySignUpProviderBody,
 } from '../classes/validators';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
@@ -56,6 +57,34 @@ export class AuthController {
     const user = await this.authService.signup(body);
     if (!user) {
       throw new CreateError('Failed to create the user');
+    }
+    return instanceToPlain(user);
+  }
+
+  @Post('/signup/verify')
+  @HttpCode(201)
+  @ResponseSchema(SignUpResponse, {
+    description: 'User successfully verified',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Invalid input data',
+    statusCode: 400,
+  })
+  @ResponseSchema(AuthErrorResponse, {
+    description: 'Registration failed',
+    statusCode: 500,
+  })
+  @OpenAPI({
+    summary: 'Verify User',
+    description: 'Creates a new user account using the token provided.',
+  })
+  async verifySignUpProvider(@Body() body: VerifySignUpProviderBody) {
+    if (!body.token) {
+      throw new CreateError('Token is required');
+    }
+    const user = await this.authService.verifySignUpProvider(body.token);
+    if (!user) {
+      throw new CreateError('Failed to verify the user');
     }
     return instanceToPlain(user);
   }
