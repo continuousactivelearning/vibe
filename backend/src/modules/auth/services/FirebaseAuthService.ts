@@ -19,6 +19,8 @@ import {IUser} from 'shared/interfaces/Models';
 import {IUserRepository} from 'shared/database';
 import {IAuthService} from '../interfaces/IAuthService';
 import {ChangePasswordBody, SignUpBody} from '../classes/validators';
+import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
+import {CreateError} from 'shared/errors/errors';
 
 /**
  * Custom error thrown during password change operations.
@@ -65,6 +67,12 @@ export class FirebaseAuthService implements IAuthService {
     });
     this.auth = admin.auth();
   }
+
+  private readonly transactionOptions = {
+    readPreference: ReadPreference.primary,
+    writeConcern: new WriteConcern('majority'),
+    readConcern: new ReadConcern('majority'),
+  };
 
   /**
    * Verifies a Firebase authentication token and returns the associated user.
@@ -127,12 +135,20 @@ export class FirebaseAuthService implements IAuthService {
     };
 
     let createdUser: IUser;
-
+    const session = (await this.userRepository.getDBClient()).startSession();
     try {
+      await session.startTransaction(this.transactionOptions);
       // Store the user in our application database
-      createdUser = await this.userRepository.create(user);
+      createdUser = await this.userRepository.create(user, session);
+      if (!createdUser) {
+        throw new CreateError('Failed to create the user');
+      }
+      await session.commitTransaction();
     } catch (error) {
+      await session.abortTransaction();
       throw new Error('Failed to create user in the repository');
+    } finally {
+      await session.endSession();
     }
 
     return createdUser;
