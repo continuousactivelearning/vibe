@@ -47,6 +47,7 @@ const config: Config = {
       },
     ],
     [
+<<<<<<< HEAD
     '@scalar/docusaurus',
     {
       label: 'Scalar',
@@ -88,6 +89,17 @@ const config: Config = {
       },
     } as ScalarOptions,
   ],
+=======
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'newdocs',                            // *must* be unique
+        path: 'newdocs',                          // folder you just created
+        routeBasePath: 'newdocs',                 // URL: /newdocs/<docId>
+        sidebarPath: require.resolve('./sidebarsNew.js'),
+        editUrl: 'https://github.com/your-org/…', // adjust if you want "edit this page"
+      },
+    ],
+>>>>>>> 8b14a9cc35ef20bd7bf087ce1213759164e46ae9
   ],
 
   // GitHub pages deployment config.
@@ -154,6 +166,13 @@ const config: Config = {
           position: "left",
           label: "Documentation",
         },
+        {
+          type: 'docSidebar',
+          sidebarId: 'newSidebar',
+          position: 'left',
+          label: 'MERN Tutorial',       // <-- your new section name
+          docsPluginId: 'newdocs',  // <-- point at the plugin instance
+         },
         {
           href: "https://github.com/continuousactivelearning/vibe",
           label: "GitHub",
