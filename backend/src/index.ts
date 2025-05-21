@@ -9,15 +9,17 @@ import {
   useContainer,
   useExpressServer,
 } from 'routing-controllers';
-import {coursesModuleOptions} from 'modules/courses';
 import Container from 'typedi';
 import {IDatabase} from 'shared/database';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from 'config/db';
-import {usersModuleOptions} from 'modules/users';
 import * as firebase from 'firebase-admin';
 import {app} from 'firebase-admin';
-import {authModuleOptions} from 'modules';
+import {
+  authModuleOptions,
+  coursesModuleOptions,
+  genaiVideoRouter /*, usersModuleOptions */,
+} from 'modules';
 
 export const application = Express();
 
@@ -37,6 +39,9 @@ export const ServiceFactory = (
   console.log('--------------------------------------------------------');
 
   service.use(loggingHandler);
+
+  // Mount the GenAI Express router before other specific routing if preferred, or after general middleware
+  service.use('/genai', genaiVideoRouter);
 
   console.log('--------------------------------------------------------');
   console.log('Define Routing');
@@ -71,7 +76,33 @@ if (!Container.has('Database')) {
 }
 
 export const main = () => {
-  const service = ServiceFactory(application, authModuleOptions);
+  const collectedControllers: Function[] = [];
+
+  const addControllers = (
+    moduleOptions: RoutingControllersOptions | undefined,
+  ) => {
+    if (moduleOptions && moduleOptions.controllers) {
+      moduleOptions.controllers.forEach(controller => {
+        if (typeof controller === 'function') {
+          collectedControllers.push(controller);
+        } else {
+          // Optionally log if a controller is not a function, as it might indicate an issue.
+          console.warn(`Skipping non-function controller: ${controller}`);
+        }
+      });
+    }
+  };
+
+  addControllers(authModuleOptions);
+  addControllers(coursesModuleOptions); // Assuming coursesModuleOptions is correctly imported and has controllers
+  // addControllers(usersModuleOptions); // Uncomment if usersModuleOptions is available and needed
+
+  const routingOptions: RoutingControllersOptions = {
+    ...(authModuleOptions || {}),
+    controllers: collectedControllers,
+  };
+
+  const service = ServiceFactory(application, routingOptions);
   service.listen(4001, () => {
     console.log('--------------------------------------------------------');
     console.log('Started Server at http://localhost:' + 4001);

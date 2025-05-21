@@ -31,7 +31,14 @@ async function getMongoUri() {
 // Read state
 function readState(): Record<string, any> {
   if (fs.existsSync(statePath)) {
-    return JSON.parse(fs.readFileSync(statePath, "utf8"));
+    const fileContent = fs.readFileSync(statePath, "utf8");
+    // Trim the content to remove leading/trailing whitespace (like newlines)
+    const trimmedContent = fileContent.trim();
+    // If the trimmed content is empty (e.g., file was just whitespace), return an empty object
+    if (!trimmedContent) {
+      return {};
+    }
+    return JSON.parse(trimmedContent);
   }
   return {};
 }
