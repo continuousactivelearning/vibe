@@ -117,7 +117,7 @@ describe('Enrollment Controller Integration Tests', () => {
         .send(courseVersionBody)
         .expect(201);
       // Expect the response to contain the course version ID
-      const courseVersionId = createCourseVersionResponse.body.version._id;
+      const courseVersionId = createCourseVersionResponse.body._id;
       expect(courseVersionId).toBeDefined();
 
       // 3. Create a module by hitting at endpoint /courses/:courseId/versions/:versionId/modules

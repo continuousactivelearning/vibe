@@ -348,10 +348,11 @@ describe('Course Version Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         const itemsGroupId =
-          sectionResponse.body.modules[0].sections[0].itemsGroupId;
+          sectionResponse.body.version.modules[0].sections[0].itemsGroupId;
 
         const itemsGroupResponse = await request(app)
           .post(
