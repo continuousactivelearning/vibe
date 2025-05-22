@@ -41,12 +41,7 @@ export class OTLQuestionValidator extends BaseQuestionValidator {
     if (this.question.isParameterized) {
       if (!this.tagStatus.anyLotItemHasTag) {
         throw new Error('At least one LotItem must contain a valid tag.');
-      }
-
-      if (
-        this.tagStatus.anyLotItemHasTag ||
-        this.tagStatus.anyLotItemExplainationHasTag
-      ) {
+      } else {
         this.tagStatus.lotItemsWithTag?.forEach((hasTag, index) => {
           const item = this.lotItems[index];
           if (this.tagParserEngine.isAnyValidTagPresent(item.text)) {
