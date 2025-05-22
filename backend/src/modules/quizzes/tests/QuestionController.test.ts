@@ -61,7 +61,7 @@ describe('Progress Controller Integration Tests', () => {
   describe('Create Question', () => {
     it('should create a question', async () => {
       const questionData: IQuestion = {
-        text: 'NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
+        text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
         type: 'SELECT_ONE_IN_LOT',
         points: 10,
         timeLimitSeconds: 60,
@@ -93,19 +93,20 @@ describe('Progress Controller Integration Tests', () => {
 
       const solution: ISOLSolution = {
         correctLotItem: {
-          text: 'This is the correct answer <QParam>name</QParam>',
+          text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
           explaination:
-            'This is the explanation for the correct answer <QParam>name</QParam>',
+            'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
         },
         incorrectLotItems: [
           {
-            text: 'This is an incorrect answer',
-            explaination: 'This is the explanation for the incorrect answer',
+            text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
+            explaination:
+              'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
           },
           {
-            text: 'This is another incorrect answer',
+            text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
             explaination:
-              'This is the explanation for another incorrect answer',
+              'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
           },
         ],
       };
