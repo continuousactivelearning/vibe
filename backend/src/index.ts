@@ -38,6 +38,17 @@ export const ServiceFactory = (
 
   service.use(loggingHandler);
 
+  // Register GenAI routes
+  try {
+    const genAiRoutes = require('./modules/genai/genaiRoutes.js'); // Ensure this path is correct
+    service.use('/api/genai', genAiRoutes);
+    console.log('--------------------------------------------------------');
+    console.log('GenAI routes registered under /api/genai');
+    console.log('--------------------------------------------------------');
+  } catch (error) {
+    console.error('Failed to load or register GenAI routes:', error);
+  }
+
   console.log('--------------------------------------------------------');
   console.log('Define Routing');
   console.log('--------------------------------------------------------');
