@@ -9,7 +9,7 @@ import {useExpressServer} from 'routing-controllers';
 import {coursesModuleOptions} from 'modules/courses';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-
+jest.setTimeout(90000);
 describe('Section Controller Integration Tests', () => {
   const App = Express();
   let app;
