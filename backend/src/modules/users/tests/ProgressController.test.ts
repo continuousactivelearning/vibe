@@ -1,4 +1,3 @@
-import {MongoMemoryServer} from 'mongodb-memory-server';
 import request from 'supertest';
 import Express from 'express';
 import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
@@ -39,7 +38,6 @@ import {verifyProgressInDatabase} from './utils/verifyProgressInDatabase';
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
-  let mongoServer: MongoMemoryServer;
   let user: IUser;
   let courseData: CourseData;
 

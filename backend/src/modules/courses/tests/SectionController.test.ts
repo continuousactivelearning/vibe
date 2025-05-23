@@ -90,8 +90,8 @@ describe('Section Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        expect(sectionResponse.body.modules[0].sections.length).toBe(1);
-        expect(sectionResponse.body.modules[0].sections[0].name).toBe(
+        expect(sectionResponse.body.version.modules[0].sections.length).toBe(1);
+        expect(sectionResponse.body.version.modules[0].sections[0].name).toBe(
           sectionPayload.name,
         );
       });
@@ -159,7 +159,8 @@ describe('Section Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         const deleteSectionResponse = await request(app)
           .delete(

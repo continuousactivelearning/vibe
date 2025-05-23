@@ -11,7 +11,12 @@ import {CourseVersionController} from './controllers/CourseVersionController';
 import {ModuleController} from './controllers/ModuleController';
 import {SectionController} from './controllers/SectionController';
 import {ItemController} from './controllers/ItemController';
-import {CourseService} from './services';
+import {
+  CourseService,
+  CourseVersionService,
+  ModuleService,
+  SectionService,
+} from './services';
 import {ItemService} from './services';
 import {HttpErrorHandler} from 'shared/middleware/errorHandler';
 
@@ -56,6 +61,27 @@ export function setupCoursesModuleDependencies() {
         Container.get<ItemRepository>('ItemRepo'),
         Container.get<CourseRepository>('CourseRepo'),
       ),
+    );
+  }
+  if (!Container.has('CourseVersionService')) {
+    Container.set(
+      'CourseVersionService',
+      new CourseVersionService(Container.get<CourseRepository>('CourseRepo')),
+    );
+  }
+  if (!Container.has('SectionService')) {
+    Container.set(
+      'SectionService',
+      new SectionService(
+        Container.get<ItemRepository>('ItemRepo'),
+        Container.get<CourseRepository>('CourseRepo'),
+      ),
+    );
+  }
+  if (!Container.has('ModuleService')) {
+    Container.set(
+      'ModuleService',
+      new ModuleService(Container.get<CourseRepository>('CourseRepo')),
     );
   }
 }

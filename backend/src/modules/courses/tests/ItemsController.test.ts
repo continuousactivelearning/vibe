@@ -104,7 +104,8 @@ describe('Item Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         const itemsGroupResponse = await request(app)
           .post(
@@ -371,10 +372,11 @@ describe('Item Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         const itemsGroupId =
-          sectionResponse.body.modules[0].sections[0].itemsGroupId;
+          sectionResponse.body.version.modules[0].sections[0].itemsGroupId;
 
         const itemsGroupResponse = await request(app)
           .post(
@@ -485,7 +487,8 @@ describe('Item Controller Integration Tests', () => {
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         // Add two items
         const item1Response = await request(app)
@@ -547,7 +550,8 @@ describe('Item Controller Integration Tests', () => {
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
-        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+        const sectionId =
+          sectionResponse.body.version.modules[0].sections[0].sectionId;
 
         // Add three items
         const item1Response = await request(app)

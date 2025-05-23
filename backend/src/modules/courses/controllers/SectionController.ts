@@ -91,9 +91,7 @@ export class SectionController {
       if (!createdVersion) {
         throw new UpdateError('Failed to create section');
       }
-      return instanceToPlain(
-        Object.assign(new CourseVersion(), createdVersion),
-      ) as CourseVersion;
+      return {version: instanceToPlain(createdVersion)} as any;
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
