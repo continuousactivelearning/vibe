@@ -607,4 +607,176 @@ describe('Item Controller Integration Tests', () => {
       });
     });
   });
+
+  describe('ITEM SERVICE ERROR PATHS', () => {
+    let itemService: any;
+    let itemRepo: any;
+    let courseRepo: any;
+
+    beforeAll(() => {
+      itemRepo = Container.get('ItemRepo');
+      courseRepo = Container.get('CourseRepo');
+      itemService = Container.get('ItemService');
+    });
+
+    it('should throw NotFoundError if version does not exist on createItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue(null);
+      await expect(
+        itemService.createItem('vId', 'mId', 'sId', {
+          name: 'x',
+          description: 'y',
+          type: 'VIDEO',
+          videoDetails: {},
+        }),
+      ).rejects.toThrow('Version vId not found.');
+    });
+
+    it('should throw if itemsGroup not found on createItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest.spyOn(itemRepo, 'readItemsGroup').mockResolvedValue(undefined);
+      await expect(
+        itemService.createItem('vId', 'mId', 'sId', {
+          name: 'x',
+          description: 'y',
+          type: 'VIDEO',
+          videoDetails: {},
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should throw if updateItemsGroup fails on createItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest.spyOn(itemRepo, 'readItemsGroup').mockResolvedValue({items: []});
+      jest.spyOn(itemRepo, 'updateItemsGroup').mockImplementation(() => {
+        throw new Error('DB error');
+      });
+      await expect(
+        itemService.createItem('vId', 'mId', 'sId', {
+          name: 'x',
+          description: 'y',
+          type: 'VIDEO',
+          videoDetails: {},
+        }),
+      ).rejects.toThrow('DB error');
+    });
+
+    it('should throw NotFoundError if version does not exist on updateItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue(null);
+      await expect(
+        itemService.updateItem('vId', 'mId', 'sId', 'itemId', {name: 'x'}),
+      ).rejects.toThrow('Version vId not found.');
+    });
+
+    it('should throw if item not found on updateItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest.spyOn(itemRepo, 'readItemsGroup').mockResolvedValue({items: []});
+      await expect(
+        itemService.updateItem('vId', 'mId', 'sId', 'itemId', {name: 'x'}),
+      ).rejects.toThrow();
+    });
+
+    it('should throw if updateItemsGroup fails on updateItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest
+        .spyOn(itemRepo, 'readItemsGroup')
+        .mockResolvedValue({items: [{itemId: 'itemId'}]});
+      jest.spyOn(itemRepo, 'updateItemsGroup').mockImplementation(() => {
+        throw new Error('DB error');
+      });
+      await expect(
+        itemService.updateItem('vId', 'mId', 'sId', 'itemId', {name: 'x'}),
+      ).rejects.toThrow('DB error');
+    });
+
+    it('should throw InternalServerError if deleteItem returns false', async () => {
+      jest.spyOn(itemRepo, 'deleteItem').mockResolvedValue(false);
+      await expect(itemService.deleteItem('igId', 'itemId')).rejects.toThrow(
+        'Item deletion failed',
+      );
+    });
+
+    it('should throw if deleteItem throws', async () => {
+      jest.spyOn(itemRepo, 'deleteItem').mockImplementation(() => {
+        throw new Error('DB error');
+      });
+      await expect(itemService.deleteItem('igId', 'itemId')).rejects.toThrow(
+        'DB error',
+      );
+    });
+
+    it('should throw if neither afterItemId nor beforeItemId is provided in moveItem', async () => {
+      await expect(
+        itemService.moveItem('vId', 'mId', 'sId', 'itemId', {}),
+      ).rejects.toThrow('Either afterItemId or beforeItemId is required');
+    });
+
+    it('should throw if item not found in moveItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest.spyOn(itemRepo, 'readItemsGroup').mockResolvedValue({items: []});
+      await expect(
+        itemService.moveItem('vId', 'mId', 'sId', 'itemId', {
+          beforeItemId: 'otherId',
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should throw if updateItemsGroup fails on moveItem', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({
+        modules: [
+          {
+            moduleId: 'mId',
+            sections: [{sectionId: 'sId', itemsGroupId: 'igId'}],
+          },
+        ],
+      });
+      jest
+        .spyOn(itemRepo, 'readItemsGroup')
+        .mockResolvedValue({items: [{itemId: 'itemId', order: 'a'}]});
+      jest.spyOn(itemRepo, 'updateItemsGroup').mockImplementation(() => {
+        throw new Error('DB error');
+      });
+      await expect(
+        itemService.moveItem('vId', 'mId', 'sId', 'itemId', {
+          beforeItemId: 'otherId',
+        }),
+      ).rejects.toThrow(
+        "Cannot read properties of undefined (reading 'order')",
+      );
+    });
+  });
 });
