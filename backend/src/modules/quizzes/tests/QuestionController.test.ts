@@ -543,5 +543,147 @@ describe('Progress Controller Integration Tests', () => {
         /at least one lotitem must contain a valid tag/i,
       );
     });
+    it('should fail to create a DES question if a QParam tag does not match any parameter', async () => {
+      const questionData: IQuestion = {
+        text: 'Describe the process of <QParam>process</QParam> in <QParam>subject</QParam> and <QParam>missingParam</QParam>.',
+        type: 'DESCRIPTIVE',
+        points: 8,
+        timeLimitSeconds: 120,
+        isParameterized: true,
+        parameters: [
+          {
+            name: 'process',
+            possibleValues: ['compiling', 'generating machine code'],
+            type: 'string',
+          },
+          {
+            name: 'subject',
+            possibleValues: ['coding', 'programming'],
+            type: 'string',
+          },
+        ],
+        hint: 'Focus on <QParam>process</QParam> and <QParam>subject</QParam>.',
+      };
+
+      const solution = {
+        solutionText:
+          'The process of <QParam>process</QParam> in <QParam>subject</QParam> and <QParam>missingParam</QParam> involves several steps...',
+      };
+
+      const body: CreateQuestionBody = {question: questionData, solution};
+      const response = await request(app).post('/questions').send(body);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/not found in context/i);
+    });
+    it('should fail to create a question with a NumExpr tag referencing missing parameter', async () => {
+      const questionData: IQuestion = {
+        text: 'Calculate: <NumExpr>a + b + c</NumExpr>',
+        type: 'NUMERIC_ANSWER_TYPE',
+        points: 5,
+        timeLimitSeconds: 30,
+        isParameterized: true,
+        parameters: [
+          {name: 'a', possibleValues: ['1', '2'], type: 'number'},
+          {name: 'b', possibleValues: ['3', '4'], type: 'number'},
+          // 'c' is missing
+        ],
+        hint: 'Add a, b, and c.',
+      };
+
+      const solution = {
+        decimalPrecision: 0,
+        upperLimit: 10,
+        lowerLimit: 0,
+        expression: '<NumExpr>a + b + c</NumExpr>',
+      };
+
+      const body: CreateQuestionBody = {question: questionData, solution};
+      const response = await request(app).post('/questions').send(body);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(
+        /not found in parameters|not found in context/i,
+      );
+    });
+    it('should fail to create a question with a NumExpr tag referencing a non-number parameter', async () => {
+      const questionData: IQuestion = {
+        text: 'Calculate: <NumExpr>a + b</NumExpr>',
+        type: 'NUMERIC_ANSWER_TYPE',
+        points: 5,
+        timeLimitSeconds: 30,
+        isParameterized: true,
+        parameters: [
+          {name: 'a', possibleValues: ['1', '2'], type: 'number'},
+          {name: 'b', possibleValues: ['foo', 'bar'], type: 'string'}, // not a number
+        ],
+        hint: 'Add a and b.',
+      };
+
+      const solution = {
+        decimalPrecision: 0,
+        upperLimit: 10,
+        lowerLimit: 0,
+        expression: '<NumExpr>a + b</NumExpr>',
+      };
+
+      const body: CreateQuestionBody = {question: questionData, solution};
+      const response = await request(app).post('/questions').send(body);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/must be of type 'number'/i);
+    });
+    it('should fail to create a question with a NumExprTex tag referencing missing parameter', async () => {
+      const questionData: IQuestion = {
+        text: 'Render: <NumExprTex>a + b + c</NumExprTex>',
+        type: 'NUMERIC_ANSWER_TYPE',
+        points: 5,
+        timeLimitSeconds: 30,
+        isParameterized: true,
+        parameters: [
+          {name: 'a', possibleValues: ['1', '2'], type: 'number'},
+          {name: 'b', possibleValues: ['3', '4'], type: 'number'},
+          // 'c' is missing
+        ],
+        hint: 'Render a, b, and c.',
+      };
+
+      const solution = {
+        decimalPrecision: 0,
+        upperLimit: 10,
+        lowerLimit: 0,
+        expression: '<NumExprTex>a + b + c</NumExprTex>',
+      };
+
+      const body: CreateQuestionBody = {question: questionData, solution};
+      const response = await request(app).post('/questions').send(body);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(
+        /not found in parameters|not found in context/i,
+      );
+    });
+    it('should fail to create a question with a NumExprTex tag referencing a non-number parameter', async () => {
+      const questionData: IQuestion = {
+        text: 'Render: <NumExprTex>a + b</NumExprTex>',
+        type: 'NUMERIC_ANSWER_TYPE',
+        points: 5,
+        timeLimitSeconds: 30,
+        isParameterized: true,
+        parameters: [
+          {name: 'a', possibleValues: ['1', '2'], type: 'number'},
+          {name: 'b', possibleValues: ['foo', 'bar'], type: 'string'}, // not a number
+        ],
+        hint: 'Render a and b.',
+      };
+
+      const solution = {
+        decimalPrecision: 0,
+        upperLimit: 10,
+        lowerLimit: 0,
+        expression: '<NumExprTex>a + b</NumExprTex>',
+      };
+
+      const body: CreateQuestionBody = {question: questionData, solution};
+      const response = await request(app).post('/questions').send(body);
+      expect(response.status).toBe(400);
+      expect(response.body.message).toMatch(/must be of type 'number'/i);
+    });
   });
 });
