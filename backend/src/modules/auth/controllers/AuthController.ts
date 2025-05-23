@@ -66,6 +66,7 @@ export class AuthController {
 
   @Post('/signup/verify')
   @HttpCode(201)
+  @UseBefore(AuthRateLimiter)
   @ResponseSchema(SignUpResponse, {
     description: 'User successfully verified',
   })
