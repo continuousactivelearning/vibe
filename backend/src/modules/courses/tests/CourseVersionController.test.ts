@@ -355,10 +355,10 @@ describe('Course Version Controller Integration Tests', () => {
 
         const itemsGroupResponse = await request(app)
           .post(
-            `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
+            `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
           )
           .send(itemPayload)
-          .expect(200);
+          .expect(201);
 
         const deleteVersion = await request(app)
           .delete(`/courses/${courseId}/versions/${versionId}`)

@@ -213,6 +213,10 @@ export class ItemService {
       );
       const item = itemsGroup.items.find(i => i.itemId.toString() === itemId)!;
       item.order = newOrder;
+
+      // Sort items by order after updating
+      itemsGroup.items.sort((a, b) => a.order.localeCompare(b.order));
+
       section.updatedAt = new Date();
       module.updatedAt = new Date();
       version.updatedAt = new Date();
