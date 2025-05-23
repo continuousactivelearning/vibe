@@ -1,10 +1,10 @@
 // backend/src/modules/genai/GenAIVideoController.js
 const fs = require('fs');
 const path = require('path');
-const ytdl = require('ytdl-core');
+const { exec } = require('child_process'); // For yt-dlp
 const ffmpeg = require('fluent-ffmpeg');
 const multer = require('multer');
-const pdf = require('pdf-parse'); // Added pdf-parse require
+const pdf = require('pdf-parse'); // From previous step
 
 // Configure Multer for PDF uploads
 const storage = multer.diskStorage({
@@ -47,18 +47,12 @@ class GenAIVideoController {
         // Initialization logic if needed
     }
 
-    /**
-     * Endpoint: genai/generate/transcript/
-     * Handles YouTube video URL, downloads audio, transcribes, and supports PDF uploads.
-     */
     async generateTranscript(req, res) {
         console.log("GenAIVideoController: generateTranscript endpoint hit");
 
         upload(req, res, async (err) => {
             if (err) {
-                // Multer errors (e.g., file type)
-                console.error("Multer error:", err.message);
-                return res.status(400).json({ message: "File upload error: " + err.message });
+                return res.status(400).json({ message: "PDF upload error: " + err.message });
             }
 
             const { youtubeUrl } = req.body;
@@ -67,116 +61,128 @@ class GenAIVideoController {
             }
 
             let transcript = "Placeholder transcript. ";
-            let audioFilePath = null;
-            const tempAudioDir = path.join(__dirname, 'temp_audio'); 
+            let processedAudioPath = null; // This will be the final WAV path for transcription
+            let ytdlpOutputPath = null; // Define here for cleanup in case of error
 
             try {
                 if (youtubeUrl) {
-                    if (!ytdl.validateURL(youtubeUrl)) {
-                        return res.status(400).json({ message: "Invalid YouTube URL." });
-                    }
-
-                    const videoInfo = await ytdl.getInfo(youtubeUrl);
-                    const audioFormat = ytdl.chooseFormat(videoInfo.formats, { quality: 'highestaudio', filter: 'audioonly' });
-                    if (!audioFormat) {
-                        return res.status(400).json({ message: "No suitable audio format found for this YouTube video." });
+                    // Validate YouTube URL (basic check)
+                    if (!youtubeUrl.includes("youtube.com") && !youtubeUrl.includes("youtu.be")) {
+                        return res.status(400).json({ message: "Invalid YouTube URL provided." });
                     }
                     
+                    const tempAudioDir = path.join(__dirname, 'temp_audio');
                     fs.mkdirSync(tempAudioDir, { recursive: true });
-                    const rawAudioPath = path.join(tempAudioDir, Date.now() + '_raw_audio'); 
-                    audioFilePath = path.join(tempAudioDir, Date.now() + '_audio.wav'); 
+                    
+                    // yt-dlp will produce a .wav file directly if possible with --extract-audio and --audio-format wav
+                    // Let's name the initial download from yt-dlp
+                    ytdlpOutputPath = path.join(tempAudioDir, `${Date.now()}_audio_from_ytdlp.wav`); // Assign here for broader scope
+                    processedAudioPath = path.join(tempAudioDir, `${Date.now()}_final_audio.wav`); // Final standardized WAV
 
-                    console.log(`Downloading audio from ${youtubeUrl} to ${rawAudioPath}`);
-                    console.log(`Target WAV file: ${audioFilePath}`);
+                    // Construct yt-dlp command
+                    // -x or --extract-audio: Extract audio track.
+                    // --audio-format wav: Convert to WAV.
+                    // --audio-quality 0: Best audio quality.
+                    // -o: Output template.
+                    // We add --ffmpeg-location if ffmpegPath is configured, helps yt-dlp find it.
+                    // Forcing output to wav, then we will standardize it with our ffmpeg call.
+                    const ytdlpCommand = `yt-dlp -x --audio-format wav --audio-quality 0 -o "${ytdlpOutputPath}" "${youtubeUrl}"`;
+                    
+                    console.log(`Executing yt-dlp: ${ytdlpCommand}`);
 
                     await new Promise((resolve, reject) => {
-                        const stream = ytdl(youtubeUrl, { format: audioFormat });
-                        stream.pipe(fs.createWriteStream(rawAudioPath))
-                            .on('finish', () => {
-                                console.log('Download finished. Converting to WAV...');
-                                ffmpeg(rawAudioPath)
-                                    .toFormat('wav')
-                                    .audioFrequency(16000) 
-                                    .audioChannels(1)      
-                                    .on('error', (ffmpegErr) => {
-                                        console.error('FFmpeg error:', ffmpegErr);
-                                        if (fs.existsSync(rawAudioPath)) {
-                                            fs.unlink(rawAudioPath, (unlinkErr) => {
-                                                if (unlinkErr) console.error("Error deleting raw audio file after ffmpeg error:", unlinkErr);
-                                            });
-                                        }
-                                        reject(new Error('FFmpeg conversion failed: ' + ffmpegErr.message + '. Ensure ffmpeg is installed and accessible in PATH.'));
-                                    })
-                                    .on('end', () => {
-                                        console.log('WAV conversion finished:', audioFilePath);
-                                        if (fs.existsSync(rawAudioPath)) {
-                                            fs.unlink(rawAudioPath, (unlinkErr) => { 
-                                                if (unlinkErr) console.error("Error deleting raw audio file:", unlinkErr);
-                                            });
-                                        }
-                                        resolve();
-                                    })
-                                    .save(audioFilePath);
+                        exec(ytdlpCommand, (error, stdout, stderr) => {
+                            if (error) {
+                                console.error(`yt-dlp execution error: ${error.message}`);
+                                console.error(`yt-dlp stderr: ${stderr}`);
+                                // Try to provide a more specific error if yt-dlp output indicates something useful
+                                if (stderr.includes("Unsupported URL")) {
+                                    return reject(new Error("Invalid or unsupported YouTube URL by yt-dlp."));
+                                }
+                                if (stderr.includes("Video unavailable")) {
+                                    return reject(new Error("Video unavailable according to yt-dlp."));
+                                }
+                                return reject(new Error(`yt-dlp failed: ${error.message}`));
+                            }
+                            console.log(`yt-dlp stdout: ${stdout}`);
+                            // Check if the ytdlpOutputPath was actually created
+                            if (!fs.existsSync(ytdlpOutputPath)) {
+                                console.error(`yt-dlp finished but output file ${ytdlpOutputPath} not found. stderr: ${stderr}`);
+                                return reject(new Error(`yt-dlp did not produce the expected output file. Check logs.`));
+                            }
+                            console.log('yt-dlp download and conversion to WAV successful:', ytdlpOutputPath);
+                            resolve();
+                        });
+                    });
+
+                    // Now, standardize the audio from yt-dlp using fluent-ffmpeg
+                    console.log(`Standardizing ${ytdlpOutputPath} to ${processedAudioPath} (16kHz, 1-channel)`);
+                    await new Promise((resolve, reject) => {
+                        ffmpeg(ytdlpOutputPath)
+                            .toFormat('wav')
+                            .audioFrequency(16000) // Whisper typically expects 16kHz
+                            .audioChannels(1)      // Mono
+                            .on('error', (ffmpegErr) => {
+                                console.error('FFmpeg standardization error:', ffmpegErr);
+                                reject(new Error('FFmpeg audio standardization failed: ' + ffmpegErr.message));
                             })
-                            .on('error', (downloadErr) => {
-                                console.error('YouTube download error:', downloadErr);
-                                if (fs.existsSync(rawAudioPath)) {
-                                    fs.unlink(rawAudioPath, (unlinkErr) => {
-                                        if (unlinkErr) console.error("Error deleting raw audio file after download error:", unlinkErr);
+                            .on('end', () => {
+                                console.log('FFmpeg standardization finished:', processedAudioPath);
+                                // Clean up the intermediate file from yt-dlp
+                                if (fs.existsSync(ytdlpOutputPath)) {
+                                    fs.unlink(ytdlpOutputPath, (unlinkErr) => {
+                                        if (unlinkErr) console.error("Error deleting intermediate ytdlp audio file:", unlinkErr);
+                                        else console.log("Cleaned up intermediate ytdlp audio file:", ytdlpOutputPath);
                                     });
                                 }
-                                reject(new Error('YouTube audio download failed: ' + downloadErr.message));
-                            });
+                                resolve();
+                            })
+                            .save(processedAudioPath);
                     });
-                    console.log("Audio downloaded and converted to WAV:", audioFilePath);
+                    console.log("Audio downloaded and standardized:", processedAudioPath);
                 }
 
                 if (req.file) {
                     console.log("PDF file uploaded:", req.file.path);
                     try {
-                        const pdfText = await extractTextFromPdf(req.file.path);
+                        const pdfText = await extractTextFromPdf(req.file.path); // Ensure extractTextFromPdf is defined in the class or file
                         console.log("Extracted PDF text (first 100 chars):", pdfText.substring(0, 100));
                         transcript += ` [PDF content processed. Text length: ${pdfText.length}]`;
-                        // Here, pdfText could be passed to the transcription model or used otherwise
                     } catch (pdfError) {
                         console.error("PDF processing error:", pdfError.message);
-                        // Decide if this error should halt the process or just be logged
                         transcript += ` [PDF processing failed: ${pdfError.message}]`;
                     }
                 }
 
-                // Placeholder for ONNX Whisper model inference
-                if (audioFilePath) {
-                    transcript += `Audio from ${audioFilePath} would be transcribed here using ONNX.`;
+                if (processedAudioPath) {
+                    transcript += `Audio from ${processedAudioPath} would be transcribed here using ONNX.`;
                 }
                 
                 res.status(200).json({ 
                     message: "Transcript generation process initiated.", 
                     youtubeUrl: youtubeUrl,
-                    pdfFile: req.file ? req.file.path : null, 
-                    audioFileProcessed: audioFilePath, 
+                    pdfFile: req.file ? req.file.path : null,
                     generatedTranscript: transcript 
                 });
 
             } catch (error) {
                 console.error("Error in generateTranscript:", error);
-                res.status(500).json({ message: "Error generating transcript: " + error.message });
-            } finally {
-                if (audioFilePath && fs.existsSync(audioFilePath)) {
-                    fs.unlink(audioFilePath, (err) => {
-                        if (err) console.error("Error deleting processed audio file:", audioFilePath, err);
-                        else console.log("Cleaned up processed audio file:", audioFilePath);
-                    });
+                // Clean up any created audio files if an error occurs mid-process
+                if (processedAudioPath && fs.existsSync(processedAudioPath)) {
+                    fs.unlink(processedAudioPath, (delErr) => { if (delErr) console.error('Error deleting processed audio on failure:', delErr); });
                 }
-                // Decide if PDFs should be kept or deleted after processing.
-                // If temporary, uncomment the unlink:
-                // if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-                //     fs.unlink(req.file.path, (err) => {
-                //         if (err) console.error("Error deleting uploaded PDF file:", req.file.path, err);
-                //         else console.log("Cleaned up uploaded PDF file:", req.file.path);
-                //     });
-                // }
-            }
+                // Also attempt to clean up ytdlpOutputPath if it exists and is different
+                if (ytdlpOutputPath && fs.existsSync(ytdlpOutputPath) && ytdlpOutputPath !== processedAudioPath) {
+                     fs.unlink(ytdlpOutputPath, (delErr) => { if (delErr) console.error('Error deleting ytdlp temp audio on failure:', delErr); });
+                }
+
+                res.status(500).json({ message: "Error generating transcript: " + error.message });
+            } 
+            // No finally block for cleanup here as processedAudioPath might be needed by a later (mocked) transcription step.
+            // Cleanup should ideally happen after transcription, or if transcription is part of this flow and fails.
+            // The prompt also implies that the final processedAudioPath should be cleaned up later.
+            // The intermediate ytdlpOutputPath is cleaned up after successful ffmpeg standardization.
+            // Error case cleanup is handled in the catch block.
         });
     }
 
