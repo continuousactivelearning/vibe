@@ -185,7 +185,8 @@ describe('Item Controller Integration Tests', () => {
         .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
         .send(sectionPayload)
         .expect(201);
-      const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+      const sectionId =
+        sectionResponse.body.version.modules[0].sections[0].sectionId;
 
       // Add two items
       await request(app)
@@ -267,7 +268,8 @@ describe('Item Controller Integration Tests', () => {
         .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
         .send(sectionPayload)
         .expect(201);
-      const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
+      const sectionId =
+        sectionResponse.body.version.modules[0].sections[0].sectionId;
 
       // Add item
       const itemResponse = await request(app)
