@@ -35,7 +35,7 @@ describe('Course Version Controller Integration Tests', () => {
       Container.get<CourseRepository>('CourseRepo'),
     );
     Container.set('CourseVersionService', courseVersionService);
-    Container.set('SectionService', sectionService);
+    Container.set('sectionService', sectionService);
 
     // Create the Express app with the routing controllers configuration
     app = useExpressServer(App, coursesModuleOptions);
@@ -348,11 +348,10 @@ describe('Course Version Controller Integration Tests', () => {
           .send(sectionPayload)
           .expect(201);
 
-        const sectionId =
-          sectionResponse.body.version.modules[0].sections[0].sectionId;
+        const sectionId = sectionResponse.body.modules[0].sections[0].sectionId;
 
         const itemsGroupId =
-          sectionResponse.body.version.modules[0].sections[0].itemsGroupId;
+          sectionResponse.body.modules[0].sections[0].itemsGroupId;
 
         const itemsGroupResponse = await request(app)
           .post(
