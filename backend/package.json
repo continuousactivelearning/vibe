@@ -68,6 +68,7 @@
     "cookie-parser": "^1.4.7",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
     "firebase-admin": "^13.2.0",
     "graphql": "~16.10.0",
     "jsonwebtoken": "^9.0.2",
