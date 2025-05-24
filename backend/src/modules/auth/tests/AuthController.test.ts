@@ -8,8 +8,8 @@ import {MongoDatabase} from '../../../shared/database/providers/mongo/MongoDatab
 import {authModuleOptions, SignUpBody} from '../index';
 import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
 import {faker} from '@faker-js/faker';
-import {dbConfig} from 'config/db';
-
+import {dbConfig} from '../../../config/db';
+jest.setTimeout(30000); // Set a longer timeout for integration tests
 describe('Auth Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
