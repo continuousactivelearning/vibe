@@ -21,6 +21,9 @@ jobs:
         with:
           version: '10.8.1'
 
+      - name: Remove lockfile
+        run: rm pnpm-lock.yaml
+
       - name: Install dependencies
         run: pnpm install
 
