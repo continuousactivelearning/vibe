@@ -43,12 +43,13 @@ jobs:
           ATLAS_PROJECT_ID: ${{ secrets.ATLAS_PROJECT_ID }}
       
       - name: 'Create env file'
+        working-directory: backend
         run: |
-          touch backend/.env
-          echo DB_URL=${{ secrets.DB_URL }} >> backend/.env
-          echo FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099" >> backend/.env
-          echo FIREBASE_EMULATOR_HOST="127.0.0.1:4000" >> backend/.env
-          echo GCLOUD_PROJECT="demo-test" >> backend/.env
+          touch .env
+          echo DB_URL=${{ secrets.DB_URL }} >> .env
+          echo FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099" >> .env
+          echo FIREBASE_EMULATOR_HOST="127.0.0.1:4000" >> .env
+          echo GCLOUD_PROJECT="demo-test" >> .env
         env:
           DB_URL: ${{ secrets.DB_URL }}
       
