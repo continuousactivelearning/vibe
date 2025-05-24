@@ -67,4 +67,62 @@ export class EnrollmentController {
       responseData.progress,
     );
   }
+  @Authorized(['student'])
+  @Post(
+    '/:userId/enrollments/courses/:courseId/versions/:courseVersionId/unenroll',
+  )
+  @HttpCode(200)
+  @OpenAPI({
+    summary: 'Unenroll User from Course',
+    description: 'Unenrolls a user from a specific version of a course.',
+  })
+  @ResponseSchema(EnrollUserResponseData, {
+    description: 'User successfully unenrolled from the course',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    description: 'Enrollment could not be found or already removed',
+    statusCode: 404,
+  })
+  @Authorized(['student'])
+  @Post(
+    '/:userId/enrollments/courses/:courseId/versions/:courseVersionId/unenroll',
+  )
+  @HttpCode(200)
+  @OpenAPI({
+    summary: 'Unenroll User from Course',
+    description: 'Unenrolls a user from a specific version of a course.',
+  })
+  @ResponseSchema(EnrollUserResponseData, {
+    description: 'User successfully unenrolled from the course',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    description: 'Enrollment could not be found or already removed',
+    statusCode: 404,
+  })
+  async unenrollUser(
+    @Params() params: EnrollmentParams,
+  ): Promise<EnrollUserResponse> {
+    const {userId, courseId, courseVersionId} = params;
+
+    const responseData = await this.enrollmentService.unenrollUser(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+
+    return new EnrollUserResponse(
+      responseData.enrollment,
+      responseData.progress,
+    );
+  }
+
+  // ...existing code...
 }

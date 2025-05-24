@@ -21,7 +21,6 @@ import {
   ChangePasswordResponse,
   TokenVerificationResponse,
   AuthErrorResponse,
-  VerifySignUpProviderBody,
 } from '../classes/validators';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
@@ -72,6 +71,9 @@ export class AuthController {
   })
   async signup(@Body() body: SignUpBody) {
     const user = await this.authService.signup(body);
+    if (!user) {
+      throw new CreateError('Failed to create the user');
+    }
     return instanceToPlain(user);
   }
 

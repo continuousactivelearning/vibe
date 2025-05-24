@@ -10,7 +10,7 @@ must fulfill, regardless of the underlying authentication provider.
 
 > **changePassword**(`body`, `requestUser`): `Promise`\<\{ `message`: `string`; `success`: `boolean`; \}\>
 
-Defined in: [backend/src/modules/auth/interfaces/IAuthService.ts:59](https://github.com/continuousactivelearning/vibe/blob/9a2d9d7201b944582c5d0ed5f0f7a4de13abde0f/backend/src/modules/auth/interfaces/IAuthService.ts#L59)
+Defined in: [backend/src/modules/auth/interfaces/IAuthService.ts:59](https://github.com/continuousactivelearning/vibe/blob/2acbe3b478970855555eb5e714d2dc1713e5937b/backend/src/modules/auth/interfaces/IAuthService.ts#L59)
 
 Changes the password for an authenticated user.
 Validates that the new password meets requirements and updates

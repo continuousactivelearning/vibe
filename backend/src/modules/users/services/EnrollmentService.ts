@@ -86,7 +86,59 @@ export class EnrollmentService {
       await session.endSession();
     }
   }
+  async unenrollUser(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ) {
+    const client = await this.courseRepo.getDBClient();
+    const session = client.startSession();
+    const txOptions = {
+      readPreference: ReadPreference.primary,
+      readConcern: new ReadConcern('snapshot'),
+      writeConcern: new WriteConcern('majority'),
+    };
 
+    try {
+      await session.startTransaction(txOptions);
+
+      const enrollment = await this.enrollmentRepo.findEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+      if (!enrollment) {
+        throw new NotFoundError('Enrollment not found');
+      }
+
+      // Remove enrollment
+      await this.enrollmentRepo.deleteEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
+
+      // Remove progress
+      await this.enrollmentRepo.deleteProgress(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
+
+      await session.commitTransaction();
+      return {
+        enrollment: null,
+        progress: null,
+      };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
   /**
    * Initialize student progress tracking to the first item in the course.
    * Private helper method for the enrollment process.
