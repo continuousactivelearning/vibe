@@ -49,12 +49,9 @@ jobs:
         working-directory: backend
         run: |
           touch .env
-          echo DB_URL=${{ secrets.DB_URL }} >> .env
           echo FIREBASE_AUTH_EMULATOR_HOST="127.0.0.1:9099" >> .env
           echo FIREBASE_EMULATOR_HOST="127.0.0.1:4000" >> .env
           echo GCLOUD_PROJECT="demo-test" >> .env
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
       
       - name: Install Firebase CLI
         working-directory: backend
@@ -69,6 +66,8 @@ jobs:
       - name: Run Jest tests
         working-directory: backend
         run: pnpm test
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
 
       - name: Remove IP from MongoDB Atlas Access List
         if: always()
