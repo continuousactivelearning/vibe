@@ -9,7 +9,9 @@ import {useExpressServer} from 'routing-controllers';
 import {coursesModuleOptions} from 'modules/courses';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+
 jest.setTimeout(90000);
+
 describe('Section Controller Integration Tests', () => {
   const App = Express();
   let app;
@@ -89,9 +91,6 @@ describe('Section Controller Integration Tests', () => {
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
-
-        const sectionResponseBody = sectionResponse;
-
         expect(sectionResponse.body.version.modules[0].sections.length).toBe(1);
         expect(sectionResponse.body.version.modules[0].sections[0].name).toBe(
           sectionPayload.name,
@@ -100,7 +99,7 @@ describe('Section Controller Integration Tests', () => {
     });
   });
 
-  describe('SECTION DELETION', () => {
+  describe('ITEM DELETION', () => {
     describe('Success Scenario', () => {
       const coursePayload = {
         name: 'New Course',
@@ -191,7 +190,6 @@ describe('Section Controller Integration Tests', () => {
       });
     });
   });
-
   describe('SECTION MOVE', () => {
     describe('Success Scenario', () => {
       const coursePayload = {

@@ -1,4 +1,4 @@
-﻿import {Container} from 'typedi';
+import {Container} from 'typedi';
 import {ObjectId} from 'mongodb';
 // Import the actual repository and database classes
 import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';

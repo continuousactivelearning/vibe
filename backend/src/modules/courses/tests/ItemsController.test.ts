@@ -7,8 +7,6 @@ import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
 import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-
-jest.setTimeout(30000);
 import {dbConfig} from '../../../config/db';
 import {CourseVersionService, ItemService, SectionService} from '../services';
 
@@ -777,6 +775,7 @@ describe('Item Controller Integration Tests', () => {
         .mockResolvedValue({items: [{itemId: 'itemId', order: 'a'}]});
       jest.spyOn(itemRepo, 'updateItemsGroup').mockImplementation(() => {
         throw new Error('DB error');
+
       });
       await expect(
         itemService.moveItem('vId', 'mId', 'sId', 'itemId', {

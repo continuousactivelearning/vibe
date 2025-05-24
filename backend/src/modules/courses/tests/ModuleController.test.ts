@@ -40,7 +40,6 @@ describe('Module Controller Integration Tests', () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
-
   // Tests for creating a module
   describe('MODULE CREATION', () => {
     describe('Success Scenario', () => {

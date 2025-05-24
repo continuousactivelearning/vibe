@@ -180,7 +180,7 @@ export class SectionService {
       //Update Section Order
       section.order = newOrder;
       section.updatedAt = new Date();
-
+      
       //Sort Sections based on order
       module.sections.sort((a, b) => a.order.localeCompare(b.order));
 
