@@ -775,7 +775,6 @@ describe('Item Controller Integration Tests', () => {
         .mockResolvedValue({items: [{itemId: 'itemId', order: 'a'}]});
       jest.spyOn(itemRepo, 'updateItemsGroup').mockImplementation(() => {
         throw new Error('DB error');
-
       });
       await expect(
         itemService.moveItem('vId', 'mId', 'sId', 'itemId', {

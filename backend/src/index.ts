@@ -36,7 +36,7 @@ export const ServiceFactory = (
 
   service.use(Express.urlencoded({extended: true}));
   service.use(Express.json());
-  
+
   if (process.env.NODE_ENV === 'production') {
     service.use(rateLimiter);
   }
