@@ -7,6 +7,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: jest-test 
     steps:
       - name: Checkout merged PR code
         uses: actions/checkout@v4
