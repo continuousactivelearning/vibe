@@ -14,6 +14,10 @@ import {
   InternalServerError,
 } from 'routing-controllers';
 import {Inject, Service} from 'typedi';
+import {instanceToPlain} from 'class-transformer';
+import {ObjectId} from 'mongodb';
+import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ReadError} from 'shared/errors/errors';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {CourseVersionService} from '../services';
 import {
@@ -37,6 +41,7 @@ export class CourseVersionController {
   constructor(
     @Inject('CourseVersionService')
     private readonly courseVersionService: CourseVersionService,
+    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
   ) {}
 
   @Authorized(['admin', 'instructor'])
@@ -62,6 +67,35 @@ export class CourseVersionController {
     @Body() body: CreateCourseVersionBody,
   ): Promise<CourseVersion> {
     const {id} = params;
+    try {
+      //Fetch Course from DB
+      const course = await this.courseRepo.read(id);
+
+      //Create Version
+      let version = new CourseVersion(body);
+      version.courseId = new ObjectId(id);
+      version = (await this.courseRepo.createVersion(version)) as CourseVersion;
+
+      //Add Version to Course
+      course.versions.push(version._id);
+      course.updatedAt = new Date();
+
+      //Update Course
+      const updatedCourse = await this.courseRepo.update(id, course);
+
+      return {
+        course: instanceToPlain(updatedCourse),
+        version: instanceToPlain(version),
+      } as any;
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw new HttpError(404, error.message);
+      }
+      if (error instanceof ReadError) {
+        throw new HttpError(500, error.message);
+      }
+      throw new HttpError(500, error.message);
+    }
     const createdCourseVersion =
       await this.courseVersionService.createCourseVersion(id, body);
     return createdCourseVersion;
