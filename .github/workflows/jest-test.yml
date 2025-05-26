@@ -66,7 +66,7 @@ jobs:
           
       - name: Run Jest tests
         working-directory: backend
-        run: pnpm test
+        run: pnpm test:ci
         env:
           DB_URL: ${{ secrets.DB_URL }}
 
