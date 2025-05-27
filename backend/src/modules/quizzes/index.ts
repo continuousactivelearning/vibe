@@ -1,5 +1,5 @@
 import {useContainer} from 'class-validator';
-import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
+import {MongoDatabase} from '../../shared/database/providers/mongo/MongoDatabase';
 import Container from 'typedi';
 import {dbConfig} from '../../config/db';
 import {RoutingControllersOptions} from 'routing-controllers';

@@ -1,8 +1,11 @@
 import 'reflect-metadata';
 import {instanceToPlain} from 'class-transformer';
-import {Course} from 'modules/courses/classes/transformers/Course';
-import {CourseVersion} from 'modules/courses/classes/transformers/CourseVersion';
-import {Item, ItemsGroup} from 'modules/courses/classes/transformers/Item';
+import {Course} from '../../../../../modules/courses/classes/transformers/Course';
+import {CourseVersion} from '../../../../../modules/courses/classes/transformers/CourseVersion';
+import {
+  Item,
+  ItemsGroup,
+} from '../../../../../modules/courses/classes/transformers/Item';
 import {
   ClientSession,
   Collection,
@@ -11,13 +14,13 @@ import {
   ObjectId,
   UpdateResult,
 } from 'mongodb';
-import {ICourseRepository} from 'shared/database/interfaces/ICourseRepository';
+import {ICourseRepository} from '../../../interfaces/ICourseRepository';
 import {
   CreateError,
   DeleteError,
   ReadError,
   UpdateError,
-} from 'shared/errors/errors';
+} from '../../../../errors/errors';
 import {
   ICourse,
   IModule,
@@ -25,11 +28,11 @@ import {
   IProgress,
   ICourseVersion,
   ISection,
-} from 'shared/interfaces/Models';
+} from '../../../../interfaces/Models';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {NotFoundError} from 'routing-controllers';
-import {Module, Section} from 'modules';
+import {Module, Section} from '../../../../../modules';
 
 @Service()
 export class CourseRepository implements ICourseRepository {

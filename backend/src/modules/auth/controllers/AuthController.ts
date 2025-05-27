@@ -24,9 +24,9 @@ import {
   VerifySignUpProviderBody,
 } from '../classes/validators';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
-import {AuthRateLimiter} from 'shared/middleware/rateLimiter';
-import {CreateError} from 'shared/errors/errors';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
+import {AuthRateLimiter} from '../../../shared/middleware/rateLimiter';
+import {CreateError} from '../../../shared/errors/errors';
 
 @OpenAPI({
   tags: ['Authentication'],

@@ -3,16 +3,16 @@ if (process.env.NODE_ENV === 'production') {
 }
 import Express from 'express';
 import Sentry from '@sentry/node';
-import {loggingHandler} from 'shared/middleware/loggingHandler';
+import {loggingHandler} from './shared/middleware/loggingHandler';
 import {
   RoutingControllersOptions,
   useContainer,
   useExpressServer,
 } from 'routing-controllers';
 import Container from 'typedi';
-import {IDatabase} from 'shared/database';
-import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
-import {dbConfig} from 'config/db';
+import {IDatabase} from './shared/database';
+import {MongoDatabase} from './shared/database/providers/MongoDatabaseProvider';
+import {dbConfig} from './config/db';
 import * as firebase from 'firebase-admin';
 import {app} from 'firebase-admin';
 import {apiReference} from '@scalar/express-api-reference';
@@ -22,7 +22,7 @@ import {OpenApiSpecService} from './modules/docs';
 import {authModuleOptions} from './modules/auth';
 import {coursesModuleOptions} from './modules/courses';
 import {usersModuleOptions} from './modules/users';
-import {rateLimiter} from 'shared/middleware/rateLimiter';
+import {rateLimiter} from './shared/middleware/rateLimiter';
 
 export const application = Express();
 

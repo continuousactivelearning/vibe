@@ -7,7 +7,7 @@ import {
   MaxLength,
   ValidateIf,
 } from 'class-validator';
-import {IModule, ISection} from 'shared/interfaces/Models';
+import {IModule, ISection} from '../../../../shared/interfaces/Models';
 import {JSONSchema} from 'class-validator-jsonschema';
 
 class CreateModuleBody implements Partial<IModule> {

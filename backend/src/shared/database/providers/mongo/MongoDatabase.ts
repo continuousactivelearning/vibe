@@ -5,7 +5,7 @@ import {
   MongoClient,
   MongoClientOptions,
 } from 'mongodb';
-import {IDatabase} from 'shared/database/interfaces/IDatabase';
+import {IDatabase} from '../../interfaces/IDatabase';
 import {Service} from 'typedi';
 
 /**

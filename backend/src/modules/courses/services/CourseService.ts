@@ -1,4 +1,4 @@
-import {ICourseRepository} from 'shared/database';
+import {ICourseRepository} from '../../../shared/database';
 import {Inject, Service} from 'typedi';
 import {Course} from '../classes/transformers';
 import {InternalServerError, NotFoundError} from 'routing-controllers';

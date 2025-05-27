@@ -15,7 +15,7 @@ import {
   IQuestionParameter,
   IQuestion,
   QuestionType,
-} from 'shared/interfaces/quiz';
+} from '../../../../shared/interfaces/quiz';
 import {CreateQuestionBody} from '../validators/QuestionValidator';
 
 abstract class BaseQuestion implements IQuestion {

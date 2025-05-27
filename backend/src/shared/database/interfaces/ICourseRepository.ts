@@ -2,14 +2,14 @@ import {
   CourseVersion,
   ItemsGroup,
   Module,
-} from 'modules/courses/classes/transformers/index';
+} from '../../../modules/courses/classes/transformers/index';
 import {
   ICourse,
   ICourseVersion,
   IEnrollment,
   IModule,
   IProgress,
-} from 'shared/interfaces/Models';
+} from '../../interfaces/Models';
 import {
   ClientSession,
   DeleteResult,

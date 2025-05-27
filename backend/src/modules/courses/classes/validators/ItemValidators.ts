@@ -20,7 +20,7 @@ import {
   IQuizDetails,
   ItemType,
   IVideoDetails,
-} from 'shared/interfaces/Models';
+} from '../../../../shared/interfaces/Models';
 import {JSONSchema} from 'class-validator-jsonschema';
 
 class VideoDetailsPayloadValidator implements IVideoDetails {

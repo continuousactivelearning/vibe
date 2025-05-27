@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import {Service, Inject} from 'typedi';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {CourseRepository} from '../../../shared/database/providers/mongo/repositories/CourseRepository';
 import {
   CreateModuleBody,
   UpdateModuleBody,

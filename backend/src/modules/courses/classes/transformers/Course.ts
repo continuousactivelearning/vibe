@@ -5,9 +5,9 @@ import {
   StringArrayToObjectIdArray,
   ObjectIdToString,
   StringToObjectId,
-} from 'shared/constants/transformerConstants';
-import {ICourse} from 'shared/interfaces/Models';
-import {ID} from 'shared/types';
+} from '../../../../shared/constants/transformerConstants';
+import {ICourse} from '../../../../shared/interfaces/Models';
+import {ID} from '../../../../shared/types';
 import {CreateCourseBody} from '../validators';
 import {JSONSchema} from 'class-validator-jsonschema';
 

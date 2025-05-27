@@ -18,11 +18,11 @@ import {IAuthService} from './interfaces/IAuthService';
 import {FirebaseAuthService} from './services/FirebaseAuthService';
 
 import {dbConfig} from '../../config/db';
-import {IDatabase, IUserRepository} from 'shared/database';
+import {IDatabase, IUserRepository} from '../../shared/database';
 import {
   MongoDatabase,
   UserRepository,
-} from 'shared/database/providers/MongoDatabaseProvider';
+} from '../../shared/database/providers/MongoDatabaseProvider';
 
 useContainer(Container);
 

@@ -1,7 +1,7 @@
 import {Service, Inject} from 'typedi';
 import {InternalServerError, NotFoundError} from 'routing-controllers';
-import {IItemRepository} from 'shared/database';
-import {ICourseRepository} from 'shared/database/';
+import {IItemRepository} from '../../../shared/database';
+import {ICourseRepository} from '../../../shared/database/';
 import {Item} from '../classes/transformers/Item';
 import {
   CreateItemBody,

@@ -1,22 +1,22 @@
 import {Inject, Service} from 'typedi';
 import {Progress} from '../classes/transformers';
-import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
+import {ProgressRepository} from '../../../shared/database/providers/mongo/repositories/ProgressRepository';
 import {
   BadRequestError,
   InternalServerError,
   NotFoundError,
 } from 'routing-controllers';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
+import {CourseRepository} from '../../../shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from '../../../shared/database/providers/mongo/repositories/ItemRepository';
+import {UserRepository} from '../../../shared/database/providers/MongoDatabaseProvider';
 import {
   IBlogDetails,
   ICourseVersion,
   IProgress,
   IVideoDetails,
   IWatchTime,
-} from 'shared/interfaces/Models';
-import {Item} from 'modules/courses';
+} from '../../../shared/interfaces/Models';
+import {Item} from '../../../modules/courses';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 
 /**

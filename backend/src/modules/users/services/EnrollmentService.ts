@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import {NotFoundError} from 'routing-controllers';
 import {Inject, Service} from 'typedi';
-import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+import {EnrollmentRepository} from '../../../shared/database/providers/mongo/repositories/EnrollmentRepository';
+import {CourseRepository} from '../../../shared/database/providers/mongo/repositories/CourseRepository';
+import {UserRepository} from '../../../shared/database/providers/mongo/repositories/UserRepository';
+import {ItemRepository} from '../../../shared/database/providers/mongo/repositories/ItemRepository';
 import {Enrollment} from '../classes/transformers/Enrollment';
 import {ClientSession, ObjectId} from 'mongodb';
-import {ICourseVersion} from 'shared/interfaces/Models';
+import {ICourseVersion} from '../../../shared/interfaces/Models';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 
 @Service()

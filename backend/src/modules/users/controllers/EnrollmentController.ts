@@ -23,7 +23,7 @@ import {
 
 import {EnrollmentService} from '../services';
 import {EnrollUserResponse} from '../classes/transformers';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 /**
  * Controller for managing student enrollments in courses.
  *

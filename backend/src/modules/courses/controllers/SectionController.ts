@@ -11,9 +11,13 @@ import {
   Post,
   Put,
 } from 'routing-controllers';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {DeleteError, ReadError, UpdateError} from 'shared/errors/errors';
+import {CourseRepository} from '../../../shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from '../../../shared/database/providers/mongo/repositories/ItemRepository';
+import {
+  DeleteError,
+  ReadError,
+  UpdateError,
+} from '../../../shared/errors/errors';
 import {Inject, Service} from 'typedi';
 import {ItemsGroup} from '../classes/transformers/Item';
 import {Section} from '../classes/transformers/Section';
@@ -31,7 +35,7 @@ import {
 } from '../classes/validators/SectionValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 import {SectionService} from '../services/SectionService';
 import {CourseVersion} from '../classes/transformers';
 

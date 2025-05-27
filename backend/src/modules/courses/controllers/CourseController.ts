@@ -28,7 +28,7 @@ import {
 } from 'routing-controllers-openapi';
 import {validationMetadatasToSchemas} from 'class-validator-jsonschema';
 import {coursesModuleOptions} from '..';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 
 @OpenAPI({
   tags: ['Courses'],

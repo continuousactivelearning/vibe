@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
-import {IEnrollment, IProgress} from 'shared/interfaces/Models';
-import {CreateError, ReadError} from 'shared/errors/errors';
+import {IEnrollment, IProgress} from '../../../../interfaces/Models';
+import {CreateError, ReadError} from '../../../../errors/errors';
 import {NotFoundError} from 'routing-controllers';
 
 @Service()

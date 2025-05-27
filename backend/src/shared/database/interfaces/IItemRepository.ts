@@ -1,11 +1,11 @@
-import {ItemsGroup} from 'modules/courses/classes/transformers/index';
+import {ItemsGroup} from '../../../modules/courses/classes/transformers/index';
 import {
   IBaseItem,
   IVideoDetails,
   IQuizDetails,
   IBlogDetails,
   ICourseVersion,
-} from 'shared/interfaces/Models';
+} from '../../interfaces/Models';
 import {ObjectId, ClientSession} from 'mongodb';
 
 export interface IItemRepository {

@@ -10,7 +10,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
-import {ID} from 'shared/types';
+import {ID} from '../../../../shared/types';
 import {Type} from 'class-transformer';
 import {ProgressDataResponse} from './ProgressValidators';
 

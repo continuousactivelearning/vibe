@@ -6,14 +6,14 @@ import {
   UpdateResult,
   WriteConcern,
 } from 'mongodb';
-import {ICourseRepository} from 'shared/database';
-import {IItemRepository} from 'shared/database/';
+import {ICourseRepository} from '../../../shared/database';
+import {IItemRepository} from '../../../shared/database/';
 import {Inject, Service} from 'typedi';
 import {CourseVersion, ItemsGroup, Section} from '../classes/transformers';
 import {CreateSectionBody, MoveSectionBody} from '../classes/validators';
 import {NotFoundError} from 'routing-controllers';
-import {ReadError, UpdateError} from 'shared/errors/errors';
-import {ICourseVersion} from 'shared/interfaces/Models';
+import {ReadError, UpdateError} from '../../../shared/errors/errors';
+import {ICourseVersion} from '../../../shared/interfaces/Models';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 @Service()
 export class SectionService {
@@ -231,7 +231,7 @@ export class SectionService {
 
       const modules = readCourseVersion.modules;
       if (!modules) {
-        throw new NotFoundError('Modules not found');
+        throw new NotFoundError('../../../modules not found');
       }
 
       const deleteResult = await this.courseRepo.deleteSection(
