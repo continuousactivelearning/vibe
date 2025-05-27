@@ -1,0 +1,20 @@
+﻿version: '3.8'
+
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: Dockerfile-auth
+    env_file:
+      - .env
+    ports:
+      - '8001:3000'
+
+  user:
+    build:
+      context: .
+      dockerfile: Dockerfile-user
+    env_file:
+      - .env
+    ports:
+      - '8002:3000'

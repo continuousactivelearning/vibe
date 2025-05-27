@@ -1,0 +1,42 @@
+﻿FROM node:23-alpine AS builder
+
+# Install git + pnpm via Corepack + optional bash
+RUN apk add --no-cache git bash \
+  && corepack enable \
+  && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy package files and install dependencies
+COPY package.json pnpm-lock.yaml ./
+COPY tsconfig.json ./
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Build TypeScript
+RUN pnpm run build
+
+# ---- Production image ----
+FROM node:23-alpine
+
+WORKDIR /app
+
+# Install pnpm and bash for runtime if needed
+RUN apk add --no-cache bash \
+  && corepack enable \
+  && corepack prepare pnpm@latest --activate
+
+# Copy only production dependencies and compiled code
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --prod
+
+COPY --from=builder /app/dist ./dist
+
+# Set environment and port
+ENV NODE_ENV=production
+EXPOSE 3000
+
+# Run the compiled JS
+CMD ["node", "dist/index.js"]
