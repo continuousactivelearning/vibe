@@ -134,6 +134,7 @@ export class HttpErrorHandler implements ExpressErrorMiddlewareInterface {
   error(error: any, request: Request, response: Response): void {
     logger.error({
       message: error.message,
+      errors: error.errors,
       stack: error.stack,
       status: error.httpCode || 500,
     });
