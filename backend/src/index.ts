@@ -1,6 +1,4 @@
-if (process.env.NODE_ENV === 'production') {
-  import('./instrument');
-}
+import './instrument';
 import Express from 'express';
 import Sentry from '@sentry/node';
 import {loggingHandler} from './shared/middleware/loggingHandler';
@@ -37,7 +35,6 @@ export const ServiceFactory = (
 
   service.use(Express.urlencoded({extended: true}));
   service.use(Express.json());
-
   if (process.env.NODE_ENV === 'production') {
     service.use(rateLimiter);
   }
@@ -91,10 +88,6 @@ export const ServiceFactory = (
   console.log('--------------------------------------------------------');
   console.log('Routes Handler');
   console.log('--------------------------------------------------------');
-  //After Adding Routes
-  if (process.env.NODE_ENV === 'production') {
-    Sentry.setupExpressErrorHandler(service);
-  }
 
   console.log('--------------------------------------------------------');
   console.log('Starting Server');
@@ -103,7 +96,9 @@ export const ServiceFactory = (
   // Create combined routing controllers options
 
   useExpressServer(service, options);
-
+  if (process.env.NODE_ENV === 'production') {
+    Sentry.setupExpressErrorHandler(service);
+  }
   return service;
 };
 
