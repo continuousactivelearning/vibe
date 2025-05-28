@@ -25,7 +25,7 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6
       '@sentry/cli':
-        specifier: ^2.42.2
+        specifier: ^2.43.0
         version: 2.43.0
       '@sentry/node':
         specifier: ^9.4.0

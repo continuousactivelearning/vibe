@@ -22,7 +22,7 @@ const logger = createLogger({
     // - Write all logs with importance level of `info` or higher to `combined.log`
     //   (i.e., fatal, error, warn, and info, but not trace)
     //
-    new transports.File({filename: 'combined.log'}),
+    //new transports.File({filename: 'combined.log'}), "uncomment this line to log all messages to combined.log",
   ],
 });
 

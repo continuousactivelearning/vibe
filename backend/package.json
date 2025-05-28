@@ -12,7 +12,7 @@
     "dev": "pnpx ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && pnpm sentry:sourcemaps",
     "start": "node dist/index.js",
-    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org aditya-bmv --project node-express ./build && sentry-cli sourcemaps upload --org aditya-bmv --project node-express ./build",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org dled --project node-express ./dist && sentry-cli sourcemaps upload --org dled --project node-express ./dist",
     "docs": "typedoc",
     "lint": "pnpx gts lint",
     "clean": "pnpx gts clean",
@@ -55,7 +55,7 @@
   },
   "dependencies": {
     "@scalar/express-api-reference": "^0.7.6",
-    "@sentry/cli": "^2.42.2",
+    "@sentry/cli": "^2.43.0",
     "@sentry/node": "^9.4.0",
     "@sentry/profiling-node": "^9.4.0",
     "bcrypt": "^5.1.1",
