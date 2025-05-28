@@ -10,11 +10,29 @@ services:
     ports:
       - '8001:3000'
 
-  user:
+  courses:
     build:
       context: .
-      dockerfile: Dockerfile-user
+      dockerfile: Dockerfile-courses
     env_file:
       - .env
     ports:
       - '8002:3000'
+
+  quizzes:
+    build:
+      context: .
+      dockerfile: Dockerfile-quizzes
+    env_file:
+      - .env
+    ports:
+      - '8003:3000'
+
+  users:
+    build:
+      context: .
+      dockerfile: Dockerfile-users
+    env_file:
+      - .env
+    ports:
+      - '8004:3000'

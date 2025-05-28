@@ -33,7 +33,7 @@ RUN pnpm install
 
 # Set environment and port
 ENV NODE_ENV=production
-ENV MODULE=auth
+ENV MODULE=courses
 ENV PORT=3000
 EXPOSE 3000
 
