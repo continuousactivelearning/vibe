@@ -46,7 +46,7 @@ jobs:
       - name: Build all images with Docker Compose
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          docker compose up --build
+          docker compose build
         working-directory: backend
         env:
           DB_URL: ${{ secrets.DB_URL }}
