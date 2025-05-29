@@ -43,14 +43,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Create Sentry release
-        run: |
-          sentry-cli login --auth-token ${{ secrets.SENTRY_AUTH_TOKEN }}
-
       - name: Build all images with Docker Compose
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          docker compose up --build
+          docker compose up --build \
+          --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
         working-directory: backend
         env:
           DB_URL: ${{ secrets.DB_URL }}
