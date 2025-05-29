@@ -8,8 +8,6 @@
       - SENTRY_DSN=${SENTRY_DSN_AUTH}
       - SENTRY_ORG=${SENTRY_ORG}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-    env_file:
-      - .env
     ports:
       - '8001:3000'
 
@@ -22,8 +20,6 @@
       - SENTRY_DSN=${SENTRY_DSN_COURSES}
       - SENTRY_ORG=${SENTRY_ORG}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-    env_file:
-      - .env
     ports:
       - '8002:3000'
 
@@ -36,8 +32,6 @@
       - SENTRY_DSN=${SENTRY_DSN_QUIZZES}
       - SENTRY_ORG=${SENTRY_ORG}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-    env_file:
-      - .env
     ports:
       - '8003:3000'
 
@@ -50,7 +44,5 @@
       - SENTRY_DSN=${SENTRY_DSN_USERS}
       - SENTRY_ORG=${SENTRY_ORG}
       - SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
-    env_file:
-      - .env
     ports:
       - '8004:3000'
