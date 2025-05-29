@@ -14,7 +14,6 @@ COPY . .
 RUN pnpm install
 
 # Build TypeScript
-ARG SENTRY_AUTH_TOKEN=
 RUN pnpm tsc
 RUN pnpm sentry-cli login --auth-token ${SENTRY_AUTH_TOKEN}
 RUN pnpm sentry-cli sourcemaps inject --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist && pnpm sentry-cli sourcemaps upload --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist
