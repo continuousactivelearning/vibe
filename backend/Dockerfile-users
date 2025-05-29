@@ -15,8 +15,8 @@ RUN pnpm install
 
 # Build TypeScript
 RUN pnpm tsc
-RUN sentry-cli login --auth-token ${SENTRY_AUTH_TOKEN}
-RUN sentry-cli sourcemaps inject --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist && sentry-cli sourcemaps upload --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist
+RUN pnpm sentry-cli login --auth-token ${SENTRY_AUTH_TOKEN}
+RUN pnpm sentry-cli sourcemaps inject --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist && pnpm sentry-cli sourcemaps upload --org ${SENTRY_ORG} --project ${SENTRY_PROJECT} ./dist
 
 # ---- Production image ----
 FROM node:22-alpine
