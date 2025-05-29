@@ -46,14 +46,7 @@ jobs:
       - name: Build all images with Docker Compose
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          docker compose build --build-arg VERSION=$VERSION \
-            --build-arg DB_URL=${{ secrets.DB_URL }} \
-            --build-arg SENTRY_DSN_AUTH=${{ secrets.SENTRY_DSN_AUTH }} \
-            --build-arg SENTRY_DSN_COURSES=${{ secrets.SENTRY_DSN_COURSES }} \
-            --build-arg SENTRY_DSN_QUIZZES=${{ secrets.SENTRY_DSN_QUIZZES }} \
-            --build-arg SENTRY_DSN_USERS=${{ secrets.SENTRY_DSN_USERS }} \
-            --build-arg SENTRY_ORG=${{ secrets.SENTRY_ORG }} \
-            --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          docker compose up --build
         working-directory: backend
         env:
           DB_URL: ${{ secrets.DB_URL }}
