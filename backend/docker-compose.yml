@@ -3,11 +3,11 @@
     build:
       context: .
       dockerfile: Dockerfile-auth
+      args:
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     environment:
       DB_URL: ${DB_URL}
       SENTRY_DSN: ${SENTRY_DSN_AUTH}
-    args:
-      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     ports:
       - '8001:3000'
 
@@ -15,11 +15,11 @@
     build:
       context: .
       dockerfile: Dockerfile-courses
+      args:
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     environment:
       DB_URL: ${DB_URL}
       SENTRY_DSN: ${SENTRY_DSN_COURSES}
-    args:
-      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     ports:
       - '8002:3000'
 
@@ -27,11 +27,11 @@
     build:
       context: .
       dockerfile: Dockerfile-quizzes
+      args:
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     environment:
       DB_URL: ${DB_URL}
       SENTRY_DSN: ${SENTRY_DSN_QUIZZES}
-    args:
-      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     ports:
       - '8003:3000'
 
@@ -39,10 +39,10 @@
     build:
       context: .
       dockerfile: Dockerfile-users
+      args:
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     environment:
       DB_URL: ${DB_URL}
       SENTRY_DSN: ${SENTRY_DSN_USERS}
-    args:
-      SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
     ports:
       - '8004:3000'
