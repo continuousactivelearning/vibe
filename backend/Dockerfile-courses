@@ -34,6 +34,7 @@ RUN pnpm install
 # Set environment and port
 ENV NODE_ENV=production
 ENV MODULE=courses
+ENV SENTRY_PROJECT=backend-courses
 ENV PORT=3000
 EXPOSE 3000
 
