@@ -46,7 +46,8 @@ jobs:
       - name: Build all images with Docker Compose
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          docker-compose build
+          docker compose build --build-arg VERSION=$VERSION
+        working-directory: backend
         env:
           DB_URL: ${{ secrets.DB_URL }}
           SENTRY_DSN_AUTH: ${{ secrets.SENTRY_DSN_AUTH }}
@@ -65,6 +66,7 @@ jobs:
             docker tag yourdockerhub/$SERVICE:latest docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
             docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
           done
+        working-directory: backend
 
   deploy_staging:
     name: Deploy All Modules to Staging
