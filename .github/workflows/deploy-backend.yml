@@ -47,6 +47,14 @@ jobs:
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
           docker-compose build
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          SENTRY_DSN_AUTH: ${{ secrets.SENTRY_DSN_AUTH }}
+          SENTRY_DSN_COURSES: ${{ secrets.SENTRY_DSN_COURSES }}
+          SENTRY_DSN_QUIZZES: ${{ secrets.SENTRY_DSN_QUIZZES }}
+          SENTRY_DSN_USERS: ${{ secrets.SENTRY_DSN_USERS }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Tag and Push images
         run: |
