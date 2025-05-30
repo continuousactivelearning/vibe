@@ -17,9 +17,8 @@ ShopEase is an e-commerce platform:
     
 -   Management asks: Which types, modules, and libraries are making our bundle so big? How can we analyze and optimize it?
     
-   <p align="center">
-  <img src="https://i.postimg.cc/tgjMD658/reacct10.png" alt="Sample Image" width="400" />
-</p>
+    ![Sample Image](https://i.postimg.cc/tgjMD658/reacct10.png)
+  
 
 **The challenge:**  
 How do you analyze and understand the impact of TypeScript code, types, and third-party libraries on your app’s bundle size—and what practical steps can you take to optimize it?

@@ -14,9 +14,9 @@ StreamVision is a video analytics dashboard:
     
 -   The team wants to optimize performance, especially as the dashboard grows more complex and data-intensive.
     
-   <p align="center">
+   
   <img src="https://i.postimg.cc/kGzjSRG1/react11.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you prevent unnecessary recalculations and re-renders in React, ensuring the UI remains fast—even as state and props change frequently?

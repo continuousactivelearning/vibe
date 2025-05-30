@@ -14,9 +14,9 @@ TaskFlow is a project management app:
     
 -   The team wants a state management solution that is  **type-safe**, easy to test, and scales from small to large features.
 
-  <p align="center">
+  
   <img src="https://i.postimg.cc/nLjNCTCb/react6.png" alt="Sample Image" width="400" />
-</p>
+
 
 
 **The challenge:**  

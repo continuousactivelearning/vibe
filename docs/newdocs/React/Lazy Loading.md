@@ -14,9 +14,9 @@ EduStream is a large online education platform:
     
 -   The team wants to load only the code needed for the current page or feature, and fetch the rest on demand.
  
-   <p align="center">
+   
   <img src="  https://i.postimg.cc/2y6Jhfw6/Chat-GPT-Image-May-31-2025-12-43-02-AM.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you split your React app into smaller bundles and load them only when needed—improving initial load times, reducing bandwidth, and keeping the user experience smooth?

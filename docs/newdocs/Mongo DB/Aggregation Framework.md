@@ -12,9 +12,9 @@ MovieFlix, a global movie streaming platform, wants to:
     
 -   Generate business dashboards and user recommendations, all from millions of viewing records.
     
-<p align="center">
-  <img src="https://i.postimg.cc/Y9DY4NVg/react.png" alt="Sample Image" width="400" />
-</p>
+   ![Sample Image](https://i.postimg.cc/Y9DY4NVg/react.png)
+  
+
 
 **The challenge:**  
 How can MovieFlix efficiently analyze, summarize, and transform huge volumes of streaming data—without exporting it to another system or writing complex, slow code?
@@ -26,9 +26,9 @@ How can MovieFlix efficiently analyze, summarize, and transform huge volumes of 
 By the end of this tutorial, you will:
 
 -   Understand what the MongoDB Aggregation Framework is and why it’s powerful.
-    
+ ```js   
 -   Build multi-stage aggregation pipelines using  `$match`,  `$group`,  `$project`, and more.
-    
+ ```   
 -   Use pipeline stages to filter, group, reshape, and analyze data.
     
 -   Apply best practices for performance and maintainability.
@@ -41,7 +41,7 @@ By the end of this tutorial, you will:
 ## **Analogy: The Data Conveyor Belt**
 
 Imagine MovieFlix’s analytics as a high-tech conveyor belt in a mailroom:
-
+```js
 -   Each letter (document) passes through a series of stations (pipeline stages).
     
 -   Some stations filter out junk mail (`$match`).
@@ -49,9 +49,9 @@ Imagine MovieFlix’s analytics as a high-tech conveyor belt in a mailroom:
 -   Others sort mail into bins by city or sender (`$group`).
     
 -   Some reformat addresses or add labels (`$project`).
-    
+ ```     
 -   At the end, you have exactly the summary or report you need.
-    
+   
 
 **The aggregation pipeline is this conveyor belt—each stage transforms or filters the data, step by step, until you get your answer.**
 
@@ -76,6 +76,7 @@ db.collection.aggregate([
   { $project: { ... } },
   // ...more stages
 ])
+
 ```
 -   Pipelines can have any number of stages, in any order
     
@@ -92,9 +93,9 @@ db.collection.aggregate([
     
 
 **Example:**
-
+```js
 { $match: { country: "USA", "rating": { $gte: 8 } } }
-
+```
 -   Filters for US movies with rating 8 or higher.
     
 
@@ -144,7 +145,7 @@ db.collection.aggregate([
 ----------
 
 **4. Other Useful Stages**
-
+```js
 -   `$sort`: Orders documents (e.g., by totalViews descending).
     
 -   `$limit`: Restricts the number of output documents.
@@ -152,7 +153,7 @@ db.collection.aggregate([
 -   `$unwind`: Deconstructs arrays into separate documents.
     
 -   `$addFields`: Adds computed fields.
-    
+ ```   
 
 ----------
 
@@ -184,7 +185,7 @@ db.watchHistory.aggregate([
 ])
  ```
 **Explanation:**
-
+```js
 -   `$match`: Filters for 2024.
     
 -   `$group`: Sums up views per genre.
@@ -192,14 +193,14 @@ db.watchHistory.aggregate([
 -   `$sort`  and  `$limit`: Gets top 3 genres.
     
 -   `$project`: Formats output for reporting.
-    
+ ```   
 
 ----------
 
 **D. Best Practices for Aggregation Pipelines**
-
+```js
 -   **Place  `$match`  early**  to reduce data volume for later stages.
-    
+  ```  
 -   **Use indexes**  on fields used in  `$match`  for performance.
     
 -   **Keep documents small**—avoid unnecessary fields with  `$project`.

@@ -14,9 +14,8 @@ FastBite is building a scalable backend for managing restaurant menus and custom
     
 -   Orders and menu items must be deleted or archived when restaurants close or dishes are discontinued.
     
-<p align="center">
-  <img src="https://i.postimg.cc/d0vxnv06/react2.png" alt="Sample Image" width="400" />
-</p> 
+   ![Sample Image](https://i.postimg.cc/d0vxnv06/react2.png)
+  
 
 **The challenge:**  
 How do you ensure the system can efficiently create, read, update, and delete menu and order data, while maintaining data integrity and performance as the business grows?

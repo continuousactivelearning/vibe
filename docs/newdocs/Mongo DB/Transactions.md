@@ -21,9 +21,9 @@ FinTrust is a digital wallet platform where users can:
     
 -   Regulatory compliance (banking, fintech) demands that transaction records are always correct—even if the server crashes or the network fails.
 
-<p align="center">
-  <img src=" https://i.postimg.cc/5tC8HFJk/react3.png" alt="Sample Image" width="400" />
-</p>
+    ![Sample Image](https://i.postimg.cc/5tC8HFJk/react3.png)
+  
+
 
 **The challenge:**  
 How can FinTrust guarantee that every transfer, payment, or refund is always complete, correct, and never leaves the system in a broken state, even when updating multiple documents or collections?

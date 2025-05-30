@@ -16,9 +16,9 @@ DesignHub is  a Figma-like platform  where:
 -   Performance  is critical—only components  using changed  state should  re-render.
     
 -   Teams  want to use middleware  (devtools, persistence, logging) on  specific state  slices.
-   <p align="center">
+   
   <img src="https://i.postimg.cc/0jRMJ8xG/react9.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you  architect a global  state system  that is  **modular, type-safe, and scalable**—so each feature  team can own  their slice, and  the app remains  fast and maintainable?

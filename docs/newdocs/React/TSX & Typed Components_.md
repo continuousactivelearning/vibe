@@ -15,9 +15,9 @@ You’re building a financial portfolio dashboard:
     
 -   The team wants to avoid runtime bugs from missing or mistyped props, and ensure state is always managed correctly.
     
-  <p align="center">
+  
   <img src="https://i.postimg.cc/BnMKw9cs/react8.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you ensure every React component—functional or class—has strictly typed props and state, so the UI is robust, maintainable, and error-free?

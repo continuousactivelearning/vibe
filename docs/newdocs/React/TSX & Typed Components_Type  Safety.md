@@ -14,9 +14,9 @@ A financial  institution is  building a React  dashboard to  handle high-stakes 
     
 -   A  single type error  could lead to  financial discrepancies  or regulatory  violations.
     
-   <p align="center">
+   
   <img src="https://i.postimg.cc/5y1rKVpb/react7.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you  enforce  **type safety  at every level**—props, state, events, and  API responses—while maintaining  React’s flexibility  and developer  productivity?

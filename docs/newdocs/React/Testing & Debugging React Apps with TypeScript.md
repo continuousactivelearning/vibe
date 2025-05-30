@@ -13,9 +13,9 @@ NewsFleet is a real-time newsroom dashboard:
 -   Features are built by multiple teams—regressions and accidental breakage are a real risk.
     
 -   Fast iteration is key, but every deploy must be safe and bug-free.
-   <p align="center">
+  
   <img src="https://i.postimg.cc/rwShdmkj/react12.png" alt="Sample Image" width="400" />
-</p>
+
 
 **The challenge:**  
 How do you ensure every feature is tested, every bug is caught early, and the codebase remains maintainable as NewsFleet grows?

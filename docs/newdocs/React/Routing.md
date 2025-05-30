@@ -14,9 +14,9 @@ Medix is building a patient portal:
     
 -   The codebase must remain maintainable as routes grow more complex.
 
-<p align="center">
+
   <img src="https://i.postimg.cc/QVG237XG/ract5.png" alt="Sample Image" width="400" />
-</p>
+
 
 
 **The challenge:**  

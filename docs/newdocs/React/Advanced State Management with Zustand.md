@@ -16,9 +16,9 @@ CollabNotes is a real-time note-taking platform for teams:
     
 -   As the app grows, the team needs minimal boilerplate, type safety, and high performance.
     
-<p align="center">
-  <img src="https://i.postimg.cc/Y2njHCK4/react4.png" alt="Sample Image" width="400" />
-</p>
+    ![Sample Image](https://i.postimg.cc/Y2njHCK4/react4.png)
+  
+
 
 **The challenge:**  
 How do you architect a state system that is  **persistent, observable, modular, and async-ready**—with minimal code, maximum reliability, and no unnecessary re-renders?
