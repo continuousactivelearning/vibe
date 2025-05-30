@@ -54,6 +54,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@casl/ability": "^6.7.3",
     "@scalar/express-api-reference": "^0.7.6",
     "@sentry/cli": "^2.43.0",
     "@sentry/node": "^9.22.0",
