@@ -83,7 +83,7 @@ jobs:
           VERSION=v${{ needs.versioning.outputs.new_version }}
           REGION=asia-south2
           PROJECT=${{ secrets.GCP_PROJECT_ID }}
-          SERVICES=(auth billing notifications lms)
+          SERVICES=(auth courses quizzes users)
 
           for SERVICE in "${SERVICES[@]}"; do
             gcloud run deploy ${SERVICE}-staging \
@@ -110,7 +110,7 @@ jobs:
           VERSION=v${{ needs.versioning.outputs.new_version }}
           REGION=asia-south2
           PROJECT=${{ secrets.GCP_PROJECT_ID }}
-          SERVICES=(auth billing notifications lms)
+          SERVICES=(auth courses quizzes users)
 
           for SERVICE in "${SERVICES[@]}"; do
             gcloud run deploy ${SERVICE}-production \
