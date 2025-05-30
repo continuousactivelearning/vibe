@@ -15,6 +15,12 @@ import {
 import {Inject, Service} from 'typedi';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {
+  Enrollment,
+  EnrollUserResponse,
+  Progress,
+} from '../classes/transformers';
+import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {
   EnrollmentParams,
   EnrollmentNotFoundErrorResponse,
   EnrollUserResponseData,
@@ -22,8 +28,11 @@ import {
 } from '../classes/validators/EnrollmentValidators';
 
 import {EnrollmentService} from '../services';
-import {EnrollUserResponse} from '../classes/transformers';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+@OpenAPI({
+  tags: ['User Enrollments'],
+})
+@JsonController('/users', {transformResponse: true})
+@Service()
 /**
  * Controller for managing student enrollments in courses.
  *
