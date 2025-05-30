@@ -63,7 +63,7 @@ jobs:
           SERVICES=(auth courses quizzes users)
 
           for SERVICE in "${SERVICES[@]}"; do
-            docker tag $SERVICE:latest docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
+            docker tag backend-$SERVICE:latest docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
             docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
           done
         working-directory: backend
