@@ -66,7 +66,7 @@ Pagination in MongoDB is typically implemented using two main methods:
 db.bookings.find().skip(20).limit(10)
 ```
 
-This retrieves 10 bookings, starting from the 21st record (skipping the first 20), which corresponds to page 3 if the page size is 101
+This retrieves 10 bookings, starting from the 21st record (skipping the first 20), which corresponds to page 3 if the page size is 10
 
 ----------
 
