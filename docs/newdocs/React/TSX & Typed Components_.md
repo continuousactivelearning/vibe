@@ -1,4 +1,4 @@
-﻿TSX & Typed Components in React: Props Interfaces, State Typing, Functional & Class Components
+﻿## TSX & Typed Components in React: Props Interfaces, State Typing, Functional & Class Components
 
 
 ## 1. Problem Statement

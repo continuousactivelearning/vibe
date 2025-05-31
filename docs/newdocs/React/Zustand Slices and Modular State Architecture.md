@@ -1,5 +1,5 @@
 ﻿
-Zustand  Slices & Modular  State Architecture: Scaling a Collaborative  Design Platform
+## Zustand  Slices & Modular  State Architecture: Scaling a Collaborative  Design Platform
 
 ## 1. Problem  Statement
 

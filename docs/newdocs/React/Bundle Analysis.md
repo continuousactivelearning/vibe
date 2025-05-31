@@ -1,6 +1,6 @@
 ﻿
 
-Bundle Analysis: Impact of types and libraries on bundle size.
+## Bundle Analysis: Impact of types and libraries on bundle size.
 
 
 ## 1. Problem Statement

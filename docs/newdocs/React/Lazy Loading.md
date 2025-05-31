@@ -1,4 +1,4 @@
-﻿Lazy Loading & Code Splitting in React: Dynamic Imports for Performance
+﻿## Lazy Loading & Code Splitting in React: Dynamic Imports for Performance
 
 ## 1. Problem Statement
 

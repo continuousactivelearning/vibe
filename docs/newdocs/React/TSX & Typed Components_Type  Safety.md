@@ -1,4 +1,4 @@
-﻿TSX & Typed Components: Mastering Type  Safety in React
+﻿## TSX & Typed Components: Mastering Type  Safety in React
 
 ## 1. Problem  Statement
 

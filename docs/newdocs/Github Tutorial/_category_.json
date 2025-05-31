@@ -1,0 +1,9 @@
+{
+    "label": "Github Tutorial",
+    "position": 1,
+    "link": {
+      "type": "generated-index",
+      "description": "A guide to using Github effectively for ViBe development."
+    }
+  }
+  
