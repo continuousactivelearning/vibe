@@ -32,7 +32,7 @@ const useCameraProcessor = (frameRate = 3) => {
 
     // ✅ Worker initialization
     if (!workerRef.current) {
-      workerRef.current = new Worker(new URL("./face-detector-worker.ts", import.meta.url), { type: "module" });
+      workerRef.current = new Worker(new URL("./FaceDetectorWorker.ts", import.meta.url), { type: "module" });
 
       workerRef.current.onmessage = (event) => {
         if (event.data.type === "MODEL_READY") {
