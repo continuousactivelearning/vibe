@@ -22,7 +22,10 @@ import {
 } from '../classes/validators/EnrollmentValidators';
 
 import {EnrollmentService} from '../services';
-import {EnrollUserResponse} from '../classes/transformers';
+import {
+  EnrolledUserResponse,
+  EnrollUserResponse,
+} from '../classes/transformers';
 import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 /**
  * Controller for managing student enrollments in courses.
@@ -61,17 +64,19 @@ export class EnrollmentController {
   async enrollUser(
     @Params() params: EnrollmentParams,
   ): Promise<EnrollUserResponse> {
-    const {userId, courseId, courseVersionId} = params;
+    const {userId, courseId, courseVersionId, role} = params;
 
     const responseData = await this.enrollmentService.enrollUser(
       userId,
       courseId,
       courseVersionId,
+      role,
     );
 
     return new EnrollUserResponse(
       responseData.enrollment,
       responseData.progress,
+      responseData.role,
     );
   }
   @Authorized(['student'])
@@ -128,6 +133,7 @@ export class EnrollmentController {
     return new EnrollUserResponse(
       responseData.enrollment,
       responseData.progress,
+      responseData.role,
     );
   }
 
@@ -185,5 +191,37 @@ export class EnrollmentController {
       }
       throw new Error('An unexpected error occurred.');
     }
+  }
+
+  @Authorized(['student'])
+  @Get('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
+  @HttpCode(200)
+  @OpenAPI({
+    summary: 'Get User Enrollment for Course Version',
+    description:
+      'Fetches the enrollment of a user in a specific course version.',
+  })
+  @ResponseSchema(EnrollUserResponseData, {
+    description: 'User enrollment for the course version',
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    statusCode: 404,
+    description: 'Enrollment Not Found',
+  })
+  async getEnrollment(
+    @Param('userId') userId: string,
+    @Param('courseId') courseId: string,
+    @Param('courseVersionId') courseVersionId: string,
+  ): Promise<EnrolledUserResponse> {
+    const enrollmentData = await this.enrollmentService.findEnrollment(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+    return new EnrolledUserResponse(
+      enrollmentData.role,
+      enrollmentData.status,
+      enrollmentData.enrollmentDate,
+    );
   }
 }

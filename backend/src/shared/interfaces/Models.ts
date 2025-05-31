@@ -293,6 +293,7 @@ export interface IEnrollment {
   userId: string | ObjectId;
   courseId: string | ObjectId;
   courseVersionId: string | ObjectId;
+  role: 'instructor' | 'student';
   status: 'active' | 'inactive';
   enrollmentDate: Date;
 }

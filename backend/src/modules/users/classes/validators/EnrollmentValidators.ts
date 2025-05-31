@@ -47,6 +47,16 @@ export class EnrollmentParams {
   @IsString()
   @IsNotEmpty()
   courseVersionId: string;
+
+  @JSONSchema({
+    description: 'Role of the user',
+    example: 'instructor',
+    type: 'string',
+    enum: ['instructor', 'student'],
+  })
+  @IsNotEmpty()
+  @IsString()
+  role: 'instructor' | 'student';
 }
 
 export class EnrollmentDataResponse {
@@ -95,6 +105,16 @@ export class EnrollmentDataResponse {
   courseVersionId: ID;
 
   @JSONSchema({
+    description: 'Role of the user',
+    example: 'instructor',
+    type: 'string',
+    enum: ['instructor', 'student'],
+  })
+  @IsNotEmpty()
+  @IsString()
+  role: 'instructor' | 'student';
+
+  @JSONSchema({
     description: 'Status of the enrollment',
     example: 'active',
     type: 'string',
@@ -130,6 +150,37 @@ export class EnrollUserResponseData {
   })
   @IsNotEmpty()
   progress: ProgressDataResponse;
+}
+
+export class EnrolledUserResponseData {
+  @JSONSchema({
+    description: 'Role of the user in the course',
+    example: 'instructor',
+    type: 'string',
+    enum: ['instructor', 'student'],
+  })
+  @IsNotEmpty()
+  role: 'instructor' | 'student';
+
+  @JSONSchema({
+    description: 'Status of the enrollment',
+    example: 'active',
+    type: 'string',
+    enum: ['active', 'inactive'],
+  })
+  @IsNotEmpty()
+  status: 'active' | 'inactive';
+
+  @JSONSchema({
+    description: 'Date when the user was enrolled',
+    example: '2023-10-01T12:00:00Z',
+    type: 'string',
+    format: 'date-time',
+  })
+  @IsNotEmpty()
+  @IsDate()
+  @Type(() => Date)
+  enrollmentDate: Date;
 }
 
 export class EnrollmentResponse {

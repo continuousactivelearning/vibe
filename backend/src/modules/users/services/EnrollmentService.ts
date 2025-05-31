@@ -20,7 +20,12 @@ export class EnrollmentService {
     @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
   ) {}
 
-  async enrollUser(userId: string, courseId: string, courseVersionId: string) {
+  async enrollUser(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    role: 'instructor' | 'student',
+  ) {
     const client = await this.courseRepo.getDBClient();
     const session = client.startSession();
     const txOptions = {
@@ -62,6 +67,7 @@ export class EnrollmentService {
         userId: userId,
         courseId: new ObjectId(courseId),
         courseVersionId: new ObjectId(courseVersionId),
+        role: role,
         status: 'active',
         enrollmentDate: new Date(),
       });
@@ -78,7 +84,56 @@ export class EnrollmentService {
       return {
         enrollment: createdEnrollment,
         progress: initialProgress,
+        role: role,
       };
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+  async findEnrollment(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ) {
+    const client = await this.courseRepo.getDBClient();
+    const session = client.startSession();
+    const txOptions = {
+      readPreference: ReadPreference.primary,
+      readConcern: new ReadConcern('snapshot'),
+      writeConcern: new WriteConcern('majority'),
+    };
+
+    try {
+      await session.startTransaction(txOptions);
+
+      const user = await this.userRepo.findById(userId);
+      if (!user) throw new NotFoundError('User not found');
+
+      const course = await this.courseRepo.read(courseId);
+      if (!course) throw new NotFoundError('Course not found');
+
+      const courseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
+        throw new NotFoundError(
+          'Course version not found or does not belong to this course',
+        );
+      }
+      const existingEnrollment = await this.enrollmentRepo.findEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+      if (!existingEnrollment) {
+        throw new Error('User is not enrolled in this course version');
+      }
+      await session.commitTransaction();
+      return existingEnrollment;
     } catch (error) {
       await session.abortTransaction();
       throw error;
@@ -131,6 +186,7 @@ export class EnrollmentService {
       return {
         enrollment: null,
         progress: null,
+        role: enrollment.role,
       };
     } catch (error) {
       await session.abortTransaction();

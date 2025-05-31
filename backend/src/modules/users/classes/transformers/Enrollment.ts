@@ -31,6 +31,9 @@ export class Enrollment implements IEnrollment {
   courseVersionId: ID;
 
   @Expose()
+  role: 'instructor' | 'student';
+
+  @Expose()
   status: 'active' | 'inactive';
 
   @Expose()
