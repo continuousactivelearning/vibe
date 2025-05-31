@@ -1,4 +1,4 @@
-﻿Testing & Debugging React Apps with TypeScript: Jest, Linting, and Best Practices
+﻿## Testing & Debugging React Apps with TypeScript: Jest, Linting, and Best Practices
 
 ## 1. Problem Statement
 

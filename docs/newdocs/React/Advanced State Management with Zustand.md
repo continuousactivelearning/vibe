@@ -1,4 +1,4 @@
-﻿Advanced State Management with Zustand: Middleware, Persistence, and Async Patterns
+﻿## Advanced State Management with Zustand: Middleware, Persistence, and Async Patterns
 
 ## 1. Problem Statement
 
