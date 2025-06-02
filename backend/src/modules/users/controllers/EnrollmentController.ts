@@ -20,7 +20,7 @@ import {
   EnrollUserResponseData,
   EnrollmentResponse,
 } from '../classes/validators/EnrollmentValidators';
-
+import {Req, ForbiddenError} from 'routing-controllers';
 import {EnrollmentService} from '../services';
 import {
   EnrolledUserResponse,
@@ -44,7 +44,9 @@ export class EnrollmentController {
   ) {}
 
   @Authorized(['student']) // Or use another role or remove if not required
-  @Post('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
+  @Post(
+    '/:userId/enrollments/courses/:courseId/versions/:courseVersionId/:role',
+  )
   @HttpCode(200)
   @OpenAPI({
     summary: 'Enroll User in Course',
@@ -63,9 +65,14 @@ export class EnrollmentController {
   })
   async enrollUser(
     @Params() params: EnrollmentParams,
+    @Req() request: any,
   ): Promise<EnrollUserResponse> {
+    if (request.ability.cannot('manage', 'enrollment')) {
+      throw new ForbiddenError(
+        'You do not have permission to manage enrollments.',
+      );
+    }
     const {userId, courseId, courseVersionId, role} = params;
-
     const responseData = await this.enrollmentService.enrollUser(
       userId,
       courseId,

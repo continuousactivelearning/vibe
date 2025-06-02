@@ -86,7 +86,7 @@ class Course implements ICourse {
     type: 'string',
     format: 'date-time',
   })
-  createdAt?: Date | null;
+  createdAt?: Date;
 
   @Expose()
   @Type(() => Date)
@@ -97,7 +97,7 @@ class Course implements ICourse {
     type: 'string',
     format: 'date-time',
   })
-  updatedAt?: Date | null;
+  updatedAt?: Date;
 
   constructor(courseBody?: CreateCourseBody) {
     if (courseBody) {
