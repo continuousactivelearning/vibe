@@ -28,7 +28,6 @@ import {
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
-import {CheckAbility} from '../../../shared/CheckAbility';
 
 @OpenAPI({
   tags: ['Course Modules'],
@@ -60,11 +59,9 @@ export class ModuleController {
     description:
       'Creates a new module in the specified course version with the provided details.',
   })
-  //@CheckAbility('create', 'Module')
   async create(
     @Params() params: CreateModuleParams,
     @Body() body: CreateModuleBody,
-    @Req() request: any,
   ) {
     const updated = await this.service.createModule(params.versionId, body);
     return {version: instanceToPlain(updated)};
@@ -91,7 +88,6 @@ export class ModuleController {
   async update(
     @Params() params: UpdateModuleParams,
     @Body() body: UpdateModuleBody,
-    @Req() request: any,
   ) {
     const updated = await this.service.updateModule(
       params.versionId,
