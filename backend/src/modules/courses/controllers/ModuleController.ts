@@ -8,6 +8,7 @@ import {
   Put,
   Delete,
   HttpCode,
+  Req,
 } from 'routing-controllers';
 import {Service, Inject} from 'typedi';
 import {instanceToPlain} from 'class-transformer';
@@ -26,7 +27,7 @@ import {
 } from '../classes/validators/ModuleValidators';
 import {calculateNewOrder} from '../utils/calculateNewOrder';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 
 @OpenAPI({
   tags: ['Course Modules'],

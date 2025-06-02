@@ -5,10 +5,10 @@ import {
   ObjectId,
   WithId,
 } from 'mongodb';
-import {IUser} from 'shared/interfaces/Models';
+import {IUser} from '../../../../interfaces/Models';
 import {Inject, Service} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
-import {IUserRepository} from 'shared/database/interfaces/IUserRepository';
+import {IUserRepository} from '../../../interfaces/IUserRepository';
 
 @Service()
 export class UserRepository implements IUserRepository {

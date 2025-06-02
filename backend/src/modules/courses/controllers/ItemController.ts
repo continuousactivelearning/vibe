@@ -24,7 +24,7 @@ import {
 } from '../classes/validators/ItemValidators';
 import {ItemService} from '../services';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 import {
   ItemDataResponse,
   ItemNotFoundErrorResponse,

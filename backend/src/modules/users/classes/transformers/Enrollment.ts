@@ -4,9 +4,9 @@ import {ObjectId} from 'mongodb';
 import {
   ObjectIdToString,
   StringToObjectId,
-} from 'shared/constants/transformerConstants';
-import {IEnrollment} from 'shared/interfaces/Models';
-import {ID} from 'shared/types';
+} from '../../../../shared/constants/transformerConstants';
+import {IEnrollment} from '../../../../shared/interfaces/Models';
+import {ID} from '../../../../shared/types';
 
 @Expose()
 export class Enrollment implements IEnrollment {
@@ -29,6 +29,9 @@ export class Enrollment implements IEnrollment {
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})
   @Transform(StringToObjectId.transformer, {toClassOnly: true})
   courseVersionId: ID;
+
+  @Expose()
+  role: 'instructor' | 'student';
 
   @Expose()
   status: 'active' | 'inactive';

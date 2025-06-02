@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
-import {IEnrollment, IProgress} from 'shared/interfaces/Models';
-import {CreateError, ReadError} from 'shared/errors/errors';
+import {IEnrollment, IProgress} from '../../../../interfaces/Models';
+import {CreateError, ReadError} from '../../../../errors/errors';
 import {NotFoundError} from 'routing-controllers';
 
 @Service()
@@ -138,5 +138,26 @@ export class EnrollmentRepository {
       },
       {session},
     );
+  }
+
+  /**
+   * Get paginated enrollments for a user
+   */
+  async getEnrollments(userId: string, skip: number, limit: number) {
+    await this.init();
+    return this.enrollmentCollection
+      .find({userId})
+      .skip(skip)
+      .limit(limit)
+      .sort({enrollmentDate: -1})
+      .toArray();
+  }
+
+  /**
+   * Count total enrollments for a user
+   */
+  async countEnrollments(userId: string) {
+    await this.init();
+    return this.enrollmentCollection.countDocuments({userId});
   }
 }

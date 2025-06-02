@@ -15,12 +15,12 @@ import admin from 'firebase-admin';
 import {UserRecord} from 'firebase-admin/lib/auth/user-record';
 import {applicationDefault} from 'firebase-admin/app';
 import {Inject, Service} from 'typedi';
-import {IUser} from 'shared/interfaces/Models';
-import {IUserRepository} from 'shared/database';
+import {IUser} from '../../../shared/interfaces/Models';
+import {IUserRepository} from '../../../shared/database';
 import {IAuthService} from '../interfaces/IAuthService';
 import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
-import {CreateError} from 'shared/errors/errors';
+import {CreateError} from '../../../shared/errors/errors';
 
 /**
  * Custom error thrown during password change operations.

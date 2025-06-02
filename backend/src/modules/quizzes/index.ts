@@ -1,5 +1,4 @@
-import {useContainer} from 'routing-controllers';
-import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
+import {useContainer} from 'class-validator';
 import {dbConfig} from '../../config/db';
 import {RoutingControllersOptions} from 'routing-controllers';
 import {QuestionController} from './controllers';

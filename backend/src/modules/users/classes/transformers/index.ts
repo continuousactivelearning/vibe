@@ -16,8 +16,40 @@ export class EnrollUserResponse {
   @Type(() => Progress)
   progress: Progress;
 
-  constructor(enrollment: Enrollment, progress: Progress) {
+  @Expose()
+  @Type(() => String)
+  role: 'instructor' | 'student';
+
+  constructor(
+    enrollment: Enrollment,
+    progress: Progress,
+    role: 'instructor' | 'student',
+  ) {
     this.enrollment = enrollment;
     this.progress = progress;
+    this.role = role;
+  }
+}
+export class EnrolledUserResponse {
+  @Expose()
+  @Type(() => String)
+  role: 'instructor' | 'student';
+
+  @Expose()
+  @Type(() => String)
+  status: 'active' | 'inactive';
+
+  @Expose()
+  @Type(() => Date)
+  enrollmentDate: Date;
+
+  constructor(
+    role: 'instructor' | 'student',
+    status: 'active' | 'inactive',
+    enrollmentDate: Date,
+  ) {
+    this.role = role;
+    this.status = status;
+    this.enrollmentDate = enrollmentDate;
   }
 }
