@@ -23,7 +23,8 @@
     "emulators:functions": "firebase emulators:start --only functions",
     "emulators:all": "firebase emulators:start",
     "exp-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts --stdout",
-    "gen-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts"
+    "gen-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
+    "setup:env": "bash scripts/setup-env.sh"
   },
   "keywords": [],
   "author": "",

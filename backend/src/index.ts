@@ -1,6 +1,7 @@
 if (process.env.NODE_ENV === 'production') {
   import('./instrument');
 }
+import 'dotenv/config';
 import Express from 'express';
 import Sentry from '@sentry/node';
 import {loggingHandler} from 'shared/middleware/loggingHandler';
@@ -14,7 +15,7 @@ import {IDatabase} from 'shared/database';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from 'config/db';
 import * as firebase from 'firebase-admin';
-import {app} from 'firebase-admin';
+import {applicationDefault} from 'firebase-admin/app';
 import {apiReference} from '@scalar/express-api-reference';
 import {OpenApiSpecService} from './modules/docs';
 
@@ -77,7 +78,10 @@ export const ServiceFactory = (
       });
 
       // Call the handler to render the documentation
-      handler(req as any, res as any);
+      (handler as (req: Express.Request, res: Express.Response) => void)(
+        req,
+        res,
+      );
     } catch (error) {
       console.error('Error serving API documentation:', error);
       res
@@ -116,9 +120,12 @@ export const ServiceFactory = (
 // Create a main function where multiple services are created
 
 useContainer(Container);
-
+let mongoDatabase: MongoDatabase;
 if (!Container.has('Database')) {
-  Container.set<IDatabase>('Database', new MongoDatabase(dbConfig.url, 'vibe'));
+  mongoDatabase = new MongoDatabase(dbConfig.url, 'vibe');
+  Container.set<IDatabase>('Database', mongoDatabase);
+} else {
+  mongoDatabase = Container.get<MongoDatabase>('Database');
 }
 
 export const main = () => {
@@ -129,5 +136,19 @@ export const main = () => {
     console.log('--------------------------------------------------------');
   });
 };
+// Connect to the database
+mongoDatabase
+  .connect()
+  .then(() => {
+    console.log('--------------------------------------------------------');
+    console.log('Connected to MongoDB');
+    console.log('--------------------------------------------------------');
+  })
+  .catch(error => {
+    console.error('--------------------------------------------------------');
+    console.error('Failed to connect to MongoDB:', error);
+    console.error('--------------------------------------------------------');
+    throw new Error('Failed to connect to MongoDB');
+  });
 
 main();
