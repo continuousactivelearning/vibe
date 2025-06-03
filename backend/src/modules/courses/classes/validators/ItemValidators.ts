@@ -747,6 +747,17 @@ class GetItemParams {
   @IsMongoId()
   @IsString()
   courseVersionId: string;
+
+  @JSONSchema({
+    title: 'Item ID',
+    description: 'ID of the item',
+    example: '60d5ec49b3f1c8e4a8f8b8f8',
+    type: 'string',
+    format: 'Mongo Object ID',
+  })
+  @IsMongoId()
+  @IsString()
+  itemId: string;
 }
 
 class ItemNotFoundErrorResponse {

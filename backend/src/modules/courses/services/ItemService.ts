@@ -191,12 +191,7 @@ export class ItemService {
     return itemsGroup.items;
   }
 
-  public async readItem(
-    versionId: string,
-    moduleId: string,
-    sectionId: string,
-    itemId: string,
-  ) {
+  public async readItem(versionId: string, itemId: string) {
     const item = await this.itemRepo.readItem(versionId, itemId);
     return item;
   }

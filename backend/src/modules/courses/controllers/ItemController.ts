@@ -10,6 +10,7 @@ import {
   Params,
   HttpCode,
   CurrentUser,
+  ForbiddenError,
 } from 'routing-controllers';
 import {Service, Inject} from 'typedi';
 import {
@@ -193,7 +194,7 @@ export class ItemController {
   }
 
   @Authorized(['admin', 'instructor', 'student'])
-  @Get('/:courseId/versions/:versionId/item')
+  @Get('/:courseId/versions/:versionId/item/:itemId')
   @HttpCode(201)
   @OpenAPI({
     summary: 'Read Item',
@@ -216,12 +217,15 @@ export class ItemController {
       'Creates a new item in the specified section with the provided details.',
   })
   async getItem(@CurrentUser() user: IUser, @Params() params: GetItemParams) {
-    const {courseId, courseVersionId} = params;
+    const {courseId, courseVersionId, itemId} = params;
     const progress = await this.progressService.getUserProgress(
       user.id,
       courseId,
       courseVersionId,
     );
-    return progress.currentItem;
+    if (progress.currentItem !== itemId) {
+      throw new ForbiddenError('Item does not match current progress');
+    }
+    return await this.itemService.readItem(courseVersionId, itemId);
   }
 }
