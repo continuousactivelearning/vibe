@@ -121,6 +121,7 @@ export class FirebaseAuthService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
+      console.error('Firebase createUser error:', error);
       throw new Error('Failed to create user in Firebase');
     }
 
@@ -233,5 +234,45 @@ export class FirebaseAuthService implements IAuthService {
     });
 
     return {success: true, message: 'Password updated successfully'};
+  }
+
+  /**
+   * Sends a Firebase email verification link to the user's email address.
+   *
+   * @param email - The email address of the user to verify
+   * @returns A promise resolving to the verification link (for testing) or success message
+   * @throws Error - If the user is not found or sending fails
+   */
+  async sendEmailVerification(
+    email: string,
+  ): Promise<{success: boolean; message: string; link?: string}> {
+    try {
+      // Get the user by email
+      const userRecord = await this.auth.getUserByEmail(email);
+      if (!userRecord) {
+        const error: any = new Error('User not found');
+        error.code = 'auth/user-not-found';
+        throw error;
+      }
+      // Generate the email verification link
+      const actionLink = await this.auth.generateEmailVerificationLink(email);
+      return {
+        success: true,
+        message: 'Verification email sent',
+        link: actionLink,
+      };
+    } catch (error: any) {
+      // Firebase throws error with code 'auth/user-not-found' if user doesn't exist
+      if (error.code === 'auth/user-not-found') {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+      return {
+        success: false,
+        message: error.message || 'Failed to send verification email',
+      };
+    }
   }
 }

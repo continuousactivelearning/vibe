@@ -14,6 +14,7 @@ import {IUser} from 'shared/interfaces/Models';
 import {
   ChangePasswordBody,
   SignUpBody,
+  SendVerificationEmailBody,
 } from '../classes/validators/AuthValidators';
 
 /**
@@ -62,6 +63,17 @@ export interface IAuthService {
     body: ChangePasswordBody,
     requestUser: IUser,
   ): Promise<{success: boolean; message: string}>;
+
+  /**
+   * Sends a Firebase email verification link to the user's email address.
+   *
+   * @param email - The email address of the user to verify
+   * @returns A promise resolving to the verification link (for testing) or success message
+   * @throws Error - If the user is not found or sending fails
+   */
+  sendEmailVerification(
+    email: string,
+  ): Promise<{success: boolean; message: string; link?: string}>;
 }
 
 /**

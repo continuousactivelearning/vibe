@@ -22,6 +22,7 @@ import {
   TokenVerificationResponse,
   AuthErrorResponse,
   VerifySignUpProviderBody,
+  SendVerificationEmailBody,
 } from '../classes/validators';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
@@ -168,5 +169,46 @@ export class AuthController {
     return {
       message: 'Token is valid',
     };
+  }
+
+  /**
+   * Sends a Firebase email verification link to the user's email address.
+   *
+   * @param body - The email address of the user to verify
+   * @returns Success message or verification link (for testing)
+   */
+  @Post('/send-verification-email')
+  @HttpCode(200)
+  @ResponseSchema(Object, {
+    description: 'Verification email sent',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Invalid input data',
+    statusCode: 400,
+  })
+  @ResponseSchema(AuthErrorResponse, {
+    description: 'Failed to send verification email',
+    statusCode: 500,
+  })
+  @OpenAPI({
+    summary: 'Send Email Verification',
+    description:
+      'Sends a Firebase email verification link to the specified email address.',
+  })
+  async sendVerificationEmail(@Body() body: SendVerificationEmailBody) {
+    if (!body.email) {
+      throw new HttpError(400, 'Email is required');
+    }
+    const result = await this.authService.sendEmailVerification(body.email);
+    if (!result.success && result.message === 'User not found') {
+      throw new HttpError(404, 'User not found');
+    }
+    if (!result.success) {
+      throw new HttpError(
+        400,
+        result.message || 'Failed to send verification email',
+      );
+    }
+    return result;
   }
 }
