@@ -1,14 +1,14 @@
 ﻿import 'reflect-metadata';
 import {instanceToPlain} from 'class-transformer';
 import {Collection, ClientSession, ObjectId} from 'mongodb';
-import {IItemRepository} from 'shared/database/interfaces/IItemRepository';
-import {ICourseRepository} from 'shared/database/interfaces/ICourseRepository';
+import {IItemRepository} from '../../../interfaces/IItemRepository';
+import {ICourseRepository} from '../../../interfaces/ICourseRepository';
 import {
   CreateError,
   DeleteError,
   ReadError,
   UpdateError,
-} from 'shared/errors/errors';
+} from '../../../../errors/errors';
 import {Service, Inject} from 'typedi';
 import {MongoDatabase} from '../MongoDatabase';
 import {NotFoundError} from 'routing-controllers';

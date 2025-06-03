@@ -27,7 +27,7 @@ import {
   ProgressDataResponse,
 } from '../classes/validators';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 
 @JsonController('/users', {transformResponse: true})
 @Service()

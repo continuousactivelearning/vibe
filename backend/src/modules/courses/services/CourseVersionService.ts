@@ -1,11 +1,11 @@
 import {InternalServerError, NotFoundError} from 'routing-controllers';
-import {ICourseRepository} from 'shared/database';
+import {ICourseRepository} from '../../../shared/database';
 import {Inject, Service} from 'typedi';
 import {CreateCourseVersionBody} from '../classes/validators';
 import {CourseVersion} from '../classes/transformers';
 import {ObjectId, ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
-import {ICourseVersion} from 'shared/interfaces/Models';
-import {DeleteError} from 'shared/errors/errors';
+import {ICourseVersion} from '../../../shared/interfaces/Models';
+import {DeleteError} from '../../../shared/errors/errors';
 import {instanceToPlain} from 'class-transformer';
 
 @Service()

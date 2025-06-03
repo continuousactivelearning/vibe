@@ -25,7 +25,7 @@ import {
   CourseVersionNotFoundErrorResponse,
   CreateCourseVersionResponse,
 } from '../classes/validators/CourseVersionValidators';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {BadRequestErrorResponse} from '../../../shared/middleware/errorHandler';
 import {CourseVersion} from '../classes/transformers';
 
 @OpenAPI({

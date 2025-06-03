@@ -1,12 +1,12 @@
 import {useContainer} from 'routing-controllers';
 import {RoutingControllersOptions} from 'routing-controllers';
-import {IDatabase} from 'shared/database';
+import {IDatabase} from '../../shared/database';
 import {Container} from 'typedi';
-import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
+import {MongoDatabase} from '../../shared/database/providers/mongo/MongoDatabase';
 import {dbConfig} from '../../config/db';
 import {CourseController} from './controllers/CourseController';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+import {CourseRepository} from '../../shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from '../../shared/database/providers/mongo/repositories/ItemRepository';
 import {CourseVersionController} from './controllers/CourseVersionController';
 import {ModuleController} from './controllers/ModuleController';
 import {SectionController} from './controllers/SectionController';
@@ -18,7 +18,7 @@ import {
   SectionService,
 } from './services';
 import {ItemService} from './services';
-import {HttpErrorHandler} from 'shared/middleware/errorHandler';
+import {HttpErrorHandler} from '../../shared/middleware/errorHandler';
 
 useContainer(Container);
 

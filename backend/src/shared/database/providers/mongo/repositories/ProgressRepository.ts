@@ -1,8 +1,12 @@
 import 'reflect-metadata';
 import {Collection, ObjectId} from 'mongodb';
 import {Inject, Service} from 'typedi';
-import {IEnrollment, IProgress, IWatchTime} from 'shared/interfaces/Models';
-import {CreateError, ReadError, UpdateError} from 'shared/errors/errors';
+import {
+  IEnrollment,
+  IProgress,
+  IWatchTime,
+} from '../../../../interfaces/Models';
+import {CreateError, ReadError, UpdateError} from '../../../../errors/errors';
 import {MongoDatabase} from '../MongoDatabase';
 import {NotFoundError} from 'routing-controllers';
 
