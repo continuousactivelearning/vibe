@@ -2,6 +2,7 @@ import request from 'supertest';
 import Express from 'express';
 import {useExpressServer} from 'routing-controllers';
 import {Container} from 'typedi';
+import nodemailer from 'nodemailer';
 
 // TODO: Update the import paths below to your project's structure
 import {MongoDatabase} from '../../../shared/database/providers/mongo/MongoDatabase';
@@ -85,16 +86,32 @@ describe('Auth Controller Integration Tests', () => {
   });
 
   describe('Send Verification Email', () => {
-    it('should return 200 and a verification link for a valid email', async () => {
-      // Use a valid email (should exist in Firebase Auth for a real test)
+    let sendMailMock: jest.SpyInstance;
+
+    beforeAll(() => {
+      // Mock nodemailer.createTransport().sendMail
+      sendMailMock = jest.spyOn(nodemailer, 'createTransport').mockReturnValue({
+        sendMail: jest.fn().mockResolvedValue({
+          accepted: ['test@example.com'],
+          rejected: [],
+        }),
+      } as any);
+    });
+
+    afterAll(() => {
+      sendMailMock.mockRestore();
+    });
+
+    it('should return 200 and a verification link for a valid email and send an email', async () => {
       const email = faker.internet.email();
       const response = await request(app)
         .post('/auth/send-verification-email')
         .send({email});
-      // Accept 200 or 404 depending on whether the email exists in Firebase
       expect([200, 404]).toContain(response.status);
       if (response.status === 200) {
         expect(response.body).toHaveProperty('link');
+        // Check that sendMail was called
+        expect(sendMailMock).toHaveBeenCalled();
       } else if (response.status === 404) {
         expect(response.body.message).toMatch(/not found/i);
       } else {

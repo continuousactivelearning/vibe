@@ -21,6 +21,9 @@ import {IAuthService} from '../interfaces/IAuthService';
 import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {CreateError} from 'shared/errors/errors';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+dotenv.config();
 
 /**
  * Custom error thrown during password change operations.
@@ -256,10 +259,29 @@ export class FirebaseAuthService implements IAuthService {
       }
       // Generate the email verification link
       const actionLink = await this.auth.generateEmailVerificationLink(email);
+
+      // Send the email using Nodemailer
+      const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: true,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Verify your email address',
+        html: `<p>Please verify your email by clicking the link below:</p><p><a href="${actionLink}">${actionLink}</a></p>`,
+      });
+
       return {
         success: true,
         message: 'Verification email sent',
-        link: actionLink,
+        link: actionLink, // Optionally return for testing
       };
     } catch (error: any) {
       // Firebase throws error with code 'auth/user-not-found' if user doesn't exist
