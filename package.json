@@ -19,6 +19,6 @@
 		]
 	},
 	"dependencies": {
-		"vibe": "link:cli"
+		"vibe": "file:cli"
 	}
 }
