@@ -9,6 +9,7 @@ import {
   Delete,
   Params,
   HttpCode,
+  CurrentUser,
 } from 'routing-controllers';
 import {Service, Inject} from 'typedi';
 import {
@@ -21,6 +22,7 @@ import {
   MoveItemParams,
   DeleteItemParams,
   DeletedItemResponse,
+  GetItemParams,
 } from '../classes/validators/ItemValidators';
 import {ItemService} from '../services';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
@@ -29,6 +31,8 @@ import {
   ItemDataResponse,
   ItemNotFoundErrorResponse,
 } from '../classes/validators/ItemValidators';
+import {IUser} from 'shared/interfaces/Models';
+import {ProgressService} from 'modules/users/services/ProgressService';
 
 @OpenAPI({
   tags: ['Items'],
@@ -38,6 +42,8 @@ import {
 export class ItemController {
   constructor(
     @Inject('ItemService') private readonly itemService: ItemService,
+    @Inject('ProgressService')
+    private readonly progressService: ProgressService,
   ) {}
 
   @Authorized(['admin'])
@@ -184,5 +190,38 @@ export class ItemController {
       itemId,
       body,
     );
+  }
+
+  @Authorized(['admin', 'instructor', 'student'])
+  @Get('/:courseId/versions/:versionId/item')
+  @HttpCode(201)
+  @OpenAPI({
+    summary: 'Read Item',
+    description: 'Read the current item based on progress of user.',
+  })
+  @ResponseSchema(ItemDataResponse, {
+    description: 'Item retrieved successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(ItemNotFoundErrorResponse, {
+    description: 'Item not found',
+    statusCode: 404,
+  })
+  @OpenAPI({
+    summary: 'Create Item',
+    description:
+      'Creates a new item in the specified section with the provided details.',
+  })
+  async getItem(@CurrentUser() user: IUser, @Params() params: GetItemParams) {
+    const {courseId, courseVersionId} = params;
+    const progress = await this.progressService.getUserProgress(
+      user.id,
+      courseId,
+      courseVersionId,
+    );
+    return progress.currentItem;
   }
 }
