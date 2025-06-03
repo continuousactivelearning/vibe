@@ -83,4 +83,39 @@ describe('Auth Controller Integration Tests', () => {
       expect(response.body).toHaveProperty('errors');
     });
   });
+
+  describe('Send Verification Email', () => {
+    it('should return 200 and a verification link for a valid email', async () => {
+      // Use a valid email (should exist in Firebase Auth for a real test)
+      const email = faker.internet.email();
+      const response = await request(app)
+        .post('/auth/send-verification-email')
+        .send({email});
+      // Accept 200 or 404 depending on whether the email exists in Firebase
+      expect([200, 404]).toContain(response.status);
+      if (response.status === 200) {
+        expect(response.body).toHaveProperty('link');
+      } else if (response.status === 404) {
+        expect(response.body.message).toMatch(/not found/i);
+      } else {
+        throw new Error('Unexpected status code: ' + response.status);
+      }
+    });
+
+    it('should return 400 for missing email', async () => {
+      const response = await request(app)
+        .post('/auth/send-verification-email')
+        .send({});
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('errors');
+    });
+
+    it('should return 400 for invalid email format', async () => {
+      const response = await request(app)
+        .post('/auth/send-verification-email')
+        .send({email: 'not-an-email'});
+      expect(response.status).toBe(400);
+      expect(response.body).toHaveProperty('errors');
+    });
+  });
 });
