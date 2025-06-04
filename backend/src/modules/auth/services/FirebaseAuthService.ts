@@ -281,7 +281,7 @@ export class FirebaseAuthService implements IAuthService {
       return {
         success: true,
         message: 'Verification email sent',
-        link: actionLink, // Optionally return for testing
+        link: actionLink, //Returned only for testing purposes
       };
     } catch (error: any) {
       // Firebase throws error with code 'auth/user-not-found' if user doesn't exist
