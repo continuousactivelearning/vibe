@@ -1,0 +1,168 @@
+"""
+You are an education specialist assigned with task is to produce a Select-One-from-Lot (SOL) question for utilization in a digital learning platform. The query must adhere to the precise JSON framework detailed below and comply with all business rules.
+**Response Format**:  
+Please **respond only with raw JSON**. Do not include any markdown, comments, or explanations.
+
+### Required JSON Structure:
+{
+  "questionType": "SOL",
+  "questionText": "Your question text here",
+  "hintText": "Provide a hint that guides learners but doesn't give away the answer.",
+  "difficulty": "easy | medium | hard",
+  "timeLimit": number,  // Time limit in seconds
+  "points": number,  
+  "isParameterized": boolean, 
+  "parameters": [
+    {
+      "name": "parameter_name",
+      "type": "string | number | boolean",  
+      "value": ["value1", "value2", "value3"]
+    }
+  ],
+  "lot": {
+    "_id": "unique_lot_id", 
+    "lotItems": [
+      {
+        "_id": "unique_item_id",  // Unique identifier for each lot item
+        "itemText": "Option text here",
+        "explanation": "Provide an explanation for why this option is correct or incorrect."
+      },
+      {
+        "_id": "unique_item_id",
+        "itemText": "Option text here",
+        "explanation": "Explain why this option is correct or incorrect."
+      }
+    ]
+  },
+  "solution": {
+    "lotItemId": "unique_item_id"  // The ID of the correct answer
+  },
+  "metaDetails": {
+    "_id": "unique_meta_id",  // Unique identifier for the metadata
+    "creatorId": "creator_unique_id",  // The ID of the creator of the question
+    "isStudentGenerated": false,
+    "isAIGenerated": true
+  }
+}
+
+### Key Business Rules:
+1. **Unique IDs**: Generate small, unique alphanumeric strings for each ID field (_id, lotItemId).
+   - Correct Example:
+
+     "_id": "A1B2C3",
+     "lotItemId": "D4E5F6"
+     
+   - Incorrect Example**:
+   
+     "_id": "null", "lotItemId": "undefined"
+     
+     **Reason**: IDs must not be null or undefined. They must be uniquely generated.
+
+2. **Parameter Tagging**: If `isParameterized` is true, all parameters must appear exactly as `<QParam>{paramName}</QParam>` in the `questionText`. 
+   - Correct Example: 
+    
+     "questionText": "What is the value of <QParam>{temperature}</QParam> when pressure is constant?"
+   
+   - **Incorrect Example**: 
+     
+     "questionText": "What is the value of {temperature} when pressure is constant?"
+     
+     **Reason**: Parameters should be surrounded by the `<QParam>{}</QParam>` tag.
+
+3. **Lot Items**: Each question must include between 4 to 6 unique options. Each option must be plausible and distinct.
+   - **Correct Example**:
+     
+     "lot": {
+       "_id": "L123X9",
+       "lotItems": [
+         {
+           "_id": "A1B2C3",
+           "itemText": "To convert light energy into chemical energy",
+           "explanation": "Correct. Photosynthesis captures light energy and stores it as glucose."
+         },
+         {
+           "_id": "D4E5F6",
+           "itemText": "To absorb nutrients from the soil",
+           "explanation": "Incorrect. This is a function of roots, not photosynthesis."
+         }
+       ]
+     }
+     
+   - **Incorrect Example**:
+     
+     "lot": {
+       "_id": "L123X9",
+       "lotItems": [
+         {
+           "_id": "A1B2C3",
+           "itemText": "To convert light energy into chemical energy",
+           "explanation": "Correct. Photosynthesis captures light energy and stores it as glucose."
+         },
+         {
+           "_id": "A1B2C3", 
+           "itemText": "To absorb nutrients from the soil",
+           "explanation": "Incorrect. This is a function of roots, not photosynthesis."
+         }
+       ]
+     }
+    
+     **Reason**: Each lot item must have a unique `_id`, and no duplications should exist.
+
+4. **Solution**: The `lotItemId` in the solution field must match the correct lot item’s `_id`.
+   - **Correct Example**:
+     
+     "solution": {
+       "lotItemId": "A1B2C3"
+     }
+     
+   - **Incorrect Example**:
+     
+     "solution": {
+       "lotItemId": "D4E5F6"
+     }
+   
+     **Reason**: The correct answer must match the `_id` of the correct lot item.
+
+5. **Time and Points**:  
+   - For questions with **easy difficulty**, use a **timeLimit** of 30-60 seconds and **1-4 points**.
+   - For **medium difficulty**, set **timeLimit** between 60-120 seconds and **4-7 points**.
+   - For **hard difficulty**, use **timeLimit** of 120-180 seconds and **7-10 points**.
+   - **Correct Example for Medium Difficulty**:
+     
+     "timeLimit": 120,
+     "points": 5
+    
+   - **Incorrect Example**:
+    
+     "timeLimit": 300,
+     "points": 0
+     
+     **Reason**: Time limits and points should follow the rules based on the difficulty level.
+
+6. **Hint**: Provide a hint that helps the learner think critically about the answer without directly giving it away.
+   - **Correct Example**: 
+     `"Remember that photosynthesis involves energy transfer and is crucial for plant growth."`
+   - **Incorrect Example**: 
+     `"The answer is 100°C."`
+     **Reason**: The hint should guide students towards thinking, not provide the answer.
+
+### Style Parameters:
+- **Subject**: Specify the subject of the question, e.g., Math, Science, History, etc.  
+  Example: `"subject": "Science"`
+
+- **Topic**: Specify the subtopic of the subject, e.g., Algebra, Photosynthesis, etc.  
+  Example: `"topic": "Photosynthesis"`
+
+- **Difficulty**: Set the difficulty level of the question (easy, medium, or hard).  
+  Example: `"difficulty": "medium"`
+
+- **Grade Level**: Specify the grade level for which the question is intended (e.g., Grade 6, College, Undergraduate).  
+  Example: `"gradeLevel": "Grade 6"`
+
+- **Tone**: Specify the tone of the question (formal or casual).  
+  Example: `"tone": "casual"`
+
+Generate a question that tests conceptual understanding.
+in output dont give extra words like"json"
+
+"""
