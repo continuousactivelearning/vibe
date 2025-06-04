@@ -22,8 +22,6 @@ import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {CreateError} from 'shared/errors/errors';
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
-dotenv.config();
 
 /**
  * Custom error thrown during password change operations.
