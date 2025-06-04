@@ -1,6 +1,6 @@
 import {env} from '../utils/env';
 
-const dbUrl = env('DB_URL');
+const dbUrl = process.env.DB_URL;
 export const dbConfig = {
   url:
     dbUrl && dbUrl.trim() !== ''
