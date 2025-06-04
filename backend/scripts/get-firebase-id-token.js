@@ -5,6 +5,7 @@
 const {initializeApp} = require('firebase/app');
 const {getAuth, signInWithEmailAndPassword} = require('firebase/auth');
 
+// TODO: Load firebaseConfig from environment variables or a secure config file, not hardcoded.
 // TODO: Replace with your Firebase project config
 const firebaseConfig = {
   apiKey: 'AIzaSyAJeAmGe3p-l6w7EA4rsAwZ_xFKatI86Tg',

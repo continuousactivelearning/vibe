@@ -14,7 +14,6 @@ import {IUser} from 'shared/interfaces/Models';
 import {
   ChangePasswordBody,
   SignUpBody,
-  SendVerificationEmailBody,
 } from '../classes/validators/AuthValidators';
 
 /**
