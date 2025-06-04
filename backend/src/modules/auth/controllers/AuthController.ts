@@ -196,16 +196,13 @@ export class AuthController {
       'Sends a Firebase email verification link to the specified email address.',
   })
   async sendVerificationEmail(@Body() body: SendVerificationEmailBody) {
-    if (!body.email) {
-      throw new HttpError(400, 'Email is required');
-    }
     const result = await this.authService.sendEmailVerification(body.email);
     if (!result.success && result.message === 'User not found') {
       throw new HttpError(404, 'User not found');
     }
     if (!result.success) {
       throw new HttpError(
-        400,
+        500, // Use 500 for unexpected errors, not 400
         result.message || 'Failed to send verification email',
       );
     }

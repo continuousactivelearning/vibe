@@ -178,6 +178,13 @@ describe('Auth Controller Integration Tests', () => {
         expect(response.body).toHaveProperty('link');
         // Check that sendMail was called
         expect(sendMailMock).toHaveBeenCalled();
+        expect(sendMailMock).toHaveBeenCalledWith(
+          expect.objectContaining({
+            to: email,
+            subject: expect.any(String),
+            text: expect.any(String),
+          }),
+        );
       } else if (response.status === 404) {
         expect(response.body.message).toMatch(/not found/i);
       } else {
