@@ -66,16 +66,7 @@ jobs:
         run: |
           nohup firebase emulators:start --only auth --project demo-test &
           sleep 10
-          
-      - name: Debug DB_URL and test MongoDB connection
-        working-directory: backend
-        run: |
-          echo "DB_URL starts with: ${DB_URL:0:30}..."
-          pnpm add mongodb
-          node -e "const { MongoClient } = require('mongodb'); const url = process.env.DB_URL; new MongoClient(url).connect().then(() => { console.log('MongoDB connection OK'); process.exit(0); }).catch(e => { console.error('MongoDB connection FAIL', e); process.exit(1); });"
-        env:
-          DB_URL: ${{ secrets.DB_URL }}
-
+      
       - name: Run Jest tests
         working-directory: backend
         run: pnpm test:ci
