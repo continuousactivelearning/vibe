@@ -68,29 +68,37 @@ describe('Section Controller Integration Tests', () => {
       it('should create a section', async () => {
         const courseResponse = await request(app)
           .post('/courses/')
-          .send(coursePayload)
-          .expect(201);
+          .send(coursePayload);
+        if (courseResponse.status !== 201)
+          console.error('Course creation error:', courseResponse.body);
+        expect(courseResponse.status).toBe(201);
 
         const courseId = courseResponse.body._id;
 
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
-          .send(courseVersionPayload)
-          .expect(201);
+          .send(courseVersionPayload);
+        if (versionResponse.status !== 201)
+          console.error('Version creation error:', versionResponse.body);
+        expect(versionResponse.status).toBe(201);
 
         const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
-          .send(modulePayload)
-          .expect(201);
+          .send(modulePayload);
+        if (moduleResponse.status !== 201)
+          console.error('Module creation error:', moduleResponse.body);
+        expect(moduleResponse.status).toBe(201);
 
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload)
-          .expect(201);
+          .send(sectionPayload);
+        if (sectionResponse.status !== 201)
+          console.error('Section creation error:', sectionResponse.body);
+        expect(sectionResponse.status).toBe(201);
         expect(sectionResponse.body.version.modules[0].sections.length).toBe(1);
         expect(sectionResponse.body.version.modules[0].sections[0].name).toBe(
           sectionPayload.name,
@@ -136,45 +144,53 @@ describe('Section Controller Integration Tests', () => {
       it('should delete a section', async () => {
         const courseResponse = await request(app)
           .post('/courses/')
-          .send(coursePayload)
-          .expect(201);
+          .send(coursePayload);
+        if (courseResponse.status !== 201)
+          console.error('Course creation error:', courseResponse.body);
+        expect(courseResponse.status).toBe(201);
 
         const courseId = courseResponse.body._id;
 
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
-          .send(courseVersionPayload)
-          .expect(201);
+          .send(courseVersionPayload);
+        if (versionResponse.status !== 201)
+          console.error('Version creation error:', versionResponse.body);
+        expect(versionResponse.status).toBe(201);
 
         const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
-          .send(modulePayload)
-          .expect(201);
+          .send(modulePayload);
+        if (moduleResponse.status !== 201)
+          console.error('Module creation error:', moduleResponse.body);
+        expect(moduleResponse.status).toBe(201);
 
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload)
-          .expect(201);
+          .send(sectionPayload);
+        if (sectionResponse.status !== 201)
+          console.error('Section creation error:', sectionResponse.body);
+        expect(sectionResponse.status).toBe(201);
 
         const sectionId =
           sectionResponse.body.version.modules[0].sections[0].sectionId;
 
-        const deleteSectionResponse = await request(app)
-          .delete(
-            `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}`,
-          )
-          .expect(200);
+        const deleteSectionResponse = await request(app).delete(
+          `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}`,
+        );
+        if (deleteSectionResponse.status !== 200)
+          console.error('Section deletion error:', deleteSectionResponse.body);
+        expect(deleteSectionResponse.status).toBe(200);
       });
     });
 
     describe('Failiure Scenario', () => {
       it('should fail to delete a section', async () => {
         // Testing for Invalid params
-
         const sectionResponse = await request(app)
           .delete('/courses/versions/123/modules/123/sections/123')
           .expect(400);
@@ -182,11 +198,12 @@ describe('Section Controller Integration Tests', () => {
 
       it('should fail to delete an item', async () => {
         // Testing for Not found Case
-        const sectionResponse = await request(app)
-          .delete(
-            '/courses/versions/62341aeb5be816967d8fc2db/modules/62341aeb5be816967d8fc2db/sections/62341aeb5be816967d8fc2db',
-          )
-          .expect(404);
+        const sectionResponse = await request(app).delete(
+          '/courses/versions/62341aeb5be816967d8fc2db/modules/62341aeb5be816967d8fc2db/sections/62341aeb5be816967d8fc2db',
+        );
+        if (sectionResponse.status !== 404)
+          console.error('Delete item error:', sectionResponse.body);
+        expect(sectionResponse.status).toBe(404);
       });
     });
   });
@@ -221,31 +238,41 @@ describe('Section Controller Integration Tests', () => {
         // Create course, version, module, section
         const courseResponse = await request(app)
           .post('/courses/')
-          .send(coursePayload)
-          .expect(201);
+          .send(coursePayload);
+        if (courseResponse.status !== 201)
+          console.error('Course creation error:', courseResponse.body);
+        expect(courseResponse.status).toBe(201);
         const courseId = courseResponse.body._id;
 
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
-          .send(courseVersionPayload)
-          .expect(201);
+          .send(courseVersionPayload);
+        if (versionResponse.status !== 201)
+          console.error('Version creation error:', versionResponse.body);
+        expect(versionResponse.status).toBe(201);
         const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
-          .send(modulePayload)
-          .expect(201);
+          .send(modulePayload);
+        if (moduleResponse.status !== 201)
+          console.error('Module creation error:', moduleResponse.body);
+        expect(moduleResponse.status).toBe(201);
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const section1Response = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload1)
-          .expect(201);
+          .send(sectionPayload1);
+        if (section1Response.status !== 201)
+          console.error('Section1 creation error:', section1Response.body);
+        expect(section1Response.status).toBe(201);
 
         const section2Response = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload2)
-          .expect(201);
+          .send(sectionPayload2);
+        if (section2Response.status !== 201)
+          console.error('Section2 creation error:', section2Response.body);
+        expect(section2Response.status).toBe(201);
 
         const section1Id =
           section1Response.body.version.modules[0].sections[0].sectionId;
@@ -253,12 +280,13 @@ describe('Section Controller Integration Tests', () => {
         const section2Id =
           section2Response.body.version.modules[0].sections[1].sectionId;
 
-        // Move section2 before section1
         const moveResponse = await request(app)
           .put(
             `/courses/versions/${versionId}/modules/${moduleId}/sections/${section2Id}/move`,
           )
           .send({beforeSectionId: section1Id});
+        if (moveResponse.status !== 200)
+          console.error('Section move error:', moveResponse.body);
         // .expect(200);
 
         const sections = moveResponse.body.modules[0].sections;
@@ -267,7 +295,6 @@ describe('Section Controller Integration Tests', () => {
         const idx1 = sections.findIndex(i => i.sectionId === section1Id);
         const idx2 = sections.findIndex(i => i.sectionId === section2Id);
 
-        // // section2 should now be before section1
         expect(idx2).toBeLessThan(idx1);
       });
 
@@ -275,35 +302,43 @@ describe('Section Controller Integration Tests', () => {
         // Create course, version, module, section
         const courseResponse = await request(app)
           .post('/courses/')
-          .send(coursePayload)
-          .expect(201);
+          .send(coursePayload);
+        if (courseResponse.status !== 201)
+          console.error('Course creation error:', courseResponse.body);
+        expect(courseResponse.status).toBe(201);
         const courseId = courseResponse.body._id;
 
         const versionResponse = await request(app)
           .post(`/courses/${courseId}/versions`)
-          .send(courseVersionPayload)
-          .expect(201);
+          .send(courseVersionPayload);
+        if (versionResponse.status !== 201)
+          console.error('Version creation error:', versionResponse.body);
+        expect(versionResponse.status).toBe(201);
         const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
-          .send(modulePayload)
-          .expect(201);
+          .send(modulePayload);
+        if (moduleResponse.status !== 201)
+          console.error('Module creation error:', moduleResponse.body);
+        expect(moduleResponse.status).toBe(201);
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse1 = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload1)
-          .expect(201);
-
+          .send(sectionPayload1);
+        if (sectionResponse1.status !== 201)
+          console.error('Section1 creation error:', sectionResponse1.body);
+        expect(sectionResponse1.status).toBe(201);
         const sectionId1 =
           sectionResponse1.body.version.modules[0].sections[0].sectionId;
 
         const sectionResponse2 = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload2)
-          .expect(201);
-
+          .send(sectionPayload2);
+        if (sectionResponse2.status !== 201)
+          console.error('Section2 creation error:', sectionResponse2.body);
+        expect(sectionResponse2.status).toBe(201);
         const sectionId2 =
           sectionResponse2.body.version.modules[0].sections[1].sectionId;
 
@@ -314,18 +349,20 @@ describe('Section Controller Integration Tests', () => {
 
         const sectionResponse3 = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
-          .send(sectionPayload3)
-          .expect(201);
-
+          .send(sectionPayload3);
+        if (sectionResponse3.status !== 201)
+          console.error('Section3 creation error:', sectionResponse3.body);
+        expect(sectionResponse3.status).toBe(201);
         const sectionId3 =
           sectionResponse3.body.version.modules[0].sections[2].sectionId;
 
-        // Move item3 before item1
         const moveResponse = await request(app)
           .put(
             `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId3}/move`,
           )
           .send({beforeSectionId: sectionId1});
+        if (moveResponse.status !== 200)
+          console.error('Section move error:', moveResponse.body);
         // .expect(200);
 
         const sections = moveResponse.body.modules[0].sections;
@@ -335,7 +372,6 @@ describe('Section Controller Integration Tests', () => {
         const idx2 = sections.findIndex(i => i.sectionId === sectionId2);
         const idx3 = sections.findIndex(i => i.sectionId === sectionId3);
 
-        // section3 should now be before section1
         expect(idx3).toBeLessThan(idx1);
       });
     });
