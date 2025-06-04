@@ -1,6 +1,9 @@
 name: Run Jest Tests on PR Merge Result
 
 on:
+  push:
+    branches:
+      - '**'
   pull_request:
     types: [opened, synchronize, reopened]
 
