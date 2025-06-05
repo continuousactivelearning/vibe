@@ -155,13 +155,17 @@ describe('Auth Controller Integration Tests', () => {
     let sendMailMock: jest.SpyInstance;
 
     beforeAll(() => {
-      // Mock nodemailer.createTransport().sendMail
-      sendMailMock = jest.spyOn(nodemailer, 'createTransport').mockReturnValue({
+      // Mock nodemailer.createTransport and its sendMail method
+      const mockTransporter = {
         sendMail: jest.fn().mockResolvedValue({
           accepted: ['test@example.com'],
           rejected: [],
         }),
-      } as unknown as ReturnType<typeof nodemailer.createTransport>);
+      };
+      jest
+        .spyOn(nodemailer, 'createTransport')
+        .mockReturnValue(mockTransporter as any);
+      sendMailMock = jest.spyOn(mockTransporter, 'sendMail');
     });
 
     afterAll(() => {

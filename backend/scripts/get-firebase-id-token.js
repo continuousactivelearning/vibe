@@ -4,17 +4,19 @@
 
 const {initializeApp} = require('firebase/app');
 const {getAuth, signInWithEmailAndPassword} = require('firebase/auth');
+const dotenv = require('dotenv');
+dotenv.config({path: require('path').resolve(__dirname, '../.env')});
 
-// TODO: Load firebaseConfig from environment variables or a secure config file, not hardcoded.
 // TODO: Replace with your Firebase project config
+// TODO: Consider using dotenv to automatically load environment variables from a .env file for local development.
 const firebaseConfig = {
-  apiKey: 'AIzaSyAJeAmGe3p-l6w7EA4rsAwZ_xFKatI86Tg',
-  authDomain: 'primeval-wind-455317-i0.firebaseapp.com',
-  projectId: 'primeval-wind-455317-i0',
-  storageBucket: 'primeval-wind-455317-i0.appspot.com',
-  messagingSenderId: '262358825696',
-  appId: '1:262358825696:web:b205be2b9e89e3ee04ee85',
-  measurementId: 'G-1JPQXWPR4T',
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID,
 };
 
 const [, , email, password] = process.argv;

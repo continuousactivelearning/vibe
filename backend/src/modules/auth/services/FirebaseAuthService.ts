@@ -122,7 +122,10 @@ export class FirebaseAuthService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
-      console.error('Firebase createUser error:', error);
+      if (process.env.NODE_ENV !== 'production') {
+        // Log detailed error only in non-production
+        console.error('Firebase createUser error:', error);
+      }
       throw new Error('Failed to create user in Firebase');
     }
 
