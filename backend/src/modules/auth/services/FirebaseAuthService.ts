@@ -21,6 +21,7 @@ import {IAuthService} from '../interfaces/IAuthService';
 import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {CreateError} from 'shared/errors/errors';
+import nodemailer from 'nodemailer';
 
 /**
  * Custom error thrown during password change operations.
@@ -121,6 +122,10 @@ export class FirebaseAuthService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
+      if (process.env.NODE_ENV !== 'production') {
+        // Log detailed error only in non-production
+        console.error('Firebase createUser error:', error);
+      }
       throw new Error('Failed to create user in Firebase');
     }
 
@@ -233,5 +238,64 @@ export class FirebaseAuthService implements IAuthService {
     });
 
     return {success: true, message: 'Password updated successfully'};
+  }
+
+  /**
+   * Sends a Firebase email verification link to the user's email address.
+   *
+   * @param email - The email address of the user to verify
+   * @returns A promise resolving to the verification link (for testing) or success message
+   * @throws Error - If the user is not found or sending fails
+   */
+  async sendEmailVerification(
+    email: string,
+  ): Promise<{success: boolean; message: string; link?: string}> {
+    try {
+      // Get the user by email
+      const userRecord = await this.auth.getUserByEmail(email);
+      if (!userRecord) {
+        const error: any = new Error('User not found');
+        error.code = 'auth/user-not-found';
+        throw error;
+      }
+      // Generate the email verification link
+      const actionLink = await this.auth.generateEmailVerificationLink(email);
+
+      // Send the email using Nodemailer
+      const transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST,
+        port: Number(process.env.EMAIL_PORT),
+        secure: Number(process.env.EMAIL_PORT) === 465, // Use TLS only for port 465
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Verify your email address',
+        html: `<p>Please verify your email by clicking the link below:</p><p><a href="${actionLink}">${actionLink}</a></p>`,
+      });
+
+      return {
+        success: true,
+        message: 'Verification email sent',
+        link: actionLink, //Returned only for testing purposes
+      };
+    } catch (error: any) {
+      // Firebase throws error with code 'auth/user-not-found' if user doesn't exist
+      if (error.code === 'auth/user-not-found') {
+        return {
+          success: false,
+          message: 'User not found',
+        };
+      }
+      return {
+        success: false,
+        message: error.message || 'Failed to send verification email',
+      };
+    }
   }
 }

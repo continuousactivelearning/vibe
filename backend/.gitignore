@@ -67,3 +67,6 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Firebase service account key
+backend/vibe-58eb1-firebase-adminsdk-fbsvc-b91d674d35.json

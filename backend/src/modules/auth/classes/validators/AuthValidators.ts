@@ -184,6 +184,19 @@ class AuthErrorResponse {
   message: string;
 }
 
+class SendVerificationEmailBody {
+  @JSONSchema({
+    title: 'Email Address',
+    description: 'Email address of the user to send verification to',
+    example: 'user@example.com',
+    type: 'string',
+    format: 'email',
+  })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+}
+
 export {
   SignUpBody,
   ChangePasswordBody,
@@ -192,4 +205,5 @@ export {
   ChangePasswordResponse,
   TokenVerificationResponse,
   AuthErrorResponse,
+  SendVerificationEmailBody,
 };
