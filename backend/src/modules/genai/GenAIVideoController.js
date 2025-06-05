@@ -1,26 +1,32 @@
 // backend/src/modules/genai/GenAIVideoController.js
-const fs = require('fs');
 const path = require('path');
-const {exec} = require('child_process'); // For yt-dlp
+require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
+// backend/src/modules/genai/GenAIVideoController.js
+const fs = require('fs'); // Main import for sync methods
+const fsp = require('fs').promises; // For async methods if needed
+const util = require('util');
+const { exec } = require('child_process'); // exec is sufficient
 const ffmpeg = require('fluent-ffmpeg');
 const multer = require('multer');
-const pdf = require('pdf-parse'); // From previous step
+const pdf = require('pdf-parse');
+const axios = require('axios');
 
 // Configure Multer for PDF uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    // Save PDFs in a temporary 'uploads' folder within the genai module
     const uploadPath = path.join(__dirname, 'uploads');
-    fs.mkdirSync(uploadPath, {recursive: true}); // Ensure directory exists
+    // fs.mkdirSync is fine here as it's part of initial setup of multer
+    fs.mkdirSync(uploadPath, { recursive: true });
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
     cb(
       null,
       Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.]/g, '_'),
-    ); // Sanitize filename
+    );
   },
 });
+
 const upload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
@@ -34,20 +40,44 @@ const upload = multer({
 // PDF Text Extraction Utility Function
 async function extractTextFromPdf(pdfPath) {
   try {
+    // fs.readFileSync is acceptable here as pdf-parse expects a buffer or path
+    // and this function is async due to pdf() call.
     const dataBuffer = fs.readFileSync(pdfPath);
     const data = await pdf(dataBuffer);
     return data.text;
   } catch (error) {
     console.error(`Error extracting text from PDF ${pdfPath}:`, error);
-    // Depending on desired error handling, either throw the error
-    // or return a specific value like null or an error message.
     throw new Error(`Failed to extract text from PDF: ${error.message}`);
+  }
+}
+// runs the Whisper CLI to transcribe an audio file, waits for it to finish, reads the generated .txt output, and returns the transcript text.
+async function runWhisperAndGetText(whisperCommand, expectedTranscriptFilePath, tempTranscriptDir) {
+  const execProm = util.promisify(exec); // Define execProm here
+  try {
+    await fsp.mkdir(tempTranscriptDir, { recursive: true });
+    const { stdout, stderr } = await execProm(whisperCommand);
+    console.log('Whisper CLI stdout:', stdout.trim());
+    if (stderr) console.error('Whisper CLI stderr:', stderr.trim());
+    const text = await fsp.readFile(expectedTranscriptFilePath, 'utf-8');
+    console.log('Whisper CLI transcription successful. Output read from:', expectedTranscriptFilePath);
+    return text.trim();
+  } catch (err) {
+    console.error('Whisper processing error:', err.message);
+    try {
+      const filesInDir = await fsp.readdir(tempTranscriptDir);
+      console.log(`Files in "${tempTranscriptDir}":`, filesInDir);
+    } catch (dirErr) {
+      console.error(`Could not read output directory "${tempTranscriptDir}":`, dirErr.message);
+    }
+    throw err;
   }
 }
 
 class GenAIVideoController {
   constructor() {
-    // Initialization logic if needed
+    console.log(
+      "GenAIVideoController initialized. Ensure OpenAI Whisper CLI is installed in the specified venv (e.g., onnx_generation_env/Scripts/whisper.exe) and accessible.",
+    );
   }
 
   async generateTranscript(req, res) {
@@ -68,12 +98,13 @@ class GenAIVideoController {
       }
 
       let transcript = 'Placeholder transcript. ';
-      let processedAudioPath = null; // This will be the final WAV path for transcription
-      let ytdlpOutputPath = null; // Define here for cleanup in case of error
+      let processedAudioPath = null;
+      let ytdlpOutputPath = null;
+      let tempTranscriptDir = null;
+
 
       try {
         if (youtubeUrl) {
-          // Validate YouTube URL (basic check)
           if (
             !youtubeUrl.includes('youtube.com') &&
             !youtubeUrl.includes('youtu.be')
@@ -84,36 +115,29 @@ class GenAIVideoController {
           }
 
           const tempAudioDir = path.join(__dirname, 'temp_audio');
-          fs.mkdirSync(tempAudioDir, {recursive: true});
+          await fsp.mkdir(tempAudioDir, {recursive: true});
 
-          // yt-dlp will produce a .wav file directly if possible with --extract-audio and --audio-format wav
-          // Let's name the initial download from yt-dlp
           ytdlpOutputPath = path.join(
             tempAudioDir,
             `${Date.now()}_audio_from_ytdlp.wav`,
-          ); // Assign here for broader scope
+          );
           processedAudioPath = path.join(
             tempAudioDir,
             `${Date.now()}_final_audio.wav`,
-          ); // Final standardized WAV
+          );
 
-          // Construct yt-dlp command
-          // -x or --extract-audio: Extract audio track.
-          // --audio-format wav: Convert to WAV.
-          // --audio-quality 0: Best audio quality.
-          // -o: Output template.
-          // We add --ffmpeg-location if ffmpegPath is configured, helps yt-dlp find it.
-          // Forcing output to wav, then we will standardize it with our ffmpeg call.
-          const ytdlpCommand = `yt-dlp -x --audio-format wav --audio-quality 0 -o "${ytdlpOutputPath}" "${youtubeUrl}"`;
+          // Path to the virtual environment's Scripts directory
+          const venvScriptsPath = path.resolve(__dirname, '..', '..', '..', '..', 'onnx_generation_env', 'Scripts');
+          const venvYtDlpPath = path.join(venvScriptsPath, 'yt-dlp.exe'); // Assuming yt-dlp.exe is in the venv
+
+          const ytdlpCommand = `"${venvYtDlpPath}" -x --audio-format wav --audio-quality 0 -o "${ytdlpOutputPath}" "${youtubeUrl}"`;
 
           console.log(`Executing yt-dlp: ${ytdlpCommand}`);
-
           await new Promise((resolve, reject) => {
             exec(ytdlpCommand, (error, stdout, stderr) => {
               if (error) {
                 console.error(`yt-dlp execution error: ${error.message}`);
                 console.error(`yt-dlp stderr: ${stderr}`);
-                // Try to provide a more specific error if yt-dlp output indicates something useful
                 if (stderr.includes('Unsupported URL')) {
                   return reject(
                     new Error('Invalid or unsupported YouTube URL by yt-dlp.'),
@@ -127,14 +151,13 @@ class GenAIVideoController {
                 return reject(new Error(`yt-dlp failed: ${error.message}`));
               }
               console.log(`yt-dlp stdout: ${stdout}`);
-              // Check if the ytdlpOutputPath was actually created
               if (!fs.existsSync(ytdlpOutputPath)) {
                 console.error(
                   `yt-dlp finished but output file ${ytdlpOutputPath} not found. stderr: ${stderr}`,
                 );
                 return reject(
                   new Error(
-                    'yt-dlp did not produce the expected output file. Check logs.',
+                    `yt-dlp did not produce the expected output file. Check logs.`,
                   ),
                 );
               }
@@ -146,15 +169,14 @@ class GenAIVideoController {
             });
           });
 
-          // Now, standardize the audio from yt-dlp using fluent-ffmpeg
           console.log(
             `Standardizing ${ytdlpOutputPath} to ${processedAudioPath} (16kHz, 1-channel)`,
           );
           await new Promise((resolve, reject) => {
             ffmpeg(ytdlpOutputPath)
               .toFormat('wav')
-              .audioFrequency(16000) // Whisper typically expects 16kHz
-              .audioChannels(1) // Mono
+              .audioFrequency(16000)
+              .audioChannels(1)
               .on('error', ffmpegErr => {
                 console.error('FFmpeg standardization error:', ffmpegErr);
                 reject(
@@ -163,25 +185,24 @@ class GenAIVideoController {
                   ),
                 );
               })
-              .on('end', () => {
+              .on('end', async () => {
                 console.log(
                   'FFmpeg standardization finished:',
                   processedAudioPath,
                 );
-                // Clean up the intermediate file from yt-dlp
-                if (fs.existsSync(ytdlpOutputPath)) {
-                  fs.unlink(ytdlpOutputPath, unlinkErr => {
-                    if (unlinkErr)
-                      console.error(
-                        'Error deleting intermediate ytdlp audio file:',
-                        unlinkErr,
-                      );
-                    else
-                      console.log(
-                        'Cleaned up intermediate ytdlp audio file:',
-                        ytdlpOutputPath,
-                      );
-                  });
+                if (fs.existsSync(ytdlpOutputPath)) { //checks if a specific file (an intermediate audio file generated by yt-dlp) exists, and if it does, it attempts to delete it.
+                  try {
+                    await fsp.unlink(ytdlpOutputPath);
+                    console.log(
+                      'Cleaned up intermediate ytdlp audio file:',
+                      ytdlpOutputPath,
+                    );
+                  } catch (unlinkErr) {
+                    console.error(
+                      'Error deleting intermediate ytdlp audio file:',
+                      unlinkErr,
+                    );
+                  }
                 }
                 resolve();
               })
@@ -193,135 +214,202 @@ class GenAIVideoController {
         if (req.file) {
           console.log('PDF file uploaded:', req.file.path);
           try {
-            const pdfText = await extractTextFromPdf(req.file.path); // Ensure extractTextFromPdf is defined in the class or file
+            const pdfText = await extractTextFromPdf(req.file.path);
             console.log(
               'Extracted PDF text (first 100 chars):',
               pdfText.substring(0, 100),
             );
-            transcript += ` [PDF content processed. Text length: ${pdfText.length}]`;
+            transcript += ` [PDF content processed. Text length: ${pdfText.length}]`; //check i think needs to changed
           } catch (pdfError) {
             console.error('PDF processing error:', pdfError.message);
             transcript += ` [PDF processing failed: ${pdfError.message}]`;
           }
         }
 
+        // --- OpenAI Whisper CLI Integration Start ---
         if (processedAudioPath) {
-          transcript += `Audio from ${processedAudioPath} would be transcribed here using ONNX.`;
-        }
+          console.log(
+            'Starting OpenAI Whisper CLI transcription for:',
+            processedAudioPath,
+          );
+
+          tempTranscriptDir = path.join(__dirname, 'temp_transcripts');
+          await fsp.mkdir(tempTranscriptDir, {recursive: true});
+
+          // Path to the virtual environment's Scripts directory
+          const venvScriptsPath = path.resolve(__dirname, '..', '..', '..', '..', 'onnx_generation_env', 'Scripts');
+          const whisperExecutable = path.join(venvScriptsPath, 'whisper.exe'); // Assuming whisper.exe
+
+          // Output file name will be <audio_file_name_without_ext>.txt
+          const audioFileNameWithoutExt = path.basename(processedAudioPath, path.extname(processedAudioPath));
+          const expectedTranscriptFilePath = path.join(tempTranscriptDir, `${audioFileNameWithoutExt}.txt`);
+
+          const whisperCommand = `"${whisperExecutable}" "${processedAudioPath}" --model small --language English --output_format txt --output_dir "${tempTranscriptDir}"`;
+
+          console.log(`Executing Whisper CLI: ${whisperCommand}`);
+          // const execProm = util.promisify(exec); // Moved execProm definition to the top of runWhisperAndGetText
+            try {
+            const whisperText = await runWhisperAndGetText(
+              whisperCommand,
+              expectedTranscriptFilePath,
+              tempTranscriptDir
+            );
+            transcript += ` [Whisper CLI Output: "${whisperText}"]`;
+            } catch (cliError) {
+            console.error('Whisper CLI processing error:', cliError);
+            transcript += ` [Error during Whisper CLI processing: ${cliError.message}]`;
+            }
+          } else if (!req.file) {
+            transcript = 'No audio input provided for transcription.';
+          }
+
+
+        // --- OpenAI Whisper CLI Integration End ---
 
         res.status(200).json({
-          message: 'Transcript generation process initiated.',
+          message: 'Transcript generation process completed.',
           youtubeUrl: youtubeUrl,
           pdfFile: req.file ? req.file.path : null,
           generatedTranscript: transcript,
         });
       } catch (error) {
         console.error('Error in generateTranscript:', error);
-        // Clean up any created audio files if an error occurs mid-process
-        if (processedAudioPath && fs.existsSync(processedAudioPath)) {
-          fs.unlink(processedAudioPath, delErr => {
-            if (delErr)
-              console.error(
-                'Error deleting processed audio on failure:',
-                delErr,
-              );
-          });
-        }
-        // Also attempt to clean up ytdlpOutputPath if it exists and is different
-        if (
-          ytdlpOutputPath &&
-          fs.existsSync(ytdlpOutputPath) &&
-          ytdlpOutputPath !== processedAudioPath
-        ) {
-          fs.unlink(ytdlpOutputPath, delErr => {
-            if (delErr)
-              console.error(
-                'Error deleting ytdlp temp audio on failure:',
-                delErr,
-              );
-          });
-        }
-
         res
           .status(500)
           .json({message: 'Error generating transcript: ' + error.message});
+      } finally {
+        // Cleanup temporary files and directories
+        if (processedAudioPath && fs.existsSync(processedAudioPath)) {
+          try {
+            await fsp.unlink(processedAudioPath);
+            console.log('Cleaned up processed audio:', processedAudioPath);
+          } catch (delErr) {
+            console.error('Error deleting processed audio:', delErr);
+          }
+        }
+        // ytdlpOutputPath is deleted by ffmpeg promise on success, ensure cleanup on failure if it still exists
+        if (ytdlpOutputPath && fs.existsSync(ytdlpOutputPath)) {
+             try {
+                await fsp.unlink(ytdlpOutputPath);
+                console.log('Cleaned up ytdlp temp audio (on error or if ffmpeg step skipped):', ytdlpOutputPath);
+            } catch (delErr) {
+                console.error('Error deleting ytdlp temp audio (on error or if ffmpeg step skipped):', delErr);
+            }
+        }
+        if (tempTranscriptDir) {
+          try {
+            await fsp.rm(tempTranscriptDir, { recursive: true, force: true });
+            console.log(`Cleaned up temp transcript dir: ${tempTranscriptDir}`);
+          } catch (rmDirError) {
+             // force: true should prevent ENOENT, this catches other errors.
+             if (rmDirError.code !== 'ENOENT') { 
+                console.error(`Error deleting temp transcript dir ${tempTranscriptDir}:`, rmDirError);
+             }
+          }
+        }
+         if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+          try {
+            await fsp.unlink(req.file.path);
+            console.log('Cleaned up uploaded PDF file:', req.file.path);
+          } catch (pdfDelErr) {
+            console.error('Error deleting uploaded PDF file:', pdfDelErr);
+          }
+        }
       }
-      // No finally block for cleanup here as processedAudioPath might be needed by a later (mocked) transcription step.
-      // Cleanup should ideally happen after transcription, or if transcription is part of this flow and fails.
-      // The prompt also implies that the final processedAudioPath should be cleaned up later.
-      // The intermediate ytdlpOutputPath is cleaned up after successful ffmpeg standardization.
-      // Error case cleanup is handled in the catch block.
     });
   }
 
-  /**
-   * Endpoint: genai/generate/transcript/segment/
-   * Handles transcript input, segments it, and supports PDF uploads.
-   */
   async generateTranscriptSegment(req, res) {
     console.log('GenAIVideoController: generateTranscriptSegment endpoint hit');
-
-    upload(req, res, async err => {
-      if (err) {
-        return res
-          .status(400)
-          .json({message: 'PDF upload error: ' + err.message});
+    try {
+      const { transcript } = req.body;
+      if (!transcript || typeof transcript !== 'string' || transcript.trim() === '') {
+        return res.status(400).json({ error: 'Transcript text is required and must be a non-empty string.' });
       }
 
-      const {transcript} = req.body;
-
-      if (!transcript) {
-        return res
-          .status(400)
-          .json({message: 'Transcript is required in the request body.'});
+      const apiToken = process.env.HF_API_TOKEN;
+      if (!apiToken) {
+        console.error('Hugging Face API token (HF_API_TOKEN) is not configured in .env file.');
+        return res.status(500).json({ error: 'API token configuration error.' });
       }
 
-      let segmentedTranscript = 'Placeholder segmented transcript. ';
+      console.log(`Processing transcript for segmentation with LLM (length: ${transcript.length} chars)`);
 
+      // Free models you can try (uncomment one):
+      const llmApiUrl = 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium';
+      // const llmApiUrl = 'https://api-inference.huggingface.co/models/facebook/blenderbot-400M-distill';
+      // const llmApiUrl = 'https://api-inference.huggingface.co/models/microsoft/DialoGPT-large';
+      // const llmApiUrl = 'https://api-inference.huggingface.co/models/distilbert-base-uncased';
+      
+      const prompt = `Analyze the following timed lecture transcript. Your task is to segment it into meaningful subtopics(not too many).
+The transcript is formatted with each line as: [start_time --> end_time] text.
+
+For each identified subtopic, return a JSON object where:
+- Each key is the "end_time" of the last transcript line in the subtopic (e.g., "02:53.000").
+- Each value is an array of strings, where each string is an original transcript line (including its timestamps and text) that belongs to that subtopic.
+
+Respond with a single JSON object representing this mapping of subtopic segments.
+
+    Transcript to process:
+    ${transcript}
+    `;
+
+      let segments = [];
       try {
-        if (req.file) {
-          console.log(
-            'PDF file uploaded for segmentation context:',
-            req.file.path,
-          );
+        const response = await axios.post(llmApiUrl, 
+          { inputs: prompt },
+          { headers: { 'Authorization': `Bearer ${apiToken}` } }
+        );
+
+        if (response.data && response.data[0] && typeof response.data[0].generated_text === 'string') {
+          const generatedText = response.data[0].generated_text;
+          console.log('LLM raw generated_text:', generatedText);
           try {
-            const pdfText = await extractTextFromPdf(req.file.path);
-            console.log(
-              'Extracted PDF text for context (first 100 chars):',
-              pdfText.substring(0, 100),
-            );
-            // Here, pdfText could be used to provide context to the segmentation model
-            segmentedTranscript += ` [PDF context processed. Text length: ${pdfText.length}]`;
-          } catch (pdfError) {
-            console.error('PDF context processing error:', pdfError.message);
-            segmentedTranscript += ` [PDF context processing failed: ${pdfError.message}]`;
+            segments = JSON.parse(generatedText);
+            // Add a basic validation that segments is an array, and its elements have the expected keys
+            if (!Array.isArray(segments) || (segments.length > 0 && (typeof segments[0].end_time === 'undefined' || typeof segments[0].transcript_lines === 'undefined'))) {
+                console.error('LLM output, though valid JSON, is not in the expected format of [{end_time, transcript_lines}, ...]:', segments);
+                // Set segments to empty or handle as an error specific to content structure
+                // For now, let's return an error if structure is wrong after successful parse
+                return res.status(500).json({ error: 'LLM output was valid JSON but not in the expected structured format.' });
+            }
+          } catch (parseError) {
+            console.error('Failed to parse LLM generated_text as JSON:', parseError);
+            console.error('LLM raw output that failed parsing:', generatedText);
+            return res.status(500).json({ error: 'LLM output was not valid JSON. Cannot process segments.' });
           }
+        } else {
+          console.warn('LLM response did not contain expected generated_text string format:', response.data);
+          return res.status(500).json({ error: 'LLM response missing generated_text or not in expected format.' });
         }
-
-        // Placeholder for ONNX SEGBOT model inference
-        segmentedTranscript += `Transcript: "${transcript.substring(0, 100)}..." would be segmented here using ONNX.`;
-
-        res.status(200).json({
-          message: 'Transcript segmentation process initiated.',
-          originalTranscriptPreview: transcript.substring(0, 200) + '...',
-          pdfFile: req.file ? req.file.path : null,
-          generatedSegments: segmentedTranscript,
-        });
-      } catch (error) {
-        console.error('Error in generateTranscriptSegment:', error);
-        res
-          .status(500)
-          .json({message: 'Error segmenting transcript: ' + error.message});
+      } catch (llmError) {
+        console.error('Error calling LLM API:', llmError.message);
+        if (llmError.response) {
+          console.error('LLM API Response Status:', llmError.response.status);
+          console.error('LLM API Response Data:', llmError.response.data);
+          if (llmError.response.status === 401) {
+            return res.status(500).json({ error: 'LLM API authentication error. Check API token.' });
+          }
+          return res.status(500).json({ error: `LLM API error: ${llmError.response.data?.error || 'Failed to process transcript with LLM'}` });
+        } else if (llmError.request) {
+          return res.status(500).json({ error: 'No response from LLM API. Check network or API status.' });
+        }
+        throw llmError; // Rethrow for the outer catch if not handled specifically
       }
-      // Decide if PDFs should be kept or deleted after processing.
-      // If temporary, uncomment the unlink:
-      // if (req.file && req.file.path && fs.existsSync(req.file.path)) {
-      //     fs.unlink(req.file.path, (err) => {
-      //         if (err) console.error("Error deleting uploaded PDF file:", req.file.path, err);
-      //         else console.log("Cleaned up uploaded PDF file:", req.file.path);
-      //     });
-      // }
-    });
+
+      res.status(200).json({
+        message: 'Transcript segmentation completed successfully using LLM.',
+        segments: segments,
+        segmentCount: segments.length
+      });
+
+    } catch (error) {
+      console.error('Error in generateTranscriptSegment:', error);
+      // Ensure a response is sent if an error is rethrown from inner try-catch
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Error segmenting transcript: ' + error.message });
+      }
+    }
   }
 }
 
