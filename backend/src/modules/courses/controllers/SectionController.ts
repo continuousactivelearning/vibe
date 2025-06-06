@@ -33,11 +33,12 @@ import {
 } from 'routing-controllers';
 import {ResponseSchema} from 'routing-controllers-openapi';
 import {COURSES_TYPES} from '#courses/types.js';
+import {GLOBAL_TYPES} from '#root/types.js';
 @injectable()
 @JsonController('/courses')
 export class SectionController {
   constructor(
-    @inject(COURSES_TYPES.CourseRepo)
+    @inject(GLOBAL_TYPES.CourseRepo)
     private readonly courseRepo: CourseRepository,
     @inject(COURSES_TYPES.ItemRepo) private readonly itemRepo: ItemRepository,
     @inject(COURSES_TYPES.SectionService)
