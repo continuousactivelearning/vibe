@@ -16,11 +16,8 @@ export const sharedContainerModule = new ContainerModule(options => {
 
   options.bind(GLOBAL_TYPES.uri).toConstantValue(uri);
   options.bind(GLOBAL_TYPES.dbName).toConstantValue(dbName);
-  options.bind(GLOBAL_TYPES.uri).toConstantValue(uri);
-  options.bind(GLOBAL_TYPES.dbName).toConstantValue(dbName);
 
   // Database
-  options.bind(GLOBAL_TYPES.Database).to(MongoDatabase).inSingletonScope();
   options.bind(GLOBAL_TYPES.Database).to(MongoDatabase).inSingletonScope();
 
   // Repositories

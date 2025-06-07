@@ -20,13 +20,12 @@
     "#quizzes/*.js": "./build/modules/quizzes/*.js",
     "#docs/*.js": "./build/modules/docs/*.js"
   },
-  
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --detectOpenHandles",
-    "test:ci": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --detectOpenHandles --forceExit",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch --detectOpenHandles",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage  --detectOpenHandles",
-    "test:watch:coverage": "node --experimental-vm-modules node_modules/.bin/jest --watch --coverage --detectOpenHandles",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles --forceExit",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --detectOpenHandles",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage  --detectOpenHandles",
+    "test:watch:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --coverage --detectOpenHandles",
     "dev": "pnpx ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && pnpx tsc-alias && node esbuild.config.js && pnpm sentry:sourcemaps",
     "start": "node build/index.js",
@@ -59,6 +58,7 @@
   "packageManager": "pnpm@10.4.1",
   "devDependencies": {
     "@faker-js/faker": "^9.7.0",
+    "@jest/globals": "30.0.0-beta.3",
     "@types/bcrypt": "^5.0.2",
     "@types/body-parser": "^1.19.5",
     "@types/config": "^3.3.5",

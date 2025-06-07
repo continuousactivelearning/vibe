@@ -2,10 +2,6 @@ import {coursesModuleOptions, CreateItemBody, Item} from '../';
 import {useExpressServer, useContainer} from 'routing-controllers';
 import Express from 'express';
 import request from 'supertest';
-import {ItemRepository} from '../../../shared/database/providers/mongo/repositories/ItemRepository';
-import {dbConfig} from '../../../config/db';
-import {CourseVersionService, ItemService, SectionService} from '../services';
-import {ProgressService} from '../../users/services/ProgressService';
 import {
   createCourse,
   createModule,
@@ -14,16 +10,14 @@ import {
 } from './utils/creationFunctions';
 import {faker} from '@faker-js/faker';
 import {ItemType} from '../../../shared/interfaces/models';
-import {ProgressRepository} from '../../../shared/database/providers/mongo/repositories/ProgressRepository';
 import {InversifyAdapter} from '../../../inversify-adapter';
 import {Container} from 'inversify';
 import {usersContainerModule} from '../../users/container';
 import {coursesContainerModule} from '../container';
 import {sharedContainerModule} from '../../../container';
-import {auth} from 'firebase-admin';
 import {authContainerModule} from '../../auth/container';
+import {jest} from '@jest/globals';
 
-jest.setTimeout(90000);
 describe('Item Controller Integration Tests', () => {
   const App = Express();
   let app;
@@ -84,7 +78,7 @@ describe('Item Controller Integration Tests', () => {
             .send(itemPayload);
 
           expect(itemResponse.body.itemsGroup.items.length).toBe(1);
-        });
+        }, 90000);
       });
       describe('Create Video Item', () => {
         it('should create a video item', async () => {
@@ -117,7 +111,7 @@ describe('Item Controller Integration Tests', () => {
           expect(itemsGroupResponse.status === 201);
 
           expect(itemsGroupResponse.body.itemsGroup.items.length).toBe(1);
-        });
+        }, 90000);
       });
     });
   });
@@ -229,7 +223,7 @@ describe('Item Controller Integration Tests', () => {
       const ids = readAllResponse.body.map(i => i._id);
       expect(ids).toContain(item1.body.itemsGroup.items[0]._id);
       expect(ids).toContain(item2.body.itemsGroup.items[0]._id);
-    });
+    }, 90000);
   });
 
   describe('ITEM UPDATION', () => {
@@ -339,7 +333,7 @@ describe('Item Controller Integration Tests', () => {
       expect(updateResponse.body.itemsGroup.items[0].description).toBe(
         updatePayload.description,
       );
-    });
+    }, 90000);
   });
 
   describe('ITEM DELETION', () => {
@@ -433,7 +427,7 @@ describe('Item Controller Integration Tests', () => {
         expect(itemsResponse.body.deletedItemId).toBe(
           itemsGroupResponse.body.itemsGroup.items[0]._id,
         );
-      });
+      }, 90000);
     });
 
     describe('Failiure Scenario', () => {
@@ -443,7 +437,7 @@ describe('Item Controller Integration Tests', () => {
         const itemsResponse = await request(app)
           .delete('/courses/itemGroups/123/items/123')
           .expect(400);
-      });
+      }, 90000);
 
       it('should fail to delete an item', async () => {
         // Testing for Not found Case
@@ -451,8 +445,8 @@ describe('Item Controller Integration Tests', () => {
           .delete(
             '/courses/itemGroups/62341aeb5be816967d8fc2db/items/62341aeb5be816967d8fc2db',
           )
-          .expect(400);
-      });
+          .expect(404);
+      }, 90000);
     });
   });
 
@@ -577,7 +571,7 @@ describe('Item Controller Integration Tests', () => {
 
         // item2 should now be before item1
         expect(idx2).toBeLessThan(idx1);
-      });
+      }, 90000);
 
       it('should move the third item before the first item in a list of three', async () => {
         // Create course, version, module, section
@@ -668,7 +662,7 @@ describe('Item Controller Integration Tests', () => {
 
         // item3 should now be before item1
         expect(idx3).toBeLessThan(idx1);
-      });
+      }, 90000);
     });
   });
   describe('ITEM SERVICE ERROR PATHS', () => {
@@ -732,7 +726,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send(itemPayload)
         .expect(404);
-    });
+    }, 90000);
 
     it('should return 404 if section does not exist on createItem', async () => {
       await request(app)
@@ -741,7 +735,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send(itemPayload)
         .expect(404);
-    });
+    }, 90000);
 
     it('should return 400 if invalid item payload on createItem', async () => {
       await request(app)
@@ -750,7 +744,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({}) // missing required fields
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if version does not exist on updateItem', async () => {
       await request(app)
@@ -759,7 +753,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({name: 'x'})
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if item does not exist on updateItem', async () => {
       await request(app)
@@ -768,7 +762,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({name: 'x'})
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if invalid payload on updateItem', async () => {
       await request(app)
@@ -777,19 +771,19 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({}) // missing required fields
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if invalid itemGroupId or itemId on deleteItem', async () => {
       await request(app)
         .delete('/courses/itemGroups/123/items/123')
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if item not found on deleteItem', async () => {
       await request(app)
         .delete(`/courses/itemGroups/${itemsGroupId}/items/fakeItemId`)
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if neither afterItemId nor beforeItemId is provided in moveItem', async () => {
       await request(app)
@@ -798,7 +792,7 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({})
         .expect(400);
-    });
+    }, 90000);
 
     it('should return 400 if item isnt in that version or module', async () => {
       await request(app)
@@ -807,6 +801,6 @@ describe('Item Controller Integration Tests', () => {
         )
         .send({beforeItemId: '62341aeb5be816967d8fc2db'})
         .expect(400);
-    });
+    }, 90000);
   });
 });

@@ -2,15 +2,15 @@ import {COURSES_TYPES} from '#courses/types.js';
 import {GLOBAL_TYPES} from '#root/types.js';
 import {
   BaseService,
-  EnrollmentRepository,
-  CourseRepository,
-  UserRepository,
-  ItemRepository,
+  ICourseRepository,
+  IUserRepository,
+  IItemRepository,
   MongoDatabase,
   EnrollmentRole,
   ICourseVersion,
 } from '#shared/index.js';
-import {Enrollment} from '#users/classes/index.js';
+import {EnrollmentRepository} from '#shared/database/providers/mongo/repositories/EnrollmentRepository.js';
+import {Enrollment} from '#users/classes/transformers/index.js';
 import {USERS_TYPES} from '#users/types.js';
 import {injectable, inject} from 'inversify';
 import {ClientSession, ObjectId} from 'mongodb';
@@ -22,9 +22,9 @@ export class EnrollmentService extends BaseService {
     @inject(USERS_TYPES.EnrollmentRepo)
     private readonly enrollmentRepo: EnrollmentRepository,
     @inject(GLOBAL_TYPES.CourseRepo)
-    private readonly courseRepo: CourseRepository,
-    @inject(USERS_TYPES.UserRepo) private readonly userRepo: UserRepository,
-    @inject(COURSES_TYPES.ItemRepo) private readonly itemRepo: ItemRepository,
+    private readonly courseRepo: ICourseRepository,
+    @inject(USERS_TYPES.UserRepo) private readonly userRepo: IUserRepository,
+    @inject(COURSES_TYPES.ItemRepo) private readonly itemRepo: IItemRepository,
     @inject(GLOBAL_TYPES.Database)
     private readonly database: MongoDatabase,
   ) {

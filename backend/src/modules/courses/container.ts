@@ -1,4 +1,4 @@
-import {CourseRepository, ItemRepository} from '#shared/index.js';
+import {ItemRepository} from '#shared/index.js';
 import {ContainerModule} from 'inversify';
 import {
   CourseController,

@@ -15,6 +15,7 @@ import {
 import {SOLQuestion} from '../classes/transformers';
 import {QuestionBody, SOLSolution} from '../classes/validators';
 import request from 'supertest';
+import {jest} from '@jest/globals';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
