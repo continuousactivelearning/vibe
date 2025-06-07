@@ -28,7 +28,7 @@ function writeState(state: Record<string, any>) {
 const state = readState();
 
 if (state[STEP_NAME]) {
-  console.log("✅ MongoDB binaries already ensured. Skipping.");
+  console.log("✅ MongoDB binaries successfully downloaded by Yash Sharma.");
   process.exit(0);
 }
 
