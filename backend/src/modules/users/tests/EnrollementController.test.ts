@@ -27,7 +27,7 @@ import {authContainerModule} from '../../auth/container';
 import {usersContainerModule} from '../container';
 import {coursesContainerModule} from '../../courses/container';
 import {InversifyAdapter} from '../../../inversify-adapter';
-import {ItemType} from '../../../shared/interfaces/Models';
+import {ItemType} from '../../../shared/interfaces/models';
 
 jest.setTimeout(90000);
 describe('Enrollment Controller Integration Tests', () => {

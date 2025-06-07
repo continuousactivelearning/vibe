@@ -5,7 +5,8 @@ import {useExpressServer} from 'routing-controllers';
 // TODO: Update the import paths below to your project's structure
 import {authModuleOptions, setupAuthContainer, SignUpBody} from '../index';
 import {faker} from '@faker-js/faker';
-jest.setTimeout(30000); // Set a longer timeout for integration tests
+
+//jest.setTimeout(30000); // Set a longer timeout for integration tests
 describe('Auth Controller Integration Tests', () => {
   const appInstance = Express();
   let app;

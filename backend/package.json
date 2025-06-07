@@ -5,11 +5,13 @@
   "main": "index.js",
   "type": "module",
   "imports": {
-    "#root/container.js": "./src/utils/container.js",
-    "#root/inversify.js": "./src/utils/inversify-adapter.js",
-    "#root/instrument.js": "./src/utils/instrument.js",
-    "#root/index.js": "./src/utils/index.js",
-    "#root/types.js": "./src/utils/types.js",
+    "#root/container.js": "./build/container.js",
+    "#root/inversify-adapter.js": "./build/inversify-adapter.js",
+    "#root/instrument.js": "./build/instrument.js",
+    "#root/index.js": "./build/index.js",
+    "#root/types.js": "./build/types.js",
+    "#root/utils/*.js": "./build/utils/*.js",
+    "#root/shared/*.js": "./build/shared/*.js",
     "#shared/*.js": "./build/shared/*.js",
     "#config/*.js": "./build/config/*.js",
     "#auth/*.js": "./build/modules/auth/*.js",
@@ -20,7 +22,7 @@
   },
   
   "scripts": {
-    "test": "jest --runInBand --detectOpenHandles",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --detectOpenHandles",
     "test:ci": "jest --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --watch --detectOpenHandles",
     "test:coverage": "jest --coverage  --detectOpenHandles",

@@ -23,7 +23,7 @@ import {
   OnUndefined,
 } from 'routing-controllers';
 import {ResponseSchema} from 'routing-controllers-openapi';
-import {COURSES_TYPES} from '#courses/index.js';
+import {COURSES_TYPES} from '#courses/types.js';
 import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
 @injectable()
 @JsonController('/courses')
