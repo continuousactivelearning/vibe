@@ -23,10 +23,10 @@
   
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --detectOpenHandles",
-    "test:ci": "jest --runInBand --detectOpenHandles --forceExit",
-    "test:watch": "jest --watch --detectOpenHandles",
-    "test:coverage": "jest --coverage  --detectOpenHandles",
-    "test:watch:coverage": "jest --watch --coverage --detectOpenHandles",
+    "test:ci": "node --experimental-vm-modules node_modules/.bin/jest --runInBand --detectOpenHandles --forceExit",
+    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch --detectOpenHandles",
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage  --detectOpenHandles",
+    "test:watch:coverage": "node --experimental-vm-modules node_modules/.bin/jest --watch --coverage --detectOpenHandles",
     "dev": "pnpx ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && pnpx tsc-alias && node esbuild.config.js && pnpm sentry:sourcemaps",
     "start": "node build/index.js",
