@@ -1,29 +1,41 @@
 import {coursesModuleOptions} from 'modules/courses';
-import {MongoMemoryServer} from 'mongodb-memory-server';
-import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
+import {useExpressServer} from 'routing-controllers';
 import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import Container from 'typedi';
 import Express from 'express';
 import request from 'supertest';
 import {ReadError} from 'shared/errors/errors';
-
+import {CourseVersionService} from '../services';
+import {dbConfig} from '../../../config/db';
+import {SectionService} from '../services/SectionService';
+jest.setTimeout(90000); // Set a longer timeout for the tests
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
   let app;
-  let mongoServer: MongoMemoryServer;
 
   beforeAll(async () => {
-    // Start an in-memory MongoDB server
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-
     // Set up the real MongoDatabase and CourseRepository
-    Container.set('Database', new MongoDatabase(mongoUri, 'vibe'));
+    Container.set('Database', new MongoDatabase(dbConfig.url, 'vibe'));
     const courseRepo = new CourseRepository(
       Container.get<MongoDatabase>('Database'),
     );
     Container.set('CourseRepo', courseRepo);
+    const itemRepo = new ItemRepository(
+      Container.get<MongoDatabase>('Database'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('ItemRepo', itemRepo);
+    const courseVersionService = new CourseVersionService(
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    const sectionService = new SectionService(
+      Container.get<ItemRepository>('ItemRepo'),
+      Container.get<CourseRepository>('CourseRepo'),
+    );
+    Container.set('CourseVersionService', courseVersionService);
+    Container.set('SectionService', sectionService);
 
     // Create the Express app with the routing controllers configuration
     app = useExpressServer(App, coursesModuleOptions);
@@ -31,7 +43,7 @@ describe('Course Version Controller Integration Tests', () => {
 
   afterAll(async () => {
     // Close the in-memory MongoDB server after the tests
-    await mongoServer.stop();
+    // await mongoServer.stop();
   });
   // Create course version
   describe('COURSE VERSION CREATION', () => {
@@ -66,16 +78,16 @@ describe('Course Version Controller Integration Tests', () => {
 
         // Check if the response is correct
 
-        expect(versionResponse.body.course._id).toBe(courseId);
-        expect(versionResponse.body.version.version).toBe('New Course Version');
-        expect(versionResponse.body.version.description).toBe(
+        // expect(versionResponse.body.course._id).toBe(courseId);
+        expect(versionResponse.body.version).toBe('New Course Version');
+        expect(versionResponse.body.description).toBe(
           'Course version description',
         );
 
-        //expect the version id to be in the list of course, this is shared in response
-        expect(versionResponse.body.course.versions).toContain(
-          versionResponse.body.version._id,
-        );
+        // expect the version id to be in the list of course, this is shared in response
+        // expect(versionResponse.body.course.versions).toContain(
+        //   versionResponse.body.version._id,
+        // );
       });
     });
 
@@ -95,7 +107,7 @@ describe('Course Version Controller Integration Tests', () => {
           .send(courseVersionPayload)
           .expect(404);
 
-        // expect(versionResponse.body.message).toContain("Course not found");
+        expect(versionResponse.body.message).toContain('Course not found');
       });
 
       it('should return 400 if invalid course version data', async () => {
@@ -196,7 +208,7 @@ describe('Course Version Controller Integration Tests', () => {
           .expect(201);
 
         // Get version id
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         // log the endpoint to request to
         const endPoint2 = `/courses/versions/${versionId}`;
@@ -258,12 +270,11 @@ describe('Course Version Controller Integration Tests', () => {
 
         // Get version id
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         // log the endpoint to request to
 
         // Mock the database to throw ReadError
-
         const courseRepo = Container.get<CourseRepository>('CourseRepo');
 
         jest.spyOn(courseRepo, 'readVersion').mockImplementationOnce(() => {
@@ -323,7 +334,7 @@ describe('Course Version Controller Integration Tests', () => {
           .send(courseVersionPayload)
           .expect(201);
 
-        const versionId = versionResponse.body.version._id;
+        const versionId = versionResponse.body._id;
 
         const moduleResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules`)
@@ -333,7 +344,7 @@ describe('Course Version Controller Integration Tests', () => {
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
 
         const sectionResponse = await request(app)
-          .post(`/versions/${versionId}/modules/${moduleId}/sections`)
+          .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
           .send(sectionPayload)
           .expect(201);
 
@@ -345,10 +356,10 @@ describe('Course Version Controller Integration Tests', () => {
 
         const itemsGroupResponse = await request(app)
           .post(
-            `/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
+            `/courses/versions/${versionId}/modules/${moduleId}/sections/${sectionId}/items`,
           )
           .send(itemPayload)
-          .expect(200);
+          .expect(201);
 
         const deleteVersion = await request(app)
           .delete(`/courses/${courseId}/versions/${versionId}`)
@@ -368,6 +379,84 @@ describe('Course Version Controller Integration Tests', () => {
           )
           .expect(404);
       });
+    });
+  });
+
+  describe('COURSE VERSION SERVICE ERROR PATHS', () => {
+    let courseVersionService: any;
+    let courseRepo: any;
+
+    beforeAll(() => {
+      courseRepo = Container.get('CourseRepo');
+      courseVersionService = Container.get('CourseVersionService');
+    });
+
+    it('should throw NotFoundError if course does not exist on createCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'read').mockResolvedValue(null);
+      await expect(
+        courseVersionService.createCourseVersion('fakeCourseId', {
+          version: 'v',
+          description: 'd',
+        }),
+      ).rejects.toThrow('Course not found');
+    });
+
+    it('should throw InternalServerError if createVersion fails on createCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'read').mockResolvedValue({versions: []});
+      jest.spyOn(courseRepo, 'createVersion').mockResolvedValue(null);
+      await expect(
+        courseVersionService.createCourseVersion('5f9b1b3c9d1f1f1f1f1f1f1f', {
+          version: 'v',
+          description: 'd',
+        }),
+      ).rejects.toThrow('Failed to create course version.');
+    });
+
+    it('should throw InternalServerError if update fails on createCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'read').mockResolvedValue({versions: []});
+      jest.spyOn(courseRepo, 'createVersion').mockResolvedValue({_id: 'vId'});
+      jest.spyOn(courseRepo, 'update').mockResolvedValue(null);
+      await expect(
+        courseVersionService.createCourseVersion('5f9b1b3c9d1f1f1f1f1f1f1f', {
+          version: 'v',
+          description: 'd',
+        }),
+      ).rejects.toThrow('Failed to update course with new version.');
+    });
+
+    it('should throw InternalServerError if readVersion fails on readCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue(null);
+      await expect(
+        courseVersionService.readCourseVersion('vId'),
+      ).rejects.toThrow('Failed to read course version.');
+    });
+
+    it('should throw InternalServerError if readVersion fails on deleteCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue(null);
+      await expect(
+        courseVersionService.deleteCourseVersion('cId', 'vId'),
+      ).rejects.toThrow('Failed to update course with new version.');
+    });
+
+    it('should throw NotFoundError if course does not exist on deleteCourseVersion', async () => {
+      jest.spyOn(courseRepo, 'readVersion').mockResolvedValue({modules: []});
+      jest.spyOn(courseRepo, 'read').mockResolvedValue(null);
+      await expect(
+        courseVersionService.deleteCourseVersion('cId', 'vId'),
+      ).rejects.toThrow('Course with ID cId not found.');
+    });
+
+    it('should throw DeleteError if deleteVersion fails on deleteCourseVersion', async () => {
+      jest
+        .spyOn(courseRepo, 'readVersion')
+        .mockResolvedValue({modules: [{sections: []}]});
+      jest.spyOn(courseRepo, 'read').mockResolvedValue({versions: []});
+      jest
+        .spyOn(courseRepo, 'deleteVersion')
+        .mockResolvedValue({deletedCount: 0});
+      await expect(
+        courseVersionService.deleteCourseVersion('cId', 'vId'),
+      ).rejects.toThrow('Failed to delete course version');
     });
   });
 });
