@@ -317,3 +317,29 @@ export interface IWatchTime {
   startTime: Date;
   endTime?: Date;
 }
+
+// Interface for proctoring settings.
+export interface IProctoringSettings {
+  components: string[];
+}
+
+// Common settings interface for both user and course settings.
+export interface ISettings {
+  proctors: IProctoringSettings;
+}
+
+// Interface for user-specific settings.
+export interface IUserSettings {
+  _id?: string | ObjectId | null;
+  studentId: string | ObjectId;
+  courseVersionId: string | ObjectId;
+  courseId: string | ObjectId;
+  settings: ISettings;
+}
+
+// Interface for course-specific settings.
+export interface ICourseSettings {
+  courseVersionId: string | ObjectId;
+  courseId: string | ObjectId;
+  settings: ISettings;
+}
