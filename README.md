@@ -37,3 +37,7 @@ We welcome your feedback, contributions, and suggestions. Please:
 ---
 
 Explore our [Documentation](https://continuousactivelearning.github.io/vibe/) for further details on usage, setup, and development.
+Explore our [Documentation](https://continuousactivelearning.github.io/vibe/) for further details on usage, setup, and development.
+
+### Contributor
+- [Yash Sharma](https://github.com/godofwar4344r) – Learning GitHub contribution through ViBe.
