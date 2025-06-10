@@ -17,8 +17,5 @@
 		"backend/**/*.{js,jsx,ts,tsx}": [
 			"pnpm --filter backend lint"
 		]
-	},
-	"dependencies": {
-		"vibe": "link:cli"
 	}
 }
