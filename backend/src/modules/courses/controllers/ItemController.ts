@@ -1,52 +1,51 @@
-import 'reflect-metadata';
-import {
-  JsonController,
-  Authorized,
-  Post,
-  Body,
-  Get,
-  Put,
-  Delete,
-  Params,
-  HttpCode,
-} from 'routing-controllers';
-import {Service, Inject} from 'typedi';
-import {
-  CreateItemBody,
-  UpdateItemBody,
-  MoveItemBody,
-  CreateItemParams,
-  ReadAllItemsParams,
-  UpdateItemParams,
-  MoveItemParams,
-  DeleteItemParams,
-  DeletedItemResponse,
-} from '../classes/validators/ItemValidators';
-import {ItemService} from '../services';
-import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 import {
   ItemDataResponse,
   ItemNotFoundErrorResponse,
-} from '../classes/validators/ItemValidators';
+  CreateItemParams,
+  CreateItemBody,
+  ReadAllItemsParams,
+  UpdateItemParams,
+  UpdateItemBody,
+  DeletedItemResponse,
+  DeleteItemParams,
+  MoveItemParams,
+  MoveItemBody,
+  GetItemParams,
+} from '#courses/classes/index.js';
+import {ItemService} from '#courses/services/ItemService.js';
+import {ProgressService, USERS_TYPES} from '#users/index.js';
+import {inject, injectable} from 'inversify';
+import {
+  Authorized,
+  Body,
+  CurrentUser,
+  Delete,
+  ForbiddenError,
+  Get,
+  HttpCode,
+  JsonController,
+  Params,
+  Post,
+  Put,
+} from 'routing-controllers';
+import {ResponseSchema} from 'routing-controllers-openapi';
+import {COURSES_TYPES} from '#courses/types.js';
+import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
+import {IUser} from '#shared/index.js';
 
-@OpenAPI({
-  tags: ['Items'],
-})
+@injectable()
 @JsonController('/courses')
-@Service()
 export class ItemController {
   constructor(
-    @Inject('ItemService') private readonly itemService: ItemService,
+    @inject(COURSES_TYPES.ItemService)
+    private readonly itemService: ItemService,
+    @inject(USERS_TYPES.ProgressService)
+    private readonly progressService: ProgressService,
   ) {}
 
   @Authorized(['admin'])
   @Post('/versions/:versionId/modules/:moduleId/sections/:sectionId/items')
   @HttpCode(201)
-  @OpenAPI({
-    summary: 'Create Item',
-    description: 'Creates a new item within a section.',
-  })
   @ResponseSchema(ItemDataResponse, {
     description: 'Item created successfully',
   })
@@ -57,11 +56,6 @@ export class ItemController {
   @ResponseSchema(ItemNotFoundErrorResponse, {
     description: 'Item not found',
     statusCode: 404,
-  })
-  @OpenAPI({
-    summary: 'Create Item',
-    description:
-      'Creates a new item in the specified section with the provided details.',
   })
   async create(
     @Params() params: CreateItemParams,
@@ -89,11 +83,6 @@ export class ItemController {
     description: 'Item not found',
     statusCode: 404,
   })
-  @OpenAPI({
-    summary: 'Get All Items',
-    description:
-      'Retrieves all items from the specified section of a module in a course version.',
-  })
   async readAll(@Params() params: ReadAllItemsParams) {
     const {versionId, moduleId, sectionId} = params;
     return await this.itemService.readAllItems(versionId, moduleId, sectionId);
@@ -113,11 +102,6 @@ export class ItemController {
   @ResponseSchema(ItemNotFoundErrorResponse, {
     description: 'Item not found',
     statusCode: 404,
-  })
-  @OpenAPI({
-    summary: 'Update Item',
-    description:
-      'Updates an existing item in the specified section with the provided details.',
   })
   async update(
     @Params() params: UpdateItemParams,
@@ -146,10 +130,6 @@ export class ItemController {
     description: 'Item not found',
     statusCode: 404,
   })
-  @OpenAPI({
-    summary: 'Delete Item',
-    description: 'Deletes an item from a course section permanently.',
-  })
   async delete(@Params() params: DeleteItemParams) {
     const {itemsGroupId, itemId} = params;
     return await this.itemService.deleteItem(itemsGroupId, itemId);
@@ -170,11 +150,6 @@ export class ItemController {
     description: 'Item not found',
     statusCode: 404,
   })
-  @OpenAPI({
-    summary: 'Move Item',
-    description:
-      'Moves an item to a new position within its section by recalculating its order.',
-  })
   async move(@Params() params: MoveItemParams, @Body() body: MoveItemBody) {
     const {versionId, moduleId, sectionId, itemId} = params;
     return await this.itemService.moveItem(
@@ -184,5 +159,32 @@ export class ItemController {
       itemId,
       body,
     );
+  }
+
+  @Authorized(['admin', 'instructor', 'student'])
+  @Get('/:courseId/versions/:versionId/item/:itemId')
+  @HttpCode(201)
+  @ResponseSchema(ItemDataResponse, {
+    description: 'Item retrieved successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(ItemNotFoundErrorResponse, {
+    description: 'Item not found',
+    statusCode: 404,
+  })
+  async getItem(@CurrentUser() user: IUser, @Params() params: GetItemParams) {
+    const {courseId, courseVersionId, itemId} = params;
+    const progress = await this.progressService.getUserProgress(
+      user._id,
+      courseId,
+      courseVersionId,
+    );
+    if (progress.currentItem !== itemId) {
+      throw new ForbiddenError('Item does not match current progress');
+    }
+    return await this.itemService.readItem(courseVersionId, itemId);
   }
 }

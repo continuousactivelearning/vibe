@@ -1,13 +1,12 @@
+import {IModule, ICourseVersion} from '#shared/index.js';
 import {
-  IsEmpty,
-  IsMongoId,
   IsNotEmpty,
-  IsOptional,
   IsString,
   MaxLength,
+  IsOptional,
+  IsMongoId,
   ValidateIf,
 } from 'class-validator';
-import {IModule, ISection} from 'shared/interfaces/Models';
 import {JSONSchema} from 'class-validator-jsonschema';
 
 class CreateModuleBody implements Partial<IModule> {
@@ -247,7 +246,7 @@ class ModuleDataResponse {
     readOnly: true,
   })
   @IsNotEmpty()
-  version: Record<string, any>;
+  version: ICourseVersion;
 }
 
 class ModuleNotFoundErrorResponse {

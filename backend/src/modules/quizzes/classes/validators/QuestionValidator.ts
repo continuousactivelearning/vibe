@@ -1,32 +1,33 @@
-import {Type} from 'class-transformer';
 import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsBooleanString,
-  IsEmpty,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Validate,
-  ValidateNested,
-} from 'class-validator';
-import {ObjectId} from 'mongodb';
-import {
-  IDESSolution,
+  IQuestionParameter,
   ILotItem,
   ILotOrder,
-  INATSolution,
-  IOTLSolution,
   IQuestion,
-  IQuestionParameter,
-  ISMLSolution,
-  ISOLSolution,
   QuestionType,
-} from 'shared/interfaces/quiz';
-import {NATQuestion} from '../transformers/Question';
+  ISOLSolution,
+  ISMLSolution,
+  IOTLSolution,
+  INATSolution,
+  IDESSolution,
+} from '#shared/index.js';
+import {Type} from 'class-transformer';
+import {
+  IsNotEmpty,
+  IsString,
+  IsArray,
+  ArrayMinSize,
+  IsEnum,
+  ValidateNested,
+  IsNumber,
+  IsBoolean,
+  IsOptional,
+  IsMongoId,
+  IsInt,
+  Max,
+  Min,
+} from 'class-validator';
+import {ObjectId} from 'mongodb';
+import {NATQuestion} from '../transformers/Question.js';
 
 class QuestionParameter implements IQuestionParameter {
   @IsNotEmpty()
@@ -66,10 +67,7 @@ class LotOrder implements ILotOrder {
   order: number;
 }
 
-class Question implements IQuestion {
-  @IsEmpty()
-  _id?: string | ObjectId;
-
+class Question implements Partial<IQuestion> {
   @IsNotEmpty()
   @IsString()
   text: string;
@@ -163,7 +161,7 @@ class DESSolution implements IDESSolution {
   solutionText: string;
 }
 
-class CreateQuestionBody {
+class QuestionBody {
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => Question)
@@ -195,8 +193,77 @@ class CreateQuestionBody {
     | IDESSolution;
 }
 
+class QuestionResponse
+  extends Question
+  implements
+    Partial<ISOLSolution>,
+    Partial<ISMLSolution>,
+    Partial<IOTLSolution>,
+    Partial<NATQuestion>,
+    Partial<DESSolution>
+{
+  @IsNotEmpty()
+  @IsMongoId()
+  _id?: string | ObjectId;
+
+  @IsOptional()
+  @IsString()
+  solutionText?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsInt()
+  @Max(10)
+  @Min(0)
+  decimalPrecision?: number;
+
+  @IsOptional()
+  @IsNumber()
+  upperLimit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  lowerLimit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  value?: number;
+
+  @IsOptional()
+  @IsString()
+  expression?: string;
+
+  @IsOptional()
+  @ValidateNested({each: true})
+  @Type(() => LotItem)
+  ordering?: ILotOrder[];
+
+  @IsOptional()
+  @ValidateNested({each: true})
+  @Type(() => LotItem)
+  correctLotItems?: ILotItem[];
+
+  @IsOptional()
+  @ValidateNested({each: true})
+  @Type(() => LotItem)
+  incorrectLotItems?: ILotItem[];
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LotItem)
+  correctLotItem?: ILotItem;
+}
+
+class QuestionId {
+  @IsMongoId()
+  @IsNotEmpty()
+  questionId: string;
+}
+
 export {
-  CreateQuestionBody,
+  QuestionBody,
+  QuestionId,
+  QuestionResponse,
   Question,
   SOLSolution,
   SMLSolution,

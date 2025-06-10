@@ -1,22 +1,17 @@
-import {ObjectId} from 'mongodb';
 import {
-  ISOLSolution,
-  ISMLSolution,
-  IOTLSolution,
-  INATSolution,
-  IDESSolution,
-  ILotItem,
-  ISOLQuizView,
-  ISMLQuizView,
-  ILotOrder,
-  IOTLQuizView,
-  INATQuizView,
-  IDESQuizView,
-  IQuestionParameter,
   IQuestion,
   QuestionType,
-} from 'shared/interfaces/quiz';
-import {CreateQuestionBody} from '../validators/QuestionValidator';
+  IQuestionParameter,
+  ISOLSolution,
+  ILotItem,
+  ISMLSolution,
+  IOTLSolution,
+  ILotOrder,
+  INATSolution,
+  IDESSolution,
+} from '#shared/index.js';
+import {ObjectId} from 'mongodb';
+import {QuestionBody} from '../validators/QuestionValidator.js';
 
 abstract class BaseQuestion implements IQuestion {
   _id?: string | ObjectId;
@@ -46,15 +41,11 @@ class SOLQuestion extends BaseQuestion implements ISOLSolution {
 
   constructor(question: IQuestion, solution: ISOLSolution) {
     super(question);
-    this.incorrectLotItems = solution.incorrectLotItems;
-    this.correctLotItem = solution.correctLotItem;
-  }
-
-  toQuizView(): ISOLQuizView {
-    return {
-      ...this,
-      lot: this.incorrectLotItems.concat(this.correctLotItem),
-    } as ISOLQuizView;
+    this.incorrectLotItems = ensureLotItemIds(solution.incorrectLotItems);
+    this.correctLotItem = {
+      ...solution.correctLotItem,
+      _id: solution.correctLotItem._id ?? new ObjectId(),
+    };
   }
 }
 
@@ -64,14 +55,8 @@ class SMLQuestion extends BaseQuestion implements ISMLSolution {
 
   constructor(question: IQuestion, solution: ISMLSolution) {
     super(question);
-    this.incorrectLotItems = solution.incorrectLotItems;
-    this.correctLotItems = solution.correctLotItems;
-  }
-  toQuizView(): ISMLQuizView {
-    return {
-      ...this,
-      lot: this.incorrectLotItems.concat(this.correctLotItems),
-    } as ISMLQuizView;
+    this.incorrectLotItems = ensureLotItemIds(solution.incorrectLotItems);
+    this.correctLotItems = ensureLotItemIds(solution.correctLotItems);
   }
 }
 
@@ -80,13 +65,13 @@ class OTLQuestion extends BaseQuestion implements IOTLSolution {
 
   constructor(question: IQuestion, solution: IOTLSolution) {
     super(question);
-    this.ordering = solution.ordering;
-  }
-  toQuizView(): IOTLQuizView {
-    return {
-      ...this,
-      lot: this.ordering.map(lotOrder => lotOrder.lotItem),
-    } as IOTLQuizView;
+    this.ordering = solution.ordering.map(order => ({
+      ...order,
+      lotItem: {
+        ...order.lotItem,
+        _id: order.lotItem._id ?? new ObjectId(),
+      },
+    }));
   }
 }
 
@@ -105,12 +90,6 @@ class NATQuestion extends BaseQuestion implements INATSolution {
     this.value = solution.value;
     this.expression = solution.expression;
   }
-
-  toQuizView(): INATQuizView {
-    return {
-      ...this,
-    } as INATQuizView;
-  }
 }
 
 class DESQuestion extends BaseQuestion implements IDESSolution {
@@ -119,16 +98,18 @@ class DESQuestion extends BaseQuestion implements IDESSolution {
     super(question);
     this.solutionText = solution.solutionText;
   }
-  toQuizView(): IDESQuizView {
-    return {
-      ...this,
-    } as IDESQuizView;
-  }
+}
+
+function ensureLotItemIds(items: ILotItem[]): ILotItem[] {
+  return items.map(item => ({
+    ...item,
+    _id: item._id ?? new ObjectId(),
+  }));
 }
 
 class QuestionFactory {
   static createQuestion(
-    body: CreateQuestionBody,
+    body: QuestionBody,
   ): SOLQuestion | SMLQuestion | OTLQuestion | NATQuestion | DESQuestion {
     switch (body.question.type) {
       case 'SELECT_ONE_IN_LOT':

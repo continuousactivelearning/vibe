@@ -1,19 +1,12 @@
-import {ItemsGroup} from 'modules/courses/classes/transformers/index';
-import {
-  IBaseItem,
-  IVideoDetails,
-  IQuizDetails,
-  IBlogDetails,
-  ICourseVersion,
-} from 'shared/interfaces/Models';
-import {ObjectId, ClientSession} from 'mongodb';
+import {Item, ItemsGroup} from '#courses/classes/transformers/index.js';
+import {ClientSession, ObjectId} from 'mongodb';
 
 export interface IItemRepository {
   readItem(
     courseVersionId: string,
     itemId: string,
     session?: ClientSession,
-  ): Promise<IBaseItem | null>;
+  ): Promise<Item | null>;
 
   deleteItem(
     itemGroupsId: string,
@@ -45,6 +38,8 @@ export interface IItemRepository {
     sectionId: ObjectId;
     itemId: ObjectId;
   }>;
+
+  createItem(item: Item, session?: ClientSession): Promise<Item | null>;
 
   // createVideoDetails(details: IVideoDetails): Promise<string>;
   // createQuizDetails(details: IQuizDetails): Promise<string>;

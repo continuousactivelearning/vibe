@@ -1,41 +1,66 @@
-import 'reflect-metadata';
+import {
+  QuestionBody,
+  QuestionId,
+  QuestionFactory,
+  QuestionResponse,
+} from '#quizzes/classes/index.js';
+import {QuestionService} from '#quizzes/services/QuestionService.js';
+import {injectable, inject} from 'inversify';
 import {
   JsonController,
-  Authorized,
   Post,
+  HttpCode,
   Body,
   Get,
+  Params,
   Put,
   Delete,
-  Params,
-  HttpCode,
   OnUndefined,
-  BadRequestError,
 } from 'routing-controllers';
-import {Service, Inject} from 'typedi';
-import {CreateQuestionBody} from '../classes/validators/QuestionValidator';
-import {QuestionFactory} from '../classes/transformers/Question';
-import {QuestionProcessor} from '../question-processing/QuestionProcessor';
-
+import {QUIZZES_TYPES} from '#quizzes/types.js';
+import {QuestionProcessor} from '#quizzes/question-processing/QuestionProcessor.js';
 @JsonController('/questions')
-@Service()
-export class QuestionController {
-  constructor() {}
+@injectable()
+class QuestionController {
+  constructor(
+    @inject(QUIZZES_TYPES.QuestionService)
+    private readonly questionService: QuestionService,
+  ) {}
 
-  @Authorized(['admin', 'instructor'])
-  @Post('/', {transformResponse: true})
+  @Post('/')
   @HttpCode(201)
-  @OnUndefined(201)
-  async create(@Body() body: CreateQuestionBody) {
+  async create(@Body() body: QuestionBody): Promise<QuestionId> {
     const question = QuestionFactory.createQuestion(body);
-    try {
-      const questionProcessor = new QuestionProcessor(question);
-      questionProcessor.validate();
+    const questionProcessor = new QuestionProcessor(question);
+    questionProcessor.validate();
+    questionProcessor.render();
+    const id = await this.questionService.create(question);
+    return {questionId: id};
+  }
 
-      const renderedQuestion = questionProcessor.render();
-      return renderedQuestion;
-    } catch (error) {
-      throw new BadRequestError((error as Error).message);
-    }
+  @Get('/:questionId')
+  async getById(@Params() params: QuestionId): Promise<QuestionResponse> {
+    const {questionId} = params;
+    return this.questionService.getById(questionId, true);
+  }
+
+  @Put('/:questionId')
+  @HttpCode(200)
+  async update(
+    @Params() params: QuestionId,
+    @Body() body: QuestionBody,
+  ): Promise<QuestionResponse> {
+    const {questionId} = params;
+    const question = QuestionFactory.createQuestion(body);
+    return this.questionService.update(questionId, question);
+  }
+
+  @Delete('/:questionId')
+  @OnUndefined(204)
+  async delete(@Params() params: QuestionId): Promise<void> {
+    const {questionId} = params;
+    await this.questionService.delete(questionId);
   }
 }
+
+export {QuestionController};

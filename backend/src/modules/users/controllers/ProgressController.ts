@@ -1,20 +1,6 @@
-import 'reflect-metadata';
-import {
-  Authorized,
-  Body,
-  Get,
-  HttpCode,
-  JsonController,
-  OnUndefined,
-  Params,
-  Patch,
-  Post,
-} from 'routing-controllers';
-import {Inject, Service} from 'typedi';
-import {Progress} from '../classes/transformers';
-import {ProgressService} from '../services/ProgressService';
 import {
   GetUserProgressParams,
+  Progress,
   StartItemParams,
   StartItemBody,
   StartItemResponse,
@@ -24,35 +10,31 @@ import {
   UpdateProgressBody,
   ResetCourseProgressParams,
   ResetCourseProgressBody,
-  ProgressDataResponse,
-} from '../classes/validators';
-import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+} from '#users/classes/index.js';
+import {ProgressService} from '#users/services/ProgressService.js';
+import {USERS_TYPES} from '#users/types.js';
+import {injectable, inject} from 'inversify';
+import {
+  JsonController,
+  Get,
+  HttpCode,
+  Params,
+  Post,
+  Body,
+  OnUndefined,
+  Patch,
+} from 'routing-controllers';
 
 @JsonController('/users', {transformResponse: true})
-@Service()
-@OpenAPI({
-  tags: ['User Progress'],
-})
+@injectable()
 class ProgressController {
   constructor(
-    @Inject('ProgressService')
+    @inject(USERS_TYPES.ProgressService)
     private readonly progressService: ProgressService,
   ) {}
 
   @Get('/:userId/progress/courses/:courseId/versions/:courseVersionId/')
   @HttpCode(200)
-  @OpenAPI({
-    summary: 'Get User Progress',
-    description: "Retrieves a user's progress for a specific course version.",
-  })
-  @ResponseSchema(ProgressDataResponse, {
-    description: 'User progress retrieved successfully',
-  })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async getUserProgress(
     @Params() params: GetUserProgressParams,
   ): Promise<Progress> {
@@ -69,17 +51,6 @@ class ProgressController {
 
   @Post('/:userId/progress/courses/:courseId/versions/:courseVersionId/start')
   @HttpCode(200)
-  @OpenAPI({
-    summary: 'Start Course Item',
-    description: "Starts tracking a user's progress on a specific course item.",
-  })
-  @ResponseSchema(StartItemResponse, {
-    description: 'Course item started successfully',
-  })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async startItem(
     @Params() params: StartItemParams,
     @Body() body: StartItemBody,
@@ -103,17 +74,6 @@ class ProgressController {
 
   @Post('/:userId/progress/courses/:courseId/versions/:courseVersionId/stop')
   @OnUndefined(200)
-  @OpenAPI({
-    summary: 'Stop Course Item',
-    description: "Stops tracking a user's progress on a specific course item.",
-  })
-  @ResponseSchema(undefined, {
-    description: 'Course item stopped successfully',
-  })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async stopItem(
     @Params() params: StopItemParams,
     @Body() body: StopItemBody,
@@ -134,17 +94,6 @@ class ProgressController {
 
   @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/update')
   @OnUndefined(200)
-  @OpenAPI({
-    summary: 'Update Progress',
-    description: "Updates a user's progress for a specific course item.",
-  })
-  @ResponseSchema(undefined, {
-    description: 'Progress updated successfully',
-  })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async updateProgress(
     @Params() params: UpdateProgressParams,
     @Body() body: UpdateProgressBody,
@@ -163,21 +112,8 @@ class ProgressController {
     );
   }
 
-  @Authorized(['admin', 'teacher'])
   @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/reset')
   @OnUndefined(200)
-  @OpenAPI({
-    summary: 'Reset Course Progress',
-    description:
-      "Resets a user's progress for a course, module, section, or item.",
-  })
-  @ResponseSchema(undefined, {
-    description: 'Progress reset successfully',
-  })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async resetProgress(
     @Params() params: ResetCourseProgressParams,
     @Body() body: ResetCourseProgressBody,

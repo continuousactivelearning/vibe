@@ -1,44 +1,45 @@
-import {Inject, Service} from 'typedi';
-import {Progress} from '../classes/transformers';
-import {ProgressRepository} from 'shared/database/providers/mongo/repositories/ProgressRepository';
+import {COURSES_TYPES, Item} from '#courses/index.js';
+import {GLOBAL_TYPES} from '#root/types.js';
 import {
+  BaseService,
+  ICourseRepository,
+  IUserRepository,
+  IItemRepository,
+  MongoDatabase,
+  ICourseVersion,
+  IWatchTime,
+  IProgress,
+} from '#shared/index.js';
+import {ProgressRepository} from '#shared/database/providers/mongo/repositories/ProgressRepository.js';
+import {Progress} from '#users/classes/index.js';
+import {USERS_TYPES} from '#users/types.js';
+import {injectable, inject} from 'inversify';
+import {ObjectId} from 'mongodb';
+import {
+  NotFoundError,
   BadRequestError,
   InternalServerError,
-  NotFoundError,
 } from 'routing-controllers';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {UserRepository} from 'shared/database/providers/MongoDatabaseProvider';
-import {
-  IBlogDetails,
-  ICourseVersion,
-  IProgress,
-  IVideoDetails,
-  IWatchTime,
-} from 'shared/interfaces/Models';
-import {Item} from 'modules/courses';
-import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
-
-/**
- * Service for managing user progress in courses.
- *
- * @category Users/Services
- */
-@Service()
-class ProgressService {
+@injectable()
+class ProgressService extends BaseService {
   constructor(
-    @Inject('ProgressRepository')
+    @inject(USERS_TYPES.ProgressRepo)
     private readonly progressRepository: ProgressRepository,
 
-    @Inject('CourseRepo')
-    private readonly courseRepo: CourseRepository,
+    @inject(GLOBAL_TYPES.CourseRepo)
+    private readonly courseRepo: ICourseRepository,
 
-    @Inject('UserRepo')
-    private readonly userRepo: UserRepository,
+    @inject(USERS_TYPES.UserRepo)
+    private readonly userRepo: IUserRepository,
 
-    @Inject('ItemRepo')
-    private readonly itemRepo: ItemRepository,
-  ) {}
+    @inject(COURSES_TYPES.ItemRepo)
+    private readonly itemRepo: IItemRepository,
+
+    @inject(GLOBAL_TYPES.Database)
+    private readonly database: MongoDatabase, // inject the database provider
+  ) {
+    super(database);
+  }
 
   /**
    * Initialize student progress tracking to the first item in the course.
@@ -87,7 +88,7 @@ class ProgressService {
       courseVersionId,
       firstModule.moduleId.toString(),
       firstSection.sectionId.toString(),
-      firstItem.itemId.toString(),
+      firstItem._id.toString(),
     );
   }
 
@@ -141,7 +142,7 @@ class ProgressService {
       courseVersionId,
       module.moduleId.toString(),
       firstSection.sectionId.toString(),
-      firstItem.itemId.toString(),
+      firstItem._id.toString(),
     );
   }
 
@@ -196,7 +197,7 @@ class ProgressService {
       courseVersionId,
       module.moduleId.toString(),
       section.sectionId.toString(),
-      firstItem.itemId.toString(),
+      firstItem._id.toString(),
     );
   }
 
@@ -241,9 +242,7 @@ class ProgressService {
       return null; // No items to track progress for
     }
 
-    const item = itemsGroup.items.find(
-      item => item.itemId.toString() === itemId,
-    );
+    const item = itemsGroup.items.find(item => item._id.toString() === itemId);
 
     if (!item) {
       throw new NotFoundError('Item not found in the specified section.');
@@ -256,12 +255,12 @@ class ProgressService {
       courseVersionId,
       module.moduleId.toString(),
       section.sectionId.toString(),
-      item.itemId.toString(),
+      item._id.toString(),
     );
   }
 
   private async verifyDetails(
-    userId: string,
+    userId: string | ObjectId,
     courseId: string,
     courseVersionId: string,
   ): Promise<void> {
@@ -371,7 +370,7 @@ class ProgressService {
       a.order.localeCompare(b.order),
     );
     // 2. Check if the itemId is the last item in the section
-    const lastItem = sortedItems[sortedItems.length - 1].itemId;
+    const lastItem = sortedItems[sortedItems.length - 1]._id;
     // 3. Set the isLastItem flag to true if it is the last item
     if (lastItem === itemId) {
       isLastItem = true;
@@ -404,7 +403,7 @@ class ProgressService {
       const firstItem = itemsGroup.items.sort((a, b) =>
         a.order.localeCompare(b.order),
       )[0];
-      currentItem = firstItem.itemId.toString();
+      currentItem = firstItem._id.toString();
     }
 
     // Handle when the item is the last item in the section but not the last section and not the last module
@@ -424,18 +423,18 @@ class ProgressService {
       const firstItem = itemsGroup.items.sort((a, b) =>
         a.order.localeCompare(b.order),
       )[0];
-      currentItem = firstItem.itemId.toString();
+      currentItem = firstItem._id.toString();
     }
 
     // Handle when none of the item, the section, or the module is last.
     if (!isLastItem && !isLastSection && !isLastModule) {
       // Get index of the current item
       const currentItemIndex = sortedItems.findIndex(
-        item => item.itemId === itemId,
+        item => item._id === itemId,
       );
       // Get next itemId
       const nextItem = sortedItems[currentItemIndex + 1];
-      currentItem = nextItem.itemId.toString();
+      currentItem = nextItem._id.toString();
     }
 
     if (isLastItem && !isLastSection && isLastModule) {
@@ -454,37 +453,37 @@ class ProgressService {
       const firstItem = itemsGroup.items.sort((a, b) =>
         a.order.localeCompare(b.order),
       )[0];
-      currentItem = firstItem.itemId.toString();
+      currentItem = firstItem._id.toString();
     }
 
     if (!isLastItem && !isLastSection && isLastModule) {
       // Get index of the current item
       const currentItemIndex = sortedItems.findIndex(
-        item => item.itemId === itemId,
+        item => item._id === itemId,
       );
       // Get next itemId
       const nextItem = sortedItems[currentItemIndex + 1];
-      currentItem = nextItem.itemId.toString();
+      currentItem = nextItem._id.toString();
     }
 
     if (!isLastItem && isLastSection && isLastModule) {
       // Get index of the current item
       const currentItemIndex = sortedItems.findIndex(
-        item => item.itemId === itemId,
+        item => item._id === itemId,
       );
       // Get next itemId
       const nextItem = sortedItems[currentItemIndex + 1];
-      currentItem = nextItem.itemId.toString();
+      currentItem = nextItem._id.toString();
     }
 
     if (!isLastItem && isLastSection && !isLastModule) {
       // Get index of the current item
       const currentItemIndex = sortedItems.findIndex(
-        item => item.itemId === itemId,
+        item => item._id === itemId,
       );
       // Get next itemId
       const nextItem = sortedItems[currentItemIndex + 1];
-      currentItem = nextItem.itemId.toString();
+      currentItem = nextItem._id.toString();
     }
 
     return {
@@ -498,73 +497,67 @@ class ProgressService {
   private isValidWatchTime(watchTime: IWatchTime, item: Item) {
     switch (item.type) {
       case 'VIDEO':
-        if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
-          const videoDetails = item.itemDetails as IVideoDetails;
-          const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
-          const videoEndTime = videoDetails.endTime; // a string in HH:MM:SS format
-          const watchStartTime = new Date(watchTime.startTime);
-          const watchEndTime = new Date(watchTime.endTime);
+        return true;
+        // if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
+        //   const videoDetails = item.itemDetails as IVideoDetails;
+        //   const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
+        //   const videoEndTime = videoDetails.endTime; // a string in HH:MM:SS format
+        //   const watchStartTime = new Date(watchTime.startTime);
+        //   const watchEndTime = new Date(watchTime.endTime);
 
-          // Get Time difference in seconds
-          const timeDiff =
-            Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
+        //   // Get Time difference in seconds
+        //   const timeDiff =
+        //     Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
 
-          // Get Video duration in seconds
-          // Convert HH:MM:SS to seconds
-          const videoEndTimeInSeconds =
-            parseInt(videoEndTime.split(':')[0]) * 3600 +
-            parseInt(videoEndTime.split(':')[1]) * 60 +
-            parseInt(videoEndTime.split(':')[2]);
-          const videoStartTimeInSeconds =
-            parseInt(videoStartTime.split(':')[0]) * 3600 +
-            parseInt(videoStartTime.split(':')[1]) * 60 +
-            parseInt(videoStartTime.split(':')[2]);
+        //   // Get Video duration in seconds
+        //   // Convert HH:MM:SS to seconds
+        //   const videoEndTimeInSeconds =
+        //     parseInt(videoEndTime.split(':')[0]) * 3600 +
+        //     parseInt(videoEndTime.split(':')[1]) * 60 +
+        //     parseInt(videoEndTime.split(':')[2]);
+        //   const videoStartTimeInSeconds =
+        //     parseInt(videoStartTime.split(':')[0]) * 3600 +
+        //     parseInt(videoStartTime.split(':')[1]) * 60 +
+        //     parseInt(videoStartTime.split(':')[2]);
 
-          const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
+        //   const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
 
-          // Check if the watch time is >= 0.5 * video duration
-          if (timeDiff >= 0.45 * videoDuration) {
-            return true;
-          }
-          return false;
-        }
+        //   // Check if the watch time is >= 0.5 * video duration
+        //   if (timeDiff >= 0.45 * videoDuration) {
+        //     return true;
+        //   }
+        //   return false;
+        // }
 
         break;
 
       case 'BLOG':
-        if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
-          const blogDetails = item.itemDetails as IBlogDetails;
-          const watchStartTime = new Date(watchTime.startTime);
-          const watchEndTime = new Date(watchTime.endTime);
+        return true;
+        // if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
+        //   const blogDetails = item.itemDetails as IBlogDetails;
+        //   const watchStartTime = new Date(watchTime.startTime);
+        //   const watchEndTime = new Date(watchTime.endTime);
 
-          // Get Time difference in seconds
-          const timeDiff =
-            Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
+        //   // Get Time difference in seconds
+        //   const timeDiff =
+        //     Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
 
-          // Check if the watch time is >= 0.5 * estimated read time
-          if (timeDiff >= 0.6 * blogDetails.estimatedReadTimeInMinutes * 60) {
-            return true;
-          }
-          return false;
-        }
+        //   // Check if the watch time is >= 0.5 * estimated read time
+        //   if (timeDiff >= 0.6 * blogDetails.estimatedReadTimeInMinutes * 60) {
+        //     return true;
+        //   }
+        //   return false;
+        // }
         break;
     }
   }
 
   async getUserProgress(
-    userId: string,
+    userId: string | ObjectId,
     courseId: string,
     courseVersionId: string,
   ): Promise<Progress> {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    try {
-      await session.startTransaction(txOptions);
+    return this._withTransaction(async session => {
       // Verify if the user, course, and course version exist
       await this.verifyDetails(userId, courseId, courseVersionId);
 
@@ -577,14 +570,9 @@ class ProgressService {
       if (!progress) {
         throw new NotFoundError('Progress not found');
       }
-      await session.commitTransaction();
+
       return Object.assign(new Progress(), progress);
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async startItem(
@@ -595,15 +583,7 @@ class ProgressService {
     sectionId: string,
     itemId: string,
   ): Promise<string> {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       // Verify if the user, course, and course version exist
       await this.verifyDetails(userId, courseId, courseVersionId);
       await this.verifyProgress(
@@ -623,14 +603,8 @@ class ProgressService {
         itemId,
       );
 
-      await session.commitTransaction();
       return result;
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async stopItem(
@@ -642,15 +616,7 @@ class ProgressService {
     moduleId: string,
     watchItemId: string,
   ): Promise<void> {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       // Verify if the user, course, and course version exist
       await this.verifyDetails(userId, courseId, courseVersionId);
       await this.verifyProgress(
@@ -681,13 +647,7 @@ class ProgressService {
       if (!result) {
         throw new InternalServerError('Failed to stop tracking item');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async updateProgress(
@@ -698,16 +658,8 @@ class ProgressService {
     sectionId: string,
     itemId: string,
     watchItemId: string,
-  ) {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+  ): Promise<void> {
+    return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
 
       await this.verifyProgress(
@@ -770,13 +722,7 @@ class ProgressService {
       if (!updatedProgress) {
         throw new InternalServerError('Progress could not be updated');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   // Admin Level Endpoint
@@ -785,15 +731,7 @@ class ProgressService {
     courseId: string,
     courseVersionId: string,
   ): Promise<void> {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
 
       // Get Course Version
@@ -821,13 +759,7 @@ class ProgressService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async resetCourseProgressToModule(
@@ -836,15 +768,7 @@ class ProgressService {
     courseVersionId: string,
     moduleId: string,
   ): Promise<void> {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
       // Get Course Version
       const courseVersion = await this.courseRepo.readVersion(courseVersionId);
@@ -876,13 +800,7 @@ class ProgressService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async resetCourseProgressToSection(
@@ -892,15 +810,7 @@ class ProgressService {
     moduleId: string,
     sectionId: string,
   ) {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
       // Get Course Version
       const courseVersion = await this.courseRepo.readVersion(courseVersionId);
@@ -933,13 +843,7 @@ class ProgressService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 
   async resetCourseProgressToItem(
@@ -950,15 +854,7 @@ class ProgressService {
     sectionId: string,
     itemId: string,
   ) {
-    const client = await this.courseRepo.getDBClient();
-    const session = client.startSession();
-    const txOptions = {
-      readPreference: ReadPreference.primary,
-      readConcern: new ReadConcern('snapshot'),
-      writeConcern: new WriteConcern('majority'),
-    };
-    await session.startTransaction(txOptions);
-    try {
+    return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
       // Get Course Version
       const courseVersion = await this.courseRepo.readVersion(courseVersionId);
@@ -992,13 +888,7 @@ class ProgressService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
-      await session.commitTransaction();
-    } catch (error) {
-      await session.abortTransaction();
-      throw error;
-    } finally {
-      await session.endSession();
-    }
+    });
   }
 }
 

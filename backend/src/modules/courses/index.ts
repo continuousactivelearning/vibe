@@ -1,92 +1,30 @@
-import {useContainer} from 'routing-controllers';
-import {RoutingControllersOptions} from 'routing-controllers';
-import {IDatabase} from 'shared/database';
-import {Container} from 'typedi';
-import {MongoDatabase} from 'shared/database/providers/mongo/MongoDatabase';
-import {dbConfig} from '../../config/db';
-import {CourseController} from './controllers/CourseController';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
-import {CourseVersionController} from './controllers/CourseVersionController';
-import {ModuleController} from './controllers/ModuleController';
-import {SectionController} from './controllers/SectionController';
-import {ItemController} from './controllers/ItemController';
+import {authContainerModule} from '#auth/container.js';
+import {sharedContainerModule} from '#root/container.js';
+import {InversifyAdapter} from '#root/inversify-adapter.js';
+import {HttpErrorHandler} from '#shared/index.js';
+import {Container} from 'inversify';
+import {RoutingControllersOptions, useContainer} from 'routing-controllers';
+import {coursesContainerModule} from './container.js';
+import {usersContainerModule} from '#users/container.js';
 import {
-  CourseService,
-  CourseVersionService,
-  ModuleService,
-  SectionService,
-} from './services';
-import {ItemService} from './services';
-import {HttpErrorHandler} from 'shared/middleware/errorHandler';
+  CourseController,
+  CourseVersionController,
+  ItemController,
+  ModuleController,
+  SectionController,
+} from './controllers/index.js';
 
-useContainer(Container);
-
-export function setupCoursesModuleDependencies() {
-  if (!Container.has('Database')) {
-    Container.set<IDatabase>(
-      'Database',
-      new MongoDatabase(dbConfig.url, 'vibe'),
-    );
-  }
-
-  if (!Container.has('CourseRepo')) {
-    Container.set(
-      'CourseRepo',
-      new CourseRepository(Container.get<MongoDatabase>('Database')),
-    );
-  }
-
-  if (!Container.has('CourseService')) {
-    Container.set(
-      'CourseService',
-      new CourseService(Container.get<CourseRepository>('CourseRepo')),
-    );
-  }
-
-  if (!Container.has('ItemRepo')) {
-    Container.set(
-      'ItemRepo',
-      new ItemRepository(
-        Container.get<MongoDatabase>('Database'),
-        Container.get<CourseRepository>('CourseRepo'),
-      ),
-    );
-  }
-
-  if (!Container.has('ItemService')) {
-    Container.set(
-      'ItemService',
-      new ItemService(
-        Container.get<ItemRepository>('ItemRepo'),
-        Container.get<CourseRepository>('CourseRepo'),
-      ),
-    );
-  }
-  if (!Container.has('CourseVersionService')) {
-    Container.set(
-      'CourseVersionService',
-      new CourseVersionService(Container.get<CourseRepository>('CourseRepo')),
-    );
-  }
-  if (!Container.has('SectionService')) {
-    Container.set(
-      'SectionService',
-      new SectionService(
-        Container.get<ItemRepository>('ItemRepo'),
-        Container.get<CourseRepository>('CourseRepo'),
-      ),
-    );
-  }
-  if (!Container.has('ModuleService')) {
-    Container.set(
-      'ModuleService',
-      new ModuleService(Container.get<CourseRepository>('CourseRepo')),
-    );
-  }
+export async function setupCoursesContainer(): Promise<void> {
+  const container = new Container();
+  await container.load(
+    sharedContainerModule,
+    authContainerModule,
+    coursesContainerModule,
+    usersContainerModule,
+  );
+  const inversifyAdapter = new InversifyAdapter(container);
+  useContainer(inversifyAdapter);
 }
-
-setupCoursesModuleDependencies();
 
 export const coursesModuleOptions: RoutingControllersOptions = {
   controllers: [
@@ -105,6 +43,9 @@ export const coursesModuleOptions: RoutingControllersOptions = {
   validation: true,
 };
 
-export * from './classes/validators/index';
-export * from './classes/transformers/index';
-export * from './controllers/index';
+export * from './classes/index.js';
+export * from './controllers/index.js';
+export * from './services/index.js';
+export * from './utils/index.js';
+export * from './container.js';
+export * from './types.js';

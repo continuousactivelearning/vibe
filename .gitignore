@@ -58,5 +58,4 @@ backend/openapi
 .vibe.json
 
 .venv
-
-mcp
+dist/

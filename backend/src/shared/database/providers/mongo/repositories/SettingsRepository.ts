@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import {Collection, ObjectId, UpdateResult} from 'mongodb';
 import {Service, Inject} from 'typedi';
-import {MongoDatabase} from '../MongoDatabase';
+import {MongoDatabase} from '../MongoDatabase.js';
 import {ICourseSettings, IUserSettings} from 'shared/interfaces/Models';
 import {
   ISettingsRepository,

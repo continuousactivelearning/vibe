@@ -3,7 +3,7 @@ import {
   ICourseSettings,
   ISettings,
   IUserSettings,
-} from '../../interfaces/Models';
+} from '../../interfaces/Models.js';
 
 /**
  * Interface representing a repository for settings related operations.

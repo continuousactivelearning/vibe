@@ -9,7 +9,7 @@ import {ProctoringComponent} from 'shared/database/interfaces/ISettingsRepositor
 
 import {ICourseSettings} from 'shared/interfaces/Models';
 import {JSONSchema} from 'class-validator-jsonschema';
-import {CreateCourseSettingsBody} from '../validators';
+import {CreateCourseSettingsBody} from '../validators/index.js';
 
 class CourseSettings implements ICourseSettings {
   @Expose()

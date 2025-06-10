@@ -1,5 +1,13 @@
-import {logger} from '@sentry/node';
-import {ValidationError} from 'class-validator';
+import {createLogger, format, transports} from 'winston';
+import {
+  IsArray,
+  IsDefined,
+  IsObject,
+  IsOptional,
+  IsString,
+  ValidateNested,
+  ValidationError,
+} from 'class-validator';
 import {
   Middleware,
   ExpressErrorMiddlewareInterface,
@@ -7,7 +15,24 @@ import {
   UnauthorizedError,
 } from 'routing-controllers';
 import {Request, Response} from 'express';
-import {Service} from 'typedi';
+import {JSONSchema} from 'class-validator-jsonschema';
+
+const logger = createLogger({
+  level: 'info',
+  format: format.combine(format.timestamp(), format.prettyPrint()),
+  transports: [
+    //
+    // - Write all logs with importance level of `error` or higher to `error.log`
+    //   (i.e., error, fatal, but not other levels)
+    //
+    new transports.File({filename: 'error.log', level: 'error'}),
+    //
+    // - Write all logs with importance level of `info` or higher to `combined.log`
+    //   (i.e., fatal, error, warn, and info, but not trace)
+    //
+    //new transports.File({filename: 'combined.log'}), "uncomment this line to log all messages to combined.log",
+  ],
+});
 
 export class ErrorResponse<T> {
   message: string;
@@ -18,16 +43,6 @@ export class ErrorResponse<T> {
     this.message = message;
   }
 }
-
-import {
-  IsString,
-  IsOptional,
-  IsObject,
-  IsArray,
-  IsDefined,
-  ValidateNested,
-} from 'class-validator';
-import {JSONSchema} from 'class-validator-jsonschema';
 
 class ValidationErrorResponse {
   @JSONSchema({
@@ -111,10 +126,15 @@ class BadRequestErrorResponse {
   errors?: ValidationErrorResponse;
 }
 
-@Service()
 @Middleware({type: 'after'})
 export class HttpErrorHandler implements ExpressErrorMiddlewareInterface {
   error(error: any, request: Request, response: Response): void {
+    logger.error({
+      message: error.message,
+      errors: error.errors,
+      stack: error.stack,
+      status: error.httpCode || 500,
+    });
     // class CustomValidationError {
     //     errors: ValidationError[];
     // }

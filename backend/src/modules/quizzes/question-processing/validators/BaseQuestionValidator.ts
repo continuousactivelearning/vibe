@@ -1,5 +1,5 @@
-import {BaseQuestion} from 'modules/quizzes/classes/transformers';
-import {TagParser} from 'modules/quizzes/question-processing/tag-parser/TagParser';
+import {BaseQuestion} from '#quizzes/index.js';
+import {TagParser} from '../tag-parser/TagParser.js';
 
 export class BaseQuestionValidator {
   tagStatus: {

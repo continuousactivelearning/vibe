@@ -1,20 +1,21 @@
-import {
-  ClientSession,
-  Collection,
-  MongoClient,
-  ObjectId,
-  WithId,
-} from 'mongodb';
-import {IUser} from 'shared/interfaces/Models';
-import {Inject, Service} from 'typedi';
-import {MongoDatabase} from '../MongoDatabase';
-import {IUserRepository} from 'shared/database/interfaces/IUserRepository';
+import {User} from '#auth/index.js';
+import {GLOBAL_TYPES} from '#root/types.js';
+import {IUserRepository} from '#shared/database/interfaces/IUserRepository.js';
+import {IUser} from '#shared/interfaces/models.js';
+import {instanceToPlain, plainToInstance} from 'class-transformer';
+import {injectable, inject} from 'inversify';
+import {Collection, MongoClient, ClientSession, ObjectId} from 'mongodb';
+import {MongoDatabase} from '../MongoDatabase.js';
+import {InternalServerError, NotFoundError} from 'routing-controllers';
 
-@Service()
+@injectable()
 export class UserRepository implements IUserRepository {
   private usersCollection!: Collection<IUser>;
 
-  constructor(@Inject(() => MongoDatabase) private db: MongoDatabase) {}
+  constructor(
+    @inject(GLOBAL_TYPES.Database)
+    private db: MongoDatabase,
+  ) {}
 
   /**
    * Ensures that `usersCollection` is initialized before usage.
@@ -34,31 +35,16 @@ export class UserRepository implements IUserRepository {
   }
 
   /**
-   * Converts `_id: ObjectId` to `id: string` in user objects.
-   */
-  private transformUser(user: WithId<IUser> | null): IUser | null {
-    if (!user) return null;
-
-    const transformedUser: IUser = {
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      firebaseUID: user.firebaseUID,
-      roles: user.roles,
-    };
-    transformedUser.id = user._id.toString();
-
-    return transformedUser;
-  }
-
-  /**
    * Creates a new user in the database.
    * - Generates a MongoDB `_id` internally but uses `firebaseUID` as the external identifier.
    */
-  async create(user: IUser, session?: ClientSession): Promise<IUser> {
+  async create(user: IUser, session?: ClientSession): Promise<string> {
     await this.init();
     const result = await this.usersCollection.insertOne(user, {session});
-    return this.transformUser({...user, _id: result.insertedId})!;
+    if (!result.acknowledged) {
+      throw new InternalServerError('Failed to create user');
+    }
+    return result.insertedId.toString();
   }
 
   /**
@@ -70,16 +56,22 @@ export class UserRepository implements IUserRepository {
   ): Promise<IUser | null> {
     await this.init();
     const user = await this.usersCollection.findOne({email}, {session});
-    return this.transformUser(user);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    return instanceToPlain(new User(user)) as IUser;
   }
 
   /**
    * Finds a user by ID.
    */
-  async findById(id: string): Promise<IUser | null> {
+  async findById(id: string | ObjectId): Promise<IUser | null> {
     await this.init();
     const user = await this.usersCollection.findOne({_id: new ObjectId(id)});
-    return this.transformUser(user);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    return instanceToPlain(new User(user)) as IUser;
   }
 
   /**
@@ -88,7 +80,10 @@ export class UserRepository implements IUserRepository {
   async findByFirebaseUID(firebaseUID: string): Promise<IUser | null> {
     await this.init();
     const user = await this.usersCollection.findOne({firebaseUID});
-    return this.transformUser(user);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    return instanceToPlain(new User(user)) as IUser;
   }
 
   /**
@@ -101,7 +96,7 @@ export class UserRepository implements IUserRepository {
       {$addToSet: {roles: role}},
       {returnDocument: 'after'},
     );
-    return this.transformUser(result);
+    return instanceToPlain(new User(result)) as IUser;
   }
 
   /**
@@ -114,7 +109,7 @@ export class UserRepository implements IUserRepository {
       {$pull: {roles: role}},
       {returnDocument: 'after'},
     );
-    return this.transformUser(result);
+    return instanceToPlain(new User(result)) as IUser;
   }
 
   /**
@@ -130,6 +125,6 @@ export class UserRepository implements IUserRepository {
       {$set: {password}},
       {returnDocument: 'after'},
     );
-    return this.transformUser(result);
+    return instanceToPlain(new User(result)) as IUser;
   }
 }

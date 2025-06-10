@@ -1,5 +1,2 @@
-export * from './interfaces/IDatabase';
-export * from './interfaces/IUserRepository';
-export * from './interfaces/ICourseRepository';
-export * from './interfaces/IItemRepository';
-export * from './interfaces/ISettingsRepository';
+export * from './interfaces/index.js';
+export * from './providers/index.js';

@@ -1,41 +1,35 @@
-import 'reflect-metadata';
 import {
-  Authorized,
-  Body,
-  Get,
-  HttpError,
-  JsonController,
-  Params,
-  Post,
-  Delete,
-  BadRequestError,
-  HttpCode,
-  NotFoundError,
-  InternalServerError,
-} from 'routing-controllers';
-import {Inject, Service} from 'typedi';
-import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {CourseVersionService} from '../services';
-import {
+  CreateCourseVersionResponse,
+  CourseVersionNotFoundErrorResponse,
   CreateCourseVersionParams,
   CreateCourseVersionBody,
+  CourseVersion,
+  CourseVersionDataResponse,
   ReadCourseVersionParams,
   DeleteCourseVersionParams,
-  CourseVersionDataResponse,
-  CourseVersionNotFoundErrorResponse,
-  CreateCourseVersionResponse,
-} from '../classes/validators/CourseVersionValidators';
-import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
-import {CourseVersion} from '../classes/transformers';
-
-@OpenAPI({
-  tags: ['Course Versions'],
-})
+} from '#courses/classes/index.js';
+import {CourseVersionService} from '#courses/services/CourseVersionService.js';
+import {injectable, inject} from 'inversify';
+import {
+  JsonController,
+  Authorized,
+  Post,
+  HttpCode,
+  Params,
+  Body,
+  Get,
+  Delete,
+  BadRequestError,
+  InternalServerError,
+} from 'routing-controllers';
+import {ResponseSchema} from 'routing-controllers-openapi';
+import {COURSES_TYPES} from '#courses/types.js';
+import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
+@injectable()
 @JsonController('/courses')
-@Service()
 export class CourseVersionController {
   constructor(
-    @Inject('CourseVersionService')
+    @inject(COURSES_TYPES.CourseVersionService)
     private readonly courseVersionService: CourseVersionService,
   ) {}
 
@@ -52,10 +46,6 @@ export class CourseVersionController {
   @ResponseSchema(CourseVersionNotFoundErrorResponse, {
     description: 'Course not found',
     statusCode: 404,
-  })
-  @OpenAPI({
-    summary: 'Create Course Version',
-    description: 'Creates a new version for a specific course.',
   })
   async create(
     @Params() params: CreateCourseVersionParams,
@@ -80,10 +70,6 @@ export class CourseVersionController {
     description: 'Course version not found',
     statusCode: 404,
   })
-  @OpenAPI({
-    summary: 'Get Course Version',
-    description: 'Retrieves a course version by its ID.',
-  })
   async read(
     @Params() params: ReadCourseVersionParams,
   ): Promise<CourseVersion> {
@@ -106,10 +92,6 @@ export class CourseVersionController {
   @ResponseSchema(CourseVersionNotFoundErrorResponse, {
     description: 'Course or version not found',
     statusCode: 404,
-  })
-  @OpenAPI({
-    summary: 'Delete Course Version',
-    description: 'Deletes a course version by its ID.',
   })
   async delete(
     @Params() params: DeleteCourseVersionParams,

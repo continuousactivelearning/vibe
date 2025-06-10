@@ -1,40 +1,53 @@
+import {QuizItem} from '#courses/index.js';
 import {
   BaseQuestion,
-  SMLQuestion,
   SOLQuestion,
+  SMLQuestion,
   OTLQuestion,
   NATQuestion,
   DESQuestion,
-} from 'modules/quizzes/classes/transformers';
-import {TagParser} from './tag-parser/TagParser';
-import {QParamTag} from './tag-parser/tags/QParamTag';
-import {NumExprTag} from './tag-parser/tags/NumExprTag';
-import {NumExprTexTag} from './tag-parser/tags/NumExprTexTag';
-import {ParameterMap} from './tag-parser/tags/Tag';
-import {generateRandomParameterMap} from '../utils/functions/generateRandomParameterMap';
+} from '#quizzes/classes/index.js';
+import {Answer, IQuestionAnswerFeedback} from '#quizzes/interfaces/grading.js';
+import {generateRandomParameterMap} from '#quizzes/utils/index.js';
+import {
+  DESQuestionGrader,
+  IGrader,
+  NATQuestionGrader,
+  OTLQuestionGrader,
+  SMLQuestionGrader,
+  SOLQuestionGrader,
+} from './graders/index.js';
 import {
   BaseQuestionRenderer,
-  SOLQuestionRenderer,
-  IQuestionRenderView,
-  SMLQuestionRenderer,
-  OTLQuestionRenderer,
-  NATQuestionRenderer,
   DESQuestionRenderer,
-} from './renderers';
+  IQuestionRenderView,
+  NATQuestionRenderer,
+  OTLQuestionRenderer,
+  SMLQuestionRenderer,
+  SOLQuestionRenderer,
+} from './renderers/index.js';
+import {
+  QParamTag,
+  NumExprTag,
+  NumExprTexTag,
+  ParameterMap,
+} from './tag-parser/index.js';
+import {TagParser} from './tag-parser/TagParser.js';
 import {
   BaseQuestionValidator,
-  SOLQuestionValidator,
-  SMLQuestionValidator,
-  OTLQuestionValidator,
-  NATQuestionValidator,
   DESQuestionValidator,
-} from './validators';
+  NATQuestionValidator,
+  OTLQuestionValidator,
+  SMLQuestionValidator,
+  SOLQuestionValidator,
+} from './validators/index.js';
 
 class QuestionProcessor {
   private tagParser: TagParser;
   private question: BaseQuestion;
   private validator: BaseQuestionValidator;
   private renderer: BaseQuestionRenderer;
+  private grader: IGrader;
 
   private createValidator(): BaseQuestionValidator {
     switch (this.question.type) {
@@ -63,7 +76,6 @@ class QuestionProcessor {
           this.question as DESQuestion,
           this.tagParser,
         );
-      // Add more cases for other question types as needed
       default:
         throw new Error(
           `No validator found for question type: ${this.question.type}`,
@@ -98,10 +110,28 @@ class QuestionProcessor {
           this.question as DESQuestion,
           this.tagParser,
         );
-      // Add more cases for other question types as needed
       default:
         throw new Error(
           `No renderer found for question type: ${this.question.type}`,
+        );
+    }
+  }
+
+  private createGrader(): IGrader {
+    switch (this.question.type) {
+      case 'SELECT_ONE_IN_LOT':
+        return new SOLQuestionGrader(this.question as SOLQuestion);
+      case 'SELECT_MANY_IN_LOT':
+        return new SMLQuestionGrader(this.question as SMLQuestion);
+      case 'ORDER_THE_LOTS':
+        return new OTLQuestionGrader(this.question as OTLQuestion);
+      case 'NUMERIC_ANSWER_TYPE':
+        return new NATQuestionGrader(this.question as NATQuestion);
+      case 'DESCRIPTIVE':
+        return new DESQuestionGrader(this.question as DESQuestion);
+      default:
+        throw new Error(
+          `No grader found for question type: ${this.question.type}`,
         );
     }
   }
@@ -115,6 +145,7 @@ class QuestionProcessor {
     this.question = question;
     this.validator = this.createValidator();
     this.renderer = this.createRenderer();
+    this.grader = this.createGrader();
   }
 
   validate(): void {
@@ -133,6 +164,14 @@ class QuestionProcessor {
       this.question.parameters,
     );
     return this.renderer.render(randomParameterMap);
+  }
+
+  grade(
+    answer: Answer,
+    quiz: QuizItem,
+    parameterMap?: ParameterMap,
+  ): Promise<IQuestionAnswerFeedback> {
+    return this.grader.grade(answer, quiz);
   }
 }
 

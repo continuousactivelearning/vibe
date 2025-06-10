@@ -1,1 +1,1 @@
-export * from './CourseSettingsValidators';
+export * from './CourseSettingsValidators.js';
