@@ -10,8 +10,9 @@
     "test:coverage": "jest --coverage  --detectOpenHandles",
     "test:watch:coverage": "jest --watch --coverage --detectOpenHandles",
     "dev": "pnpx ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
-    "build": "tsc && pnpm sentry:sourcemaps",
-    "start": "node dist/index.js",
+    "build": "tsc",
+    "build:with-sentry": "tsc && pnpm sentry:sourcemaps",
+    "start": "node build/index.js",
     "sentry:sourcemaps": "sentry-cli sourcemaps inject --org aditya-bmv --project node-express ./build && sentry-cli sourcemaps upload --org aditya-bmv --project node-express ./build",
     "docs": "typedoc",
     "lint": "pnpx gts lint",
@@ -27,6 +28,9 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "devDependencies": {
     "@faker-js/faker": "^9.7.0",
     "@types/bcrypt": "^5.0.2",
