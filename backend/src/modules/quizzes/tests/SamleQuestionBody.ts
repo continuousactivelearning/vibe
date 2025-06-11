@@ -7,8 +7,8 @@ const NATquestionData: IQuestion = {
 	timeLimitSeconds: 30,
 	isParameterized: true,
 	parameters: [
-		{ name: 'x', possibleValues: ['2', '3'], type: 'number' },
-		{ name: 'y', possibleValues: ['5', '7'], type: 'number' },
+		{ name: 'x', possibleValues: ['5', '2'], type: 'number' },
+		{ name: 'y', possibleValues: ['7', '4'], type: 'number' },
 	],
 	hint: 'Add <QParam>x</QParam> and <QParam>y</QParam>.',
 };
@@ -36,16 +36,16 @@ const SOLquestionData: IQuestion = {
 const SOLsolution: ISOLSolution = {
 	correctLotItem: {
 		text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
-		explaination: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
+		explaination: '(CorrectAns) NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
 	},
 	incorrectLotItems: [
 		{
 			text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>',
-			explaination: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
+			explaination: '(IncorrectAns) NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
 		},
 		{
 			text: 'NumExprTex: <NumExprTex>a^b</NumExprTex>',
-			explaination: 'NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
+			explaination: '(IncorrectAns) NumExprTex: <NumExprTex>a^b</NumExprTex>, NumExpr: <NumExpr>(a^b)</NumExpr>, NumExpr: <NumExpr>a</NumExpr>, QParam: <QParam>name</QParam>, QParam: <QParam>name2</QParam>',
 		},
 	],
 };

@@ -60,7 +60,7 @@ class SubmissionRepository {
     await this.init();
     const result = await this.submissionResultCollection.findOne(
       {
-        _id: submissionId,
+        _id: new ObjectId(submissionId),
       },
       {session},
     );
@@ -76,7 +76,7 @@ class SubmissionRepository {
   ): Promise<ISubmission> {
     await this.init();
     const result = await this.submissionResultCollection.findOneAndUpdate(
-      {_id: submissionId},
+      {_id: new ObjectId(submissionId)},
       {$set: updateData},
       {returnDocument: 'after'},
     );

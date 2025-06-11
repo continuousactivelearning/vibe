@@ -571,7 +571,7 @@ describe('AttemptController', () => {
         .send({
           answers: [
             // NUMERIC_ANSWER_TYPE
-            { questionId: natId, questionType: 'NUMERIC_ANSWER_TYPE', answer: { value: 7 } },
+            { questionId: natId, questionType: 'NUMERIC_ANSWER_TYPE', answer: { value: 9 } },
             // SELECT_ONE_IN_LOT
             { questionId: solId, questionType: 'SELECT_ONE_IN_LOT', answer: { lotItemId: solCorrectLotItemId } },
             // SELECT_MANY_IN_LOT

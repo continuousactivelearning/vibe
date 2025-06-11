@@ -32,6 +32,7 @@ import {
   Delete,
   Get,
   OnUndefined,
+  Patch,
 } from 'routing-controllers';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
 @injectable()
@@ -61,7 +62,7 @@ class QuizController {
     await this.quizService.removeQuestionBank(quizId, questionBankId);
   }
 
-  @Post('/:quizId/bank')
+  @Patch('/:quizId/bank')
   @OnUndefined(201)
   async editQuestionBank(
     @Params() params: QuizIdParam,
