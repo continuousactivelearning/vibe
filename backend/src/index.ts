@@ -3,21 +3,23 @@ if (process.env.NODE_ENV === 'production') {
 }
 import Express from 'express';
 import Sentry from '@sentry/node';
-import {loggingHandler} from 'shared/middleware/loggingHandler';
+import {loggingHandler} from './shared/middleware/loggingHandler';
 import {
   RoutingControllersOptions,
   useContainer,
   useExpressServer,
 } from 'routing-controllers';
-import {coursesModuleOptions} from 'modules/courses';
+import {coursesModuleOptions} from './modules/courses';
 import Container from 'typedi';
-import {IDatabase} from 'shared/database';
-import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
-import {dbConfig} from 'config/db';
-import {usersModuleOptions} from 'modules/users';
+import {IDatabase} from './shared/database';
+import {MongoDatabase} from './shared/database/providers/MongoDatabaseProvider';
+import {dbConfig} from './config/db';
+import {usersModuleOptions} from './modules/users';
+import {genaiModuleOptions} from './modules/genai';
 import * as firebase from 'firebase-admin';
 import {app} from 'firebase-admin';
-import {authModuleOptions} from 'modules';
+import {authModuleOptions} from './modules';
+import {appConfig} from './config/app';
 
 export const application = Express();
 
@@ -37,17 +39,6 @@ export const ServiceFactory = (
   console.log('--------------------------------------------------------');
 
   service.use(loggingHandler);
-
-  // Register GenAI routes
-  try {
-    const genAiRoutes = require('./modules/genai/genaiRoutes.js'); // Ensure this path is correct
-    service.use('/api/genai', genAiRoutes);
-    console.log('--------------------------------------------------------');
-    console.log('GenAI routes registered under /api/genai');
-    console.log('--------------------------------------------------------');
-  } catch (error) {
-    console.error('Failed to load or register GenAI routes:', error);
-  }
 
   console.log('--------------------------------------------------------');
   console.log('Define Routing');
@@ -73,7 +64,26 @@ export const ServiceFactory = (
   return service;
 };
 
-// Create a main function where multiple services are created
+// Combine all module options
+const allControllers = [
+  ...(authModuleOptions.controllers || []),
+  ...(coursesModuleOptions.controllers || []),
+  ...(usersModuleOptions.controllers || []),
+  ...(genaiModuleOptions.controllers || []),
+] as Function[];
+
+const combinedModuleOptions: RoutingControllersOptions = {
+  controllers: allControllers,
+  routePrefix: '/api', // Add this line to prefix all routes with /api
+  defaultErrorHandler: true,
+  authorizationChecker: async function (action, roles) {
+    // Use the auth module's authorization checker as the primary one
+    return authModuleOptions.authorizationChecker
+      ? await authModuleOptions.authorizationChecker(action, roles)
+      : true;
+  },
+  validation: true,
+};
 
 useContainer(Container);
 
@@ -82,7 +92,7 @@ if (!Container.has('Database')) {
 }
 
 export const main = () => {
-  const service = ServiceFactory(application, authModuleOptions);
+  const service = ServiceFactory(application, combinedModuleOptions);
   service.listen(4001, () => {
     console.log('--------------------------------------------------------');
     console.log('Started Server at http://localhost:' + 4001);
