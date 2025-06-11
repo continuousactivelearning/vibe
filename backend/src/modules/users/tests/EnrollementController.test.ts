@@ -1,53 +1,51 @@
-import {MongoMemoryServer} from 'mongodb-memory-server';
 import request from 'supertest';
 import Express from 'express';
-import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
-import {Container} from 'typedi';
-import {MongoDatabase} from '../../../shared/database/providers/mongo/MongoDatabase';
 import {
-  authModuleOptions,
-  setupAuthModuleDependencies,
-  SignUpBody,
-} from 'modules/auth';
+  RoutingControllersOptions,
+  useContainer,
+  useExpressServer,
+} from 'routing-controllers';
+import {authModuleOptions, SignUpBody} from '../../auth';
 import {
   Course,
   coursesModuleOptions,
   CreateCourseBody,
   CreateCourseVersionBody,
   CreateCourseVersionParams,
+  CreateItemBody,
   CreateItemParams,
   CreateModuleBody,
   CreateModuleParams,
   CreateSectionBody,
   CreateSectionParams,
-  setupCoursesModuleDependencies,
-} from 'modules/courses';
-import {
-  EnrollmentParams,
-  setupUsersModuleDependencies,
-  usersModuleOptions,
-} from '..';
-import {faker} from '@faker-js/faker/.';
-import c from 'config';
+} from '../../courses';
+import {EnrollmentParams, usersModuleOptions} from '..';
+import {faker} from '@faker-js/faker';
+import {Container} from 'inversify';
+import {sharedContainerModule} from '../../../container';
+import {authContainerModule} from '../../auth/container';
+import {usersContainerModule} from '../container';
+import {coursesContainerModule} from '../../courses/container';
+import {InversifyAdapter} from '../../../inversify-adapter';
+import {ItemType} from '../../../shared/interfaces/models';
+import {jest} from '@jest/globals';
 
 describe('Enrollment Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
-  let mongoServer: MongoMemoryServer;
 
   beforeAll(async () => {
     //Set env variables
     process.env.NODE_ENV = 'test';
-
-    // Start an in-memory MongoDB servera
-    mongoServer = await MongoMemoryServer.create();
-    const uri = mongoServer.getUri();
-
-    Container.set('Database', new MongoDatabase(uri, 'vibe'));
-
-    setupAuthModuleDependencies();
-    setupCoursesModuleDependencies();
-    setupUsersModuleDependencies();
+    const container = new Container();
+    await container.load(
+      sharedContainerModule,
+      authContainerModule,
+      usersContainerModule,
+      coursesContainerModule,
+    );
+    const inversifyAdapter = new InversifyAdapter(container);
+    useContainer(inversifyAdapter);
 
     // Create the Express app with routing-controllers configuration
     const options: RoutingControllersOptions = {
@@ -63,11 +61,6 @@ describe('Enrollment Controller Integration Tests', () => {
     };
 
     app = useExpressServer(appInstance, options);
-  });
-
-  afterAll(async () => {
-    // Stop the in-memory MongoDB server
-    await mongoServer.stop();
   });
 
   beforeEach(async () => {
@@ -89,10 +82,8 @@ describe('Enrollment Controller Integration Tests', () => {
         .post('/auth/signup')
         .send(signUpBody)
         .expect(201);
-      // Expect the response to contain the user ID
-      expect(signUpResponse.body).toHaveProperty('id');
       // Extract the user ID from the response
-      const userId = signUpResponse.body.id;
+      const userId = signUpResponse.body;
 
       // 2. Create a course by hitting at endpoint /courses
 
@@ -126,7 +117,7 @@ describe('Enrollment Controller Integration Tests', () => {
         .send(courseVersionBody)
         .expect(201);
       // Expect the response to contain the course version ID
-      const courseVersionId = createCourseVersionResponse.body.version._id;
+      const courseVersionId = createCourseVersionResponse.body._id;
       expect(courseVersionId).toBeDefined();
 
       // 3. Create a module by hitting at endpoint /courses/:courseId/versions/:versionId/modules
@@ -198,7 +189,7 @@ describe('Enrollment Controller Integration Tests', () => {
           URL: 'http://url.com',
           startTime: '00:00:00',
           endTime: '00:00:40',
-          points: '10.5',
+          points: 10.5,
         },
       };
 
@@ -218,13 +209,11 @@ describe('Enrollment Controller Integration Tests', () => {
       expect(createItemResponse.body).toHaveProperty('itemsGroup');
       expect(createItemResponse.body.itemsGroup).toHaveProperty('items');
       expect(createItemResponse.body.itemsGroup.items).toHaveLength(1);
-      expect(createItemResponse.body.itemsGroup.items[0]).toHaveProperty(
-        'itemId',
-      );
+      expect(createItemResponse.body.itemsGroup.items[0]).toHaveProperty('_id');
 
-      const itemId = createItemResponse.body.itemsGroup.items[0].itemId;
+      const itemId = createItemResponse.body.itemsGroup.items[0]._id;
 
-      // 3. Enroll the user in the course version by hitting at endpoint
+      // 3. Enroll the user as a student in the course version by hitting at endpoint
 
       const createEnrollmentParams: EnrollmentParams = {
         userId: userId,
@@ -232,9 +221,13 @@ describe('Enrollment Controller Integration Tests', () => {
         courseVersionId: courseVersionId,
       };
 
-      const enrollmentResponse = await request(app).post(
-        `/users/${createEnrollmentParams.userId}/enrollments/courses/${createEnrollmentParams.courseId}/versions/${createEnrollmentParams.courseVersionId}`,
-      );
+      const enrollmentResponse = await request(app)
+        .post(
+          `/users/${createEnrollmentParams.userId}/enrollments/courses/${createEnrollmentParams.courseId}/versions/${createEnrollmentParams.courseVersionId}`,
+        )
+        .send({
+          role: 'student',
+        });
       //expect status code to be 200
       expect(enrollmentResponse.status).toBe(200);
       //expect response to have property enrollment
@@ -276,7 +269,143 @@ describe('Enrollment Controller Integration Tests', () => {
       expect(enrollmentResponse.body.progress.courseVersionId).toBe(
         courseVersionId,
       );
-    }, 20000);
+    }, 90000);
+  });
+
+  // ------Tests for Unenroll Enrollment------
+  describe('Unenroll Enrollment', () => {
+    it('should remove enrollment and progress for a user', async () => {
+      // 1. Create a new user
+      const signUpBody: SignUpBody = {
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        firstName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
+        lastName: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
+      };
+
+      const signUpResponse = await request(app)
+        .post('/auth/signup')
+        .send(signUpBody)
+        .expect(201);
+      const userId = signUpResponse.body;
+
+      // 2. Create a course
+      const courseBody: CreateCourseBody = {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+      };
+
+      const courseResponse = await request(app)
+        .post('/courses')
+        .send(courseBody)
+        .expect(201);
+      const courseId: string = courseResponse.body._id;
+
+      // 3. Create course version
+      const courseVersionBody: CreateCourseVersionBody = {
+        version: '1.0',
+        description: 'Initial version',
+      };
+
+      const createCourseVersionResponse = await request(app)
+        .post(`/courses/${courseId}/versions`)
+        .send(courseVersionBody)
+        .expect(201);
+      const courseVersionId = createCourseVersionResponse.body._id;
+
+      // 4. Create a module
+      const moduleBody: CreateModuleBody = {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+      };
+
+      const createModuleResponse = await request(app)
+        .post(`/courses/versions/${courseVersionId}/modules`)
+        .send(moduleBody)
+        .expect(201);
+      const moduleId = createModuleResponse.body.version.modules[0].moduleId;
+
+      // 5. Create a section
+      const sectionBody: CreateSectionBody = {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+      };
+
+      const createSectionResponse = await request(app)
+        .post(
+          `/courses/versions/${courseVersionId}/modules/${moduleId}/sections`,
+        )
+        .send(sectionBody)
+        .expect(201);
+      const sectionId =
+        createSectionResponse.body.version.modules[0].sections[0].sectionId;
+
+      // 6. Create an item
+      const itemPayload: CreateItemBody = {
+        name: faker.commerce.productName(),
+        description: faker.commerce.productDescription(),
+        type: ItemType.QUIZ,
+        quizDetails: {
+          questionVisibility: 3,
+          allowPartialGrading: true,
+          deadline: faker.date.future(),
+          allowHint: true,
+          maxAttempts: 5,
+          releaseTime: faker.date.future(),
+          quizType: 'DEADLINE',
+          showCorrectAnswersAfterSubmission: true,
+          showExplanationAfterSubmission: true,
+          showScoreAfterSubmission: true,
+          approximateTimeToComplete: '00:30:00',
+          passThreshold: 0.7,
+        },
+      };
+
+      const createItemResponse = await request(app)
+        .post(
+          `/courses/versions/${courseVersionId}/modules/${moduleId}/sections/${sectionId}/items`,
+        )
+        .send(itemPayload)
+        .expect(201);
+      const itemId = createItemResponse.body.itemsGroup.items[0].itemId;
+
+      // 7. Enroll the user
+      const enrollmentResponse = await request(app)
+        .post(
+          `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}`,
+        )
+        .send({
+          role: 'student',
+        });
+      expect(enrollmentResponse.status).toBe(200);
+      expect(enrollmentResponse.body).toHaveProperty('enrollment');
+      expect(enrollmentResponse.body).toHaveProperty('progress');
+
+      // 8. Unenroll the user
+      const unenrollResponse = await request(app).post(
+        `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}/unenroll`,
+      );
+      expect(unenrollResponse.status).toBe(200);
+      expect(unenrollResponse.body.enrollment).toBeNull();
+      expect(unenrollResponse.body.progress).toBeNull();
+
+      // 9. Try to enroll again (should succeed, since unenrolled)
+      const reEnrollResponse = await request(app)
+        .post(
+          `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}`,
+        )
+        .send({
+          role: 'student',
+        });
+      expect(reEnrollResponse.status).toBe(200);
+      expect(reEnrollResponse.body).toHaveProperty('enrollment');
+      expect(reEnrollResponse.body).toHaveProperty('progress');
+      expect(reEnrollResponse.body.enrollment.userId).toBe(userId);
+      expect(reEnrollResponse.body.enrollment.courseId).toBe(courseId);
+      expect(reEnrollResponse.body.enrollment.courseVersionId).toBe(
+        courseVersionId,
+      );
+    }, 90000);
   });
 
   // ------Tests for Read <ModuleName>------
@@ -298,5 +427,145 @@ describe('Enrollment Controller Integration Tests', () => {
     // it('should ...', async () => {
     //   // Write your test here
     // });
+  });
+
+  // ------Tests for Get User Enrollments with Pagination------
+  describe('GET User Enrollments (Pagination)', () => {
+    it('should fetch paginated enrollments for a user', async () => {
+      // 1. Create a new user
+      const signUpBody: SignUpBody = {
+        email: faker.internet.email(),
+        password: faker.internet.password(),
+        firstName: faker.person.firstName().replace(/[^a-zA-Z]/g, ''),
+        lastName: faker.person.lastName().replace(/[^a-zA-Z]/g, ''),
+      };
+
+      const signUpResponse = await request(app)
+        .post('/auth/signup')
+        .send(signUpBody)
+        .expect(201);
+      const userId = signUpResponse.body;
+
+      // 2. Create two courses and enroll user in both
+      const enrollments: any[] = [];
+      for (let i = 0; i < 2; i++) {
+        // Create course
+        const courseBody: CreateCourseBody = {
+          name: faker.commerce.productName(),
+          description: faker.commerce.productDescription(),
+        };
+        const courseResponse = await request(app)
+          .post('/courses')
+          .send(courseBody)
+          .expect(201);
+        const courseId: string = courseResponse.body._id;
+
+        // Create course version
+        const courseVersionBody: CreateCourseVersionBody = {
+          version: '1.0',
+          description: 'Initial version',
+        };
+        const createCourseVersionResponse = await request(app)
+          .post(`/courses/${courseId}/versions`)
+          .send(courseVersionBody)
+          .expect(201);
+        const courseVersionId = createCourseVersionResponse.body._id;
+
+        // Create module
+        const moduleBody: CreateModuleBody = {
+          name: faker.commerce.productName(),
+          description: faker.commerce.productDescription(),
+        };
+        const createModuleResponse = await request(app)
+          .post(`/courses/versions/${courseVersionId}/modules`)
+          .send(moduleBody)
+          .expect(201);
+        const moduleId = createModuleResponse.body.version.modules[0].moduleId;
+
+        // Create section
+        const sectionBody: CreateSectionBody = {
+          name: faker.commerce.productName(),
+          description: faker.commerce.productDescription(),
+        };
+        const createSectionResponse = await request(app)
+          .post(
+            `/courses/versions/${courseVersionId}/modules/${moduleId}/sections`,
+          )
+          .send(sectionBody)
+          .expect(201);
+        const sectionId =
+          createSectionResponse.body.version.modules[0].sections[0].sectionId;
+
+        // Create item
+        const itemPayload: CreateItemBody = {
+          name: faker.commerce.productName(),
+          description: faker.commerce.productDescription(),
+          type: ItemType.QUIZ,
+          quizDetails: {
+            questionVisibility: 3,
+            allowPartialGrading: true,
+            deadline: faker.date.future(),
+            allowHint: true,
+            maxAttempts: 5,
+            releaseTime: faker.date.future(),
+            quizType: 'DEADLINE',
+            showCorrectAnswersAfterSubmission: true,
+            showExplanationAfterSubmission: true,
+            showScoreAfterSubmission: true,
+            approximateTimeToComplete: '00:30:00',
+            passThreshold: 0.7,
+          },
+        };
+        const createItemResponse = await request(app)
+          .post(
+            `/courses/versions/${courseVersionId}/modules/${moduleId}/sections/${sectionId}/items`,
+          )
+          .send(itemPayload)
+          .expect(201);
+        const itemId = createItemResponse.body.itemsGroup.items[0]._id;
+
+        // Enroll the user
+        const enrollmentResponse = await request(app)
+          .post(
+            `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}`,
+          )
+          .send({
+            role: 'student',
+          });
+        expect(enrollmentResponse.status).toBe(200);
+        expect(enrollmentResponse.body).toHaveProperty('enrollment');
+        expect(enrollmentResponse.body).toHaveProperty('progress');
+        enrollments.push(enrollmentResponse.body.enrollment);
+      }
+
+      // 3. Fetch enrollments with pagination (limit 1, page 1)
+      const getEnrollmentsResponse = await request(app)
+        .get(`/users/${userId}/enrollments?page=1&limit=1`)
+        .expect(200);
+
+      expect(getEnrollmentsResponse.body).toHaveProperty('totalDocuments', 2);
+      expect(getEnrollmentsResponse.body).toHaveProperty('totalPages', 2);
+      expect(getEnrollmentsResponse.body).toHaveProperty('currentPage', 1);
+      expect(getEnrollmentsResponse.body).toHaveProperty('enrollments');
+      expect(Array.isArray(getEnrollmentsResponse.body.enrollments)).toBe(true);
+      expect(getEnrollmentsResponse.body.enrollments.length).toBe(1);
+
+      // 4. Fetch enrollments with pagination (limit 1, page 2)
+      const getEnrollmentsResponsePage2 = await request(app)
+        .get(`/users/${userId}/enrollments?page=2&limit=1`)
+        .expect(200);
+
+      expect(getEnrollmentsResponsePage2.body).toHaveProperty(
+        'totalDocuments',
+        2,
+      );
+      expect(getEnrollmentsResponsePage2.body).toHaveProperty('totalPages', 2);
+      expect(getEnrollmentsResponsePage2.body).toHaveProperty('currentPage', 2);
+      expect(getEnrollmentsResponsePage2.body).toHaveProperty('enrollments');
+      expect(Array.isArray(getEnrollmentsResponsePage2.body.enrollments)).toBe(
+        true,
+      );
+      expect(getEnrollmentsResponsePage2.body.enrollments.length).toBe(1);
+    }, 90000);
   });
 });

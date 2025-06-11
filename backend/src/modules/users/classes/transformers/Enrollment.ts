@@ -1,12 +1,13 @@
-import 'reflect-metadata';
-import {Expose, Transform, Type} from 'class-transformer';
-import {ObjectId} from 'mongodb';
 import {
+  IEnrollment,
   ObjectIdToString,
   StringToObjectId,
-} from 'shared/constants/transformerConstants';
-import {IEnrollment} from 'shared/interfaces/Models';
-import {ID} from 'shared/types';
+  ID,
+  EnrollmentRole,
+  EnrollmentStatus,
+} from '#shared/index.js';
+import {Expose, Transform, Type} from 'class-transformer';
+import {ObjectId} from 'mongodb';
 
 @Expose()
 export class Enrollment implements IEnrollment {
@@ -31,7 +32,10 @@ export class Enrollment implements IEnrollment {
   courseVersionId: ID;
 
   @Expose()
-  status: 'active' | 'inactive';
+  role: EnrollmentRole;
+
+  @Expose()
+  status: EnrollmentStatus;
 
   @Expose()
   @Type(() => Date)

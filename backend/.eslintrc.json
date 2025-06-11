@@ -1,10 +1,6 @@
 {
-  "extends": "./node_modules/gts/",
-  "settings": {
-    "node": {
-      "version": ">=14.0.0"
-    }
-  },
+  "extends": ["./node_modules/gts/", "plugin:require-extensions/recommended"],
+  "plugins": ["require-extensions"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "off",
     "no-unused-vars": "off"

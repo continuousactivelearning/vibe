@@ -1,17 +1,16 @@
-import 'reflect-metadata';
+import {GLOBAL_TYPES} from '#root/types.js';
+import {IEnrollment, IProgress} from '#shared/interfaces/models.js';
+import {injectable, inject} from 'inversify';
 import {Collection, ObjectId} from 'mongodb';
-import {Service, Inject} from 'typedi';
-import {MongoDatabase} from '../MongoDatabase';
-import {IEnrollment, IProgress} from 'shared/interfaces/Models';
-import {CreateError, ReadError} from 'shared/errors/errors';
-import {NotFoundError} from 'routing-controllers';
+import {InternalServerError, NotFoundError} from 'routing-controllers';
+import {MongoDatabase} from '../MongoDatabase.js';
 
-@Service()
+@injectable()
 export class EnrollmentRepository {
   private enrollmentCollection: Collection<IEnrollment>;
   private progressCollection: Collection<IProgress>;
 
-  constructor(@Inject(() => MongoDatabase) private db: MongoDatabase) {}
+  constructor(@inject(GLOBAL_TYPES.Database) private db: MongoDatabase) {}
 
   private async init() {
     this.enrollmentCollection =
@@ -28,7 +27,9 @@ export class EnrollmentRepository {
     try {
       return await this.enrollmentCollection.findOne({_id: new ObjectId(id)});
     } catch (error) {
-      throw new ReadError(`Failed to find enrollment by ID: ${error.message}`);
+      throw new InternalServerError(
+        `Failed to find enrollment by ID: ${error.message}`,
+      );
     }
   }
 
@@ -57,7 +58,7 @@ export class EnrollmentRepository {
     try {
       const result = await this.enrollmentCollection.insertOne(enrollment);
       if (!result.acknowledged) {
-        throw new CreateError('Failed to create enrollment record');
+        throw new InternalServerError('Failed to create enrollment record');
       }
 
       const newEnrollment = await this.enrollmentCollection.findOne({
@@ -70,7 +71,31 @@ export class EnrollmentRepository {
 
       return newEnrollment;
     } catch (error) {
-      throw new CreateError(`Failed to create enrollment: ${error.message}`);
+      throw new InternalServerError(
+        `Failed to create enrollment: ${error.message}`,
+      );
+    }
+  }
+  /**
+   * Delete an enrollment record for a user in a specific course version
+   */
+  async deleteEnrollment(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    session?: any,
+  ): Promise<void> {
+    await this.init();
+    const result = await this.enrollmentCollection.deleteOne(
+      {
+        userId: userId,
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
+      },
+      {session},
+    );
+    if (result.deletedCount === 0) {
+      throw new NotFoundError('Enrollment not found to delete');
     }
   }
 
@@ -82,7 +107,7 @@ export class EnrollmentRepository {
     try {
       const result = await this.progressCollection.insertOne(progress);
       if (!result.acknowledged) {
-        throw new CreateError('Failed to create progress record');
+        throw new InternalServerError('Failed to create progress record');
       }
 
       const newProgress = await this.progressCollection.findOne({
@@ -95,9 +120,47 @@ export class EnrollmentRepository {
 
       return newProgress;
     } catch (error) {
-      throw new CreateError(
+      throw new InternalServerError(
         `Failed to create progress tracking: ${error.message}`,
       );
     }
+  }
+
+  async deleteProgress(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    session?: any,
+  ): Promise<void> {
+    await this.init();
+    await this.progressCollection.deleteMany(
+      {
+        userId: new ObjectId(userId),
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
+      },
+      {session},
+    );
+  }
+
+  /**
+   * Get paginated enrollments for a user
+   */
+  async getEnrollments(userId: string, skip: number, limit: number) {
+    await this.init();
+    return this.enrollmentCollection
+      .find({userId})
+      .skip(skip)
+      .limit(limit)
+      .sort({enrollmentDate: -1})
+      .toArray();
+  }
+
+  /**
+   * Count total enrollments for a user
+   */
+  async countEnrollments(userId: string) {
+    await this.init();
+    return this.enrollmentCollection.countDocuments({userId});
   }
 }

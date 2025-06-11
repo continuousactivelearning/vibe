@@ -1,20 +1,6 @@
-import 'reflect-metadata';
-import {
-  Authorized,
-  Body,
-  Get,
-  HttpCode,
-  JsonController,
-  OnUndefined,
-  Params,
-  Patch,
-  Post,
-} from 'routing-controllers';
-import {Inject, Service} from 'typedi';
-import {Progress} from '../classes/transformers';
-import {ProgressService} from '../services/ProgressService';
 import {
   GetUserProgressParams,
+  Progress,
   StartItemParams,
   StartItemBody,
   StartItemResponse,
@@ -24,18 +10,26 @@ import {
   UpdateProgressBody,
   ResetCourseProgressParams,
   ResetCourseProgressBody,
-} from '../classes/validators';
+} from '#users/classes/index.js';
+import {ProgressService} from '#users/services/ProgressService.js';
+import {USERS_TYPES} from '#users/types.js';
+import {injectable, inject} from 'inversify';
+import {
+  JsonController,
+  Get,
+  HttpCode,
+  Params,
+  Post,
+  Body,
+  OnUndefined,
+  Patch,
+} from 'routing-controllers';
 
 @JsonController('/users', {transformResponse: true})
-@Service()
-/**
- * Controller for managing user progress in courses.
- *
- * @category Users/Controllers
- */
+@injectable()
 class ProgressController {
   constructor(
-    @Inject('ProgressService')
+    @inject(USERS_TYPES.ProgressService)
     private readonly progressService: ProgressService,
   ) {}
 
@@ -54,6 +48,7 @@ class ProgressController {
 
     return progress;
   }
+
   @Post('/:userId/progress/courses/:courseId/versions/:courseVersionId/start')
   @HttpCode(200)
   async startItem(
@@ -117,7 +112,6 @@ class ProgressController {
     );
   }
 
-  @Authorized(['admin', 'teacher'])
   @Patch('/:userId/progress/courses/:courseId/versions/:courseVersionId/reset')
   @OnUndefined(200)
   async resetProgress(

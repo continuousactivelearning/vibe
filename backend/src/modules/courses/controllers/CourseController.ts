@@ -1,113 +1,119 @@
-import {instanceToPlain} from 'class-transformer';
-import 'reflect-metadata';
+import {
+  CourseDataResponse,
+  CreateCourseBody,
+  Course,
+  CourseNotFoundErrorResponse,
+  ReadCourseParams,
+  UpdateCourseParams,
+  UpdateCourseBody,
+} from '#courses/classes/index.js';
+import {CourseService} from '#courses/services/CourseService.js';
+import {validationMetadatasToSchemas} from 'class-validator-jsonschema';
+import {injectable, inject} from 'inversify';
 import {
   JsonController,
   Authorized,
   Post,
-  Body,
-  HttpError,
-  Get,
-  Put,
-  Params,
   HttpCode,
-  NotFoundError,
+  Body,
+  Get,
+  Params,
+  Put,
+  Delete,
+  OnUndefined,
 } from 'routing-controllers';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {Service, Inject} from 'typedi';
-import {Course} from '../classes/transformers/Course';
-import {
-  CreateCourseBody,
-  ReadCourseParams,
-  UpdateCourseParams,
-  UpdateCourseBody,
-} from '../classes/validators/CourseValidators';
-
-/**
- * @category Courses/Controllers
- * @categoryDescription
-
- */
-
-/**
- * Controller for managing courses.
- * Handles API endpoints related to course creation, reading, and updating.
- * Uses dependency injection to work with CourseRepository and exposes
- * endpoints under the `/courses` route.
- *
- * @category Courses/Controllers
- */
+import {ResponseSchema} from 'routing-controllers-openapi';
+import {COURSES_TYPES} from '#courses/types.js';
+import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
+@injectable()
 @JsonController('/courses')
-@Service()
 export class CourseController {
   constructor(
-    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
+    @inject(COURSES_TYPES.CourseService)
+    private readonly courseService: CourseService,
   ) {}
 
-  /**
-   * Create a new course.
-   * @param body - Validated payload for course creation.
-   * @returns The created course object.
-   *
-   * @throws HttpError - If the course creation fails.
-   */
   @Authorized(['admin', 'instructor'])
   @Post('/', {transformResponse: true})
   @HttpCode(201)
+  @ResponseSchema(CourseDataResponse, {
+    description: 'Course created successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
   async create(@Body() body: CreateCourseBody): Promise<Course> {
-    let course = new Course(body);
-    try {
-      course = await this.courseRepo.create(course);
-      return course;
-    } catch (error) {
-      throw new HttpError(500, error.message);
-    }
+    const course = new Course(body);
+    const createdCourse = await this.courseService.createCourse(course);
+    return createdCourse;
   }
 
-  /**
-   * Retrieve a course by its ID.
-   * @param params - Contains the course Mongo ID.
-   * @returns The course data if found.
-   *
-   * @throws HttpError - If the course is not found or if an error occurs.
-   */
   @Authorized(['admin', 'instructor'])
-  @Get('/:id')
+  @Get('/:id', {transformResponse: true})
+  @ResponseSchema(CourseDataResponse, {
+    description: 'Course retrieved successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(CourseNotFoundErrorResponse, {
+    description: 'Course not found',
+    statusCode: 404,
+  })
   async read(@Params() params: ReadCourseParams) {
     const {id} = params;
-    try {
-      const courses = await this.courseRepo.read(id);
-      return instanceToPlain(courses);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      throw new HttpError(500, error.message);
-    }
+    const course = await this.courseService.readCourse(id);
+    return course;
   }
 
-  /**
-   * Update a course by ID.
-   * @param params - The course ID.
-   * @param body - The fields to update.
-   * @returns The updated course object.
-   *
-   * @throws HttpError - If the course is not found or if an error occurs.
-   */
   @Authorized(['admin', 'instructor'])
-  @Put('/:id')
+  @Put('/:id', {transformResponse: true})
+  @ResponseSchema(CourseDataResponse, {
+    description: 'Course updated successfully',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(CourseNotFoundErrorResponse, {
+    description: 'Course not found',
+    statusCode: 404,
+  })
   async update(
     @Params() params: UpdateCourseParams,
     @Body() body: UpdateCourseBody,
   ) {
     const {id} = params;
-    try {
-      const course = await this.courseRepo.update(id, body);
-      return instanceToPlain(course);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw new HttpError(404, error.message);
-      }
-      throw new HttpError(500, error.message);
-    }
+    const updatedCourse = await this.courseService.updateCourse(id, body);
+    return updatedCourse;
+  }
+
+  @Authorized(['admin', 'instructor'])
+  @Delete('/:id', {transformResponse: true})
+  @OnUndefined(204)
+  @ResponseSchema(BadRequestErrorResponse, {
+    description: 'Bad Request Error',
+    statusCode: 400,
+  })
+  @ResponseSchema(CourseNotFoundErrorResponse, {
+    description: 'Course not found',
+    statusCode: 404,
+  })
+  async delete(@Params() params: ReadCourseParams) {
+    const {id} = params;
+    await this.courseService.deleteCourse(id);
   }
 }
+
+const schemas = validationMetadatasToSchemas({
+  refPointerPrefix: '#/components/schemas/',
+  validationError: {
+    target: true,
+    value: true,
+  },
+});
+
+// Export the schemas for use in DocsController
+export const courseSchemas = schemas;

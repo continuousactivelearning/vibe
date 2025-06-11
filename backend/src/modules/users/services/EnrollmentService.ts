@@ -1,76 +1,181 @@
-import 'reflect-metadata';
+import {COURSES_TYPES} from '#courses/types.js';
+import {GLOBAL_TYPES} from '#root/types.js';
+import {
+  BaseService,
+  ICourseRepository,
+  IUserRepository,
+  IItemRepository,
+  MongoDatabase,
+  EnrollmentRole,
+  ICourseVersion,
+} from '#shared/index.js';
+import {EnrollmentRepository} from '#shared/database/providers/mongo/repositories/EnrollmentRepository.js';
+import {Enrollment} from '#users/classes/transformers/index.js';
+import {USERS_TYPES} from '#users/types.js';
+import {injectable, inject} from 'inversify';
+import {ClientSession, ObjectId} from 'mongodb';
 import {NotFoundError} from 'routing-controllers';
-import {Inject, Service} from 'typedi';
-import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
-import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
-import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
-import {Enrollment} from '../classes/transformers/Enrollment';
-import {ObjectId} from 'mongodb';
-import {ICourseVersion} from 'shared/interfaces/Models';
 
-@Service()
-export class EnrollmentService {
+@injectable()
+export class EnrollmentService extends BaseService {
   constructor(
-    @Inject('EnrollmentRepo')
+    @inject(USERS_TYPES.EnrollmentRepo)
     private readonly enrollmentRepo: EnrollmentRepository,
-    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
-    @Inject('UserRepo') private readonly userRepo: UserRepository,
-  ) {}
+    @inject(GLOBAL_TYPES.CourseRepo)
+    private readonly courseRepo: ICourseRepository,
+    @inject(USERS_TYPES.UserRepo) private readonly userRepo: IUserRepository,
+    @inject(COURSES_TYPES.ItemRepo) private readonly itemRepo: IItemRepository,
+    @inject(GLOBAL_TYPES.Database)
+    private readonly database: MongoDatabase,
+  ) {
+    super(database);
+  }
 
-  async enrollUser(userId: string, courseId: string, courseVersionId: string) {
-    // Check if user, course, and courseVersion exist
-    const user = await this.userRepo.findById(userId);
-    if (!user) {
-      throw new NotFoundError('User not found');
-    }
+  async enrollUser(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    role: EnrollmentRole,
+  ) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const user = await this.userRepo.findById(userId);
+      if (!user) throw new NotFoundError('User not found');
 
-    // Check if course exists
-    const course = await this.courseRepo.read(courseId);
-    if (!course) {
-      throw new NotFoundError('Course not found');
-    }
+      const course = await this.courseRepo.read(courseId);
+      if (!course) throw new NotFoundError('Course not found');
 
-    // Check if course version exists and belongs to the course
-    const courseVersion = await this.courseRepo.readVersion(courseVersionId);
-    if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
-      throw new NotFoundError(
-        'Course version not found or does not belong to this course',
+      const courseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
       );
-    }
+      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
+        throw new NotFoundError(
+          'Course version not found or does not belong to this course',
+        );
+      }
 
-    // Check if student is already enrolled
-    const existingEnrollment = await this.enrollmentRepo.findEnrollment(
-      userId,
-      courseId,
-      courseVersionId,
-    );
+      const existingEnrollment = await this.enrollmentRepo.findEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+      if (existingEnrollment) {
+        throw new Error('User is already enrolled in this course version');
+      }
 
-    if (existingEnrollment) {
-      throw new Error('User is already enrolled in this course version');
-    }
+      const enrollment = new Enrollment(userId, courseId, courseVersionId);
+      const createdEnrollment = await this.enrollmentRepo.createEnrollment({
+        userId: userId,
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
+        role: role,
+        status: 'active',
+        enrollmentDate: new Date(),
+      });
 
-    // Create enrollment record
-    const enrollment = new Enrollment(userId, courseId, courseVersionId);
-    const createdEnrollment = await this.enrollmentRepo.createEnrollment({
-      userId: userId,
-      courseId: new ObjectId(courseId),
-      courseVersionId: new ObjectId(courseVersionId),
-      status: 'active',
-      enrollmentDate: new Date(),
+      const initialProgress = await this.initializeProgress(
+        userId,
+        courseId,
+        courseVersionId,
+        courseVersion,
+        session,
+      );
+
+      return {
+        enrollment: createdEnrollment,
+        progress: initialProgress,
+        role: role,
+      };
     });
+  }
+  async findEnrollment(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const user = await this.userRepo.findById(userId);
+      if (!user) throw new NotFoundError('User not found');
 
-    // Initialize progress to first module, section, and item
-    const initialProgress = await this.initializeProgress(
-      userId,
-      courseId,
-      courseVersionId,
-      courseVersion,
-    );
+      const course = await this.courseRepo.read(courseId);
+      if (!course) throw new NotFoundError('Course not found');
 
-    return {
-      enrollment: createdEnrollment,
-      progress: initialProgress,
-    };
+      const courseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
+        throw new NotFoundError(
+          'Course version not found or does not belong to this course',
+        );
+      }
+      const existingEnrollment = await this.enrollmentRepo.findEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+      if (!existingEnrollment) {
+        throw new Error('User is not enrolled in this course version');
+      }
+
+      return existingEnrollment;
+    });
+  }
+  async unenrollUser(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const enrollment = await this.enrollmentRepo.findEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+      if (!enrollment) {
+        throw new NotFoundError('Enrollment not found');
+      }
+
+      // Remove enrollment
+      await this.enrollmentRepo.deleteEnrollment(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
+
+      // Remove progress
+      await this.enrollmentRepo.deleteProgress(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
+
+      return {
+        enrollment: null,
+        progress: null,
+        role: enrollment.role,
+      };
+    });
+  }
+
+  async getEnrollments(userId: string, skip: number, limit: number) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const result = await this.enrollmentRepo.getEnrollments(
+        userId,
+        skip,
+        limit,
+      );
+      return result;
+    });
+  }
+
+  async countEnrollments(userId: string) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const result = await this.enrollmentRepo.countEnrollments(userId);
+      return result;
+    });
   }
 
   /**
@@ -81,7 +186,8 @@ export class EnrollmentService {
     userId: string,
     courseId: string,
     courseVersionId: string,
-    courseVersion: ICourseVersion, // Replace with the actual type of courseVersion
+    courseVersion: ICourseVersion,
+    session: ClientSession,
   ) {
     // Get the first module, section, and item
     if (!courseVersion.modules || courseVersion.modules.length === 0) {
@@ -101,8 +207,9 @@ export class EnrollmentService {
     )[0];
 
     // Get the first item from the itemsGroup
-    const itemsGroup = await this.courseRepo.readItemsGroup(
+    const itemsGroup = await this.itemRepo.readItemsGroup(
       firstSection.itemsGroupId.toString(),
+      session,
     );
 
     if (!itemsGroup || !itemsGroup.items || itemsGroup.items.length === 0) {
@@ -120,7 +227,7 @@ export class EnrollmentService {
       courseVersionId: new ObjectId(courseVersionId),
       currentModule: firstModule.moduleId,
       currentSection: firstSection.sectionId,
-      currentItem: firstItem.itemId,
+      currentItem: firstItem._id,
       completed: false,
     });
   }
