@@ -10,6 +10,7 @@ import {
   IGradingResult,
   IQuestionAnswer,
   IQuestionAnswerFeedback,
+  IAttempt,
 } from '#quizzes/interfaces/grading.js';
 import {QuestionAnswerFeedback} from '#quizzes/classes/transformers/Submission.js';
 import {IQuestionRenderView} from '#quizzes/question-processing/index.js';
@@ -346,6 +347,23 @@ class AttemptService extends BaseService {
       //4. Save the updated attempt
       await this.attemptRepository.update(attemptId, attempt);
     });
+  }
+
+  public async getAttempt(
+    userId: string | ObjectId,
+    quizId: string,
+    attemptId: string,
+  ): Promise<IAttempt> {
+    //1. Fetch the attempt by ID
+    const attempt = await this.attemptRepository.getById(attemptId);
+    if (!attempt) {
+      throw new NotFoundError(`Attempt with ID ${attemptId} not found`);
+    }
+    //2. Check if the attempt belongs to the user and quiz
+    if (attempt.userId !== userId || attempt.quizId !== quizId) {
+      throw new BadRequestError('Attempt does not belong to the user or quiz');
+    }
+    return attempt as IAttempt;
   }
 }
 

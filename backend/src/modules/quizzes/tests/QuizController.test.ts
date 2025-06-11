@@ -280,7 +280,11 @@ describe('QuizController', () => {
           ],
         });
       expect(submitRes.status).toBe(200);
-      const submissionId = submitRes.body.submissionId || submitRes.body._id;
+      // get submissions for quiz
+      const quizSubmissionRes = await request(app).get(`/quiz/${quizId}/submissions`);
+      expect(quizSubmissionRes.status).toBe(201);
+      expect(Array.isArray(quizSubmissionRes.body)).toBe(true);
+      const submissionId = quizSubmissionRes.body[0]._id || quizSubmissionRes.body[0].submissionId;
       const res = await request(app).get(`/quiz/submissions/${submissionId}`);
       console.log('Submission response:', res.body);
       expect(res.status).toBe(201);
@@ -310,7 +314,7 @@ describe('QuizController', () => {
       console.log('Submit response:', submitRes.body);
       expect(submitRes.status).toBe(200);
       const res = await request(app).get(`/quiz/${quizId}/analytics`);
-      console.log('Quiz analytics response:', res.body);
+      console.dir(res.body, { depth: null });
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('totalAttempts');
     });
@@ -381,7 +385,11 @@ describe('QuizController', () => {
           ],
         });
       expect(submitRes.status).toBe(200);
-      const submissionId = submitRes.body.submissionId || submitRes.body._id;
+      // Get submission ID
+      const quizSubmissionRes = await request(app).get(`/quiz/${quizId}/submissions`);
+      expect(quizSubmissionRes.status).toBe(201);
+      expect(Array.isArray(quizSubmissionRes.body)).toBe(true);
+      const submissionId = quizSubmissionRes.body[0]._id;
 
       // Update score
       const res = await request(app).post(`/quiz/submission/${submissionId}/score/5`);
@@ -412,8 +420,11 @@ describe('QuizController', () => {
           ],
         });
       expect(submitRes.status).toBe(200);
-      const submissionId = submitRes.body.submissionId || submitRes.body._id;
-
+      // Get submission ID
+      const quizSubmissionRes = await request(app).get(`/quiz/${quizId}/submissions`);
+      expect(quizSubmissionRes.status).toBe(201);
+      expect(Array.isArray(quizSubmissionRes.body)).toBe(true);
+      const submissionId = quizSubmissionRes.body[0]._id;
       // Regrade
       const res = await request(app)
         .post(`/quiz/submission/${submissionId}/regrade`)
@@ -451,13 +462,21 @@ describe('QuizController', () => {
           ],
         });
       expect(submitRes.status).toBe(200);
-      const submissionId = submitRes.body.submissionId || submitRes.body._id;
-
+      // Get submission ID
+      const quizSubmissionRes = await request(app).get(`/quiz/${quizId}/submissions`);
+      expect(quizSubmissionRes.status).toBe(201);
+      expect(Array.isArray(quizSubmissionRes.body)).toBe(true);
+      const submissionId = quizSubmissionRes.body[0]._id;
       // Add feedback
       const res = await request(app)
         .post(`/quiz/submission/${submissionId}/question/${questionId}/feedback`)
         .send({ feedback: 'Good job!' });
       expect(res.status).toBe(201);
+
+      // get submission to verify feedback
+      const submissionRes = await request(app).get(`/quiz/submissions/${submissionId}`);
+      expect(submissionRes.status).toBe(201);
+      expect(submissionRes.body.gradingResult.overallFeedback[0].answerFeedback).toBe('Good job!');
     });
   });
 });

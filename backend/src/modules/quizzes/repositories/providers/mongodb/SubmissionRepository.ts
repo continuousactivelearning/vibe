@@ -78,7 +78,7 @@ class SubmissionRepository {
     const result = await this.submissionResultCollection.findOneAndUpdate(
       {_id: new ObjectId(submissionId)},
       {$set: updateData},
-      {returnDocument: 'after'},
+      {returnDocument: 'after', session},
     );
     return result;
   }

@@ -35,6 +35,7 @@ import {
   Patch,
 } from 'routing-controllers';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
+import {ISubmission} from '#quizzes/interfaces/index.js';
 @injectable()
 @JsonController('/quiz')
 class QuizController {
@@ -106,6 +107,15 @@ class QuizController {
   ): Promise<QuizSubmissionResponse> {
     const {submissionId} = params;
     return await this.quizService.getSubmissionDetails(submissionId);
+  }
+
+  @Get('/:quizId/submissions')
+  @HttpCode(201)
+  async getAllSubmissions(
+    @Params() params: QuizIdParam,
+  ): Promise<ISubmission[]> {
+    const {quizId} = params;
+    return await this.quizService.getAllSubmissions(quizId);
   }
 
   @Get('/:quizId/details')

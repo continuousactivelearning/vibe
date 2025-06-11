@@ -37,7 +37,7 @@ class NATQuestionGrader implements IGrader {
       score: isCorrect ? this.question.points : 0,
       answerFeedback: isCorrect
         ? 'Correct answer.'
-        : `Incorrect. Expected a value near ${expectedValue} ± ${this.question.upperLimit}`,
+        : `Incorrect. Expected a value near ${expectedValue} ± ${this.question.decimalPrecision}`,
     };
   }
 

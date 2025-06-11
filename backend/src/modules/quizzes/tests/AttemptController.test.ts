@@ -143,7 +143,7 @@ describe('AttemptController', () => {
   });
 
   describe('POST /quizzes/:quizId/attempt/:attemptId/save', () => {
-    it('should save answers for an attempt with a question from a question bank', async () => {
+    it('should save and retrieve answers for an attempt with a question from a question bank', async () => {
       // 1. Create course
       const courseRes = await request(app).post('/courses').send({
         name: 'Course for Attempt Save Real',
@@ -250,6 +250,12 @@ describe('AttemptController', () => {
           ],
         });
       expect(saveRes.status).toBe(200);
+
+      // 10. Retrieve the attempt to check saved answers
+      const getAttemptRes = await request(app)
+        .get(`/quizzes/${quizId}/attempt/${attemptId}`)
+      expect(getAttemptRes.status).toBe(200);
+      expect(getAttemptRes.body).toHaveProperty('answers');
     });
   });
 
@@ -539,7 +545,7 @@ describe('AttemptController', () => {
       const smlCorrectLotItemIds = smlDetails.body.lotItems
         .filter((item: any) =>
           smlParamValues.some((val) =>
-            item.text.includes(val) || item.explaination.includes(val)
+            item.text.includes(val)
           )
         )
         .map((item: any) => item._id);
