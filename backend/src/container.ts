@@ -5,6 +5,7 @@ import {ContainerModule} from 'inversify';
 import {
   MongoDatabase,
   UserRepository,
+  SettingsRepository,
   CourseRepository,
   HttpErrorHandler,
 } from '#shared/index.js';
@@ -23,6 +24,10 @@ export const sharedContainerModule = new ContainerModule(options => {
   // Repositories
   options.bind(GLOBAL_TYPES.UserRepo).to(UserRepository).inSingletonScope();
   options.bind(GLOBAL_TYPES.CourseRepo).to(CourseRepository).inSingletonScope();
+  options
+    .bind(GLOBAL_TYPES.SettingsRepo)
+    .to(SettingsRepository)
+    .inSingletonScope();
 
   // Services
   if (!appConfig.isProduction) {

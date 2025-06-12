@@ -1,9 +1,14 @@
-import {UpdateResult} from 'mongodb';
+import {ClientSession, UpdateResult} from 'mongodb';
 import {
   ICourseSettings,
   ISettings,
   IUserSettings,
-} from '../../interfaces/Models.js';
+} from '../../interfaces/models.js';
+import {
+  DetectorOptionsDto,
+  DetectorSettingsDto,
+  ProctoringSettingsDto,
+} from '#settings/index.js';
 
 /**
  * Interface representing a repository for settings related operations.
@@ -13,13 +18,13 @@ import {
 // Enum representing the different components of proctoring that can be enabled or disabled.
 export enum ProctoringComponent {
   CAMERAMICRO = 'cameraMic',
-  BLUR = 'blur',
-  FACEPOSE = 'facePose',
-  HANDS = 'hands',
-  KEYLOCK = 'keyLock',
-  VOICE = 'voice',
-  VIRTUALBACKGROUND = 'virtualBackground',
-  RIGHTCLICKDISABLED = 'rightClickDisabled',
+  BLURDETECTION = 'blurDetection', // bulrDetection
+  FACECOUNTDETECTION = 'faceCountDetection', // faceCountDetection
+  HANDGESTUREDETECTION = 'handGestureDetection', // handGestureDetection
+  VOICEDETECTION = 'voiceDetection', // voiceDetection
+  VIRTUALBACKGROUNDDETECTION = 'virtualBackgroundDetection', // virtualBackgroundDetection
+  RIGHTCLICKDISABLED = 'rightClickDisabled', // rightClickDisabled
+  FACERECOGNITION = 'faceRecognition', // faceRecognition
 }
 
 /**
@@ -29,46 +34,74 @@ export enum ProctoringComponent {
 export interface ISettingsRepository {
   createCourseSettings(
     courseSettings: ICourseSettings,
+    session?: ClientSession,
   ): Promise<ICourseSettings | null>;
 
   readCourseSettings(
     courseId: string,
     courseVersionId: string,
+    session?: ClientSession,
   ): Promise<ICourseSettings | null>;
 
-  addCourseProctoring(
+  /**
+   * Reads course settings for a specific course and version.
+   * @param courseId - The ID of the course
+   * @param courseVersionId - The ID of the course version
+   * @param session - Optional MongoDB session for transactions
+   * @returns The course settings or null if not found
+   */
+
+  updateCourseSettings(
     courseId: string,
     courseVersionId: string,
-    component: ProctoringComponent,
+    detectors: DetectorSettingsDto[],
+    session?: ClientSession,
   ): Promise<UpdateResult | null>;
 
-  removeCourseProctoring(
-    courseId: string,
-    courseVersionId: string,
-    component: ProctoringComponent,
-  ): Promise<UpdateResult | null>;
+  /**
+   * Creates new user settings.
+   * @param userSettings - The user settings to create
+   * @param session - Optional MongoDB session for transactions
+   * @returns The created user settings or null if creation failed
+   */
 
   createUserSettings(
     userSettings: IUserSettings,
+    session?: ClientSession,
   ): Promise<IUserSettings | null>;
+
+  /**
+   * Reads user settings for a specific student, course and version.
+   * @param studentId - The ID of the student
+   * @param courseId - The ID of the course
+   * @param courseVersionId - The ID of the course version
+   * @param session - Optional MongoDB session for transactions
+   * @returns The user settings or null if not found
+   */
 
   readUserSettings(
     studentId: string,
     courseId: string,
     courseVersionId: string,
+    session?: ClientSession,
   ): Promise<IUserSettings | null>;
 
-  addUserProctoring(
+  /**
+   * Updates user settings for a specific detector.
+   * If the detector doesn't exist, it will be added.
+   * @param studentId - The ID of the student
+   * @param courseId - The ID of the course
+   * @param courseVersionId - The ID of the course version
+   * @param detectorName - The name of the proctoring detector to update
+   * @param detectorSettings - The new settings for the detector
+   * @param session - Optional MongoDB session for transactions
+   * @returns True if update was successful, null/false otherwise
+   */
+  updateUserSettings(
     studentId: string,
     courseId: string,
     courseVersionId: string,
-    component: ProctoringComponent,
-  ): Promise<UpdateResult | null>;
-
-  removeUserProctoring(
-    studentId: string,
-    courseId: string,
-    courseVersionId: string,
-    component: ProctoringComponent,
+    detectors: DetectorSettingsDto[],
+    session?: ClientSession,
   ): Promise<UpdateResult | null>;
 }
