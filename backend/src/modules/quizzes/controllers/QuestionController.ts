@@ -41,10 +41,7 @@ class QuestionController {
   @Get('/:questionId')
   async getById(@Params() params: QuestionId): Promise<QuestionResponse> {
     const {questionId} = params;
-    const ques = await this.questionService.getById(questionId, true);
-    const questionProcessor = new QuestionProcessor(ques);
-    const renderedQues = questionProcessor.render();
-    return renderedQues;
+    return this.questionService.getById(questionId, true);
   }
 
   @Put('/:questionId')

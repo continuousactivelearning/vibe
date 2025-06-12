@@ -29,6 +29,7 @@ class CreateQuestionBankBody implements Partial<IQuestionBank> {
   tags?: string[];
 
   @IsString()
+  @IsOptional()
   @IsNotEmpty()
   title: string;
 

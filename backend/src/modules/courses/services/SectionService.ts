@@ -194,7 +194,7 @@ export class SectionService extends BaseService {
 
       const modules = readCourseVersion.modules;
       if (!modules) {
-        throw new NotFoundError('Modules not found');
+        throw new NotFoundError('../../../modules not found');
       }
 
       const deleteResult = await this.courseRepo.deleteSection(

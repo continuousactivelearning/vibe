@@ -1,7 +1,7 @@
 import {IAttempt} from '#quizzes/interfaces/grading.js';
 import {MongoDatabase} from '#shared/index.js';
 import {injectable, inject} from 'inversify';
-import {Collection, ClientSession, ObjectId} from 'mongodb';
+import {Collection, ClientSession} from 'mongodb';
 import {InternalServerError} from 'routing-controllers';
 import {GLOBAL_TYPES} from '#root/types.js';
 @injectable()
@@ -27,9 +27,7 @@ class AttemptRepository {
   }
   public async getById(attemptId: string): Promise<IAttempt | null> {
     await this.init();
-    const result = await this.attemptCollection.findOne({
-      _id: new ObjectId(attemptId),
-    });
+    const result = await this.attemptCollection.findOne({_id: attemptId});
     if (!result) {
       return null;
     }
@@ -52,7 +50,7 @@ class AttemptRepository {
   public async update(attemptId: string, updateData: Partial<IAttempt>) {
     await this.init();
     const result = await this.attemptCollection.findOneAndUpdate(
-      {_id: new ObjectId(attemptId)},
+      {_id: attemptId},
       {$set: updateData},
       {returnDocument: 'after'},
     );

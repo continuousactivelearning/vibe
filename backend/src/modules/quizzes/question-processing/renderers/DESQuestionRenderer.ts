@@ -30,6 +30,7 @@ class DESQuestionRenderer extends BaseQuestionRenderer {
       hint: renderedQuestion.hint,
       points: renderedQuestion.points,
       timeLimitSeconds: renderedQuestion.timeLimitSeconds,
+      solutionText: processedSolutionText,
       parameterMap: parameterMap,
     };
 

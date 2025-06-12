@@ -16,10 +16,8 @@ import {
   Params,
   OnUndefined,
   Body,
-  Get,
 } from 'routing-controllers';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
-import {IAttempt} from '#quizzes/interfaces/index.js';
 
 @injectable()
 @JsonController('/quizzes')
@@ -70,20 +68,6 @@ class AttemptController {
       body.answers,
     );
     return result as SubmitAttemptResponse;
-  }
-
-  @Get('/:quizId/attempt/:attemptId')
-  async getAttempt(
-    @CurrentUser() user: IUser,
-    @Params() params: SubmitAttemptParams,
-  ): Promise<IAttempt> {
-    const {quizId, attemptId} = params;
-    const attempt = await this.attemptService.getAttempt(
-      user._id,
-      quizId,
-      attemptId,
-    );
-    return attempt as IAttempt;
   }
 }
 

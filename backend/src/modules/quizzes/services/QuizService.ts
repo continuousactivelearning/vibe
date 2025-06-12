@@ -1,7 +1,6 @@
 import {
   IQuestionAnswerFeedback,
   IGradingResult,
-  ISubmission,
 } from '#quizzes/interfaces/grading.js';
 import {
   AttemptRepository,
@@ -277,6 +276,7 @@ class QuizService extends BaseService {
       if (!submissions || submissions.length === 0) {
         throw new NotFoundError('No submissions found for quiz');
       }
+
       return submissions.map(submission => ({
         studentId: submission.userId,
         attemptId: submission.attemptId,
@@ -313,7 +313,7 @@ class QuizService extends BaseService {
   }
   regradeSubmission(
     submissionId: string,
-    gradingResult: Partial<IGradingResult>,
+    gradingResult: IGradingResult,
   ): Promise<void> {
     return this._withTransaction(async session => {
       const submission = await this.submissionRepo.getById(
@@ -323,13 +323,7 @@ class QuizService extends BaseService {
       if (!submission) {
         throw new NotFoundError('Submission does not exist.');
       }
-      const filteredGradingResult = Object.fromEntries(
-        Object.entries(gradingResult).filter(([_, v]) => v !== undefined),
-      );
-      submission.gradingResult = {
-        ...submission.gradingResult,
-        ...filteredGradingResult,
-      };
+      submission.gradingResult = gradingResult;
       const result = await this.submissionRepo.update(
         submissionId,
         submission,
@@ -413,22 +407,6 @@ class QuizService extends BaseService {
         }
       }
       return courseMap;
-    });
-  }
-  getAllSubmissions(quizId: string): Promise<ISubmission[]> {
-    return this._withTransaction(async session => {
-      const submissions = await this.submissionRepo.getByQuizId(
-        quizId,
-        session,
-      );
-      if (!submissions || submissions.length === 0) {
-        throw new NotFoundError('No submissions found for quiz');
-      }
-      // Convert _id to string for each submission
-      return submissions.map(sub => ({
-        ...sub,
-        _id: sub._id?.toString?.() ?? sub._id,
-      }));
     });
   }
 }
