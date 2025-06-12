@@ -2,10 +2,18 @@
 set -e
 STATE_FILE=".vibe.json"
 LOG_FILE="setup.log"
+TOTAL_STEPS=6
+STEP=1
 
 # Log a message with a timestamp
 log() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') $1" | tee -a "$LOG_FILE"
+}
+
+# Step progress logging
+step_log() {
+  log "[$STEP/$TOTAL_STEPS] $1"
+  STEP=$((STEP + 1))
 }
 
 log "🚀 Starting ViBe Setup Script"
@@ -91,30 +99,6 @@ install_pnpm() {
   fi
 }
 
-install_node_deps() {
-  log "📦 Installing required Node.js dependencies..."
-  pnpm i -g tsx
-  if ! command -v firebase >/dev/null 2>&1; then
-    pnpm i -g firebase-tools
-  fi
-  sudo chown -R "$USER:$(id -gn)" ./
-  pnpm i
-}
-
-install_cli() {
-  log "⚙ Installing CLI..."
-  cd cli
-  pnpm link --global
-  cd ..
-  log "✅ Vibe CLI installed and linked globally."
-}
-
-init_state() {
-  if [ ! -f "$STATE_FILE" ]; then
-    echo "{}" >"$STATE_FILE"
-    log "📄 Created $STATE_FILE"
-  fi
-}
 
 verify_node() {
   if command -v node >/dev/null 2>&1; then
@@ -146,17 +130,55 @@ verify_node() {
   fi
 }
 
+
+install_node_deps() {
+  log "📦 Installing required Node.js dependencies..."
+  pnpm i -g tsx
+  if ! command -v firebase >/dev/null 2>&1; then
+    pnpm i -g firebase-tools
+  fi
+  sudo chown -R "$USER:$(id -gn)" ./
+  pnpm i
+}
+
+install_cli() {
+  log "⚙ Installing CLI..."
+  cd cli
+  pnpm link --global
+  cd ..
+  log "✅ Vibe CLI installed and linked globally."
+}
+
+init_state() {
+  if [ ! -f "$STATE_FILE" ]; then
+    echo "{}" >"$STATE_FILE"
+    log "📄 Created $STATE_FILE"
+  fi
+}
+
+
 detect_and_source_shell_config
 
 if [[ "$(pwd)" == */scripts ]]; then
   cd ..
 fi
 
+step_log "Checking Git and Repository..."
 check_repo
+
+step_log "Installing pnpm..."
 install_pnpm
+
+step_log "Verifying Node.js..."
 verify_node
+
+step_log "Installing Node.js dependencies..."
 install_node_deps
+
+step_log "Linking CLI..."
 install_cli
+
+step_log "Initializing state and running vibe setup..."
 init_state
 vibe setup
 if [ "$WASCLONED" = true ]; then
