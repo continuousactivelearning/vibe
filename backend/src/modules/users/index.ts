@@ -6,6 +6,7 @@ import {RoutingControllersOptions, useContainer} from 'routing-controllers';
 import {usersContainerModule} from './container.js';
 import {EnrollmentController} from './controllers/EnrollmentController.js';
 import {ProgressController} from './controllers/ProgressController.js';
+import {UserController} from './controllers/UserController.js';
 import {AnamolyController} from './controllers/AnamolyController.js';
 
 export async function setupUsersContainer(): Promise<void> {
@@ -20,7 +21,12 @@ export async function setupUsersContainer(): Promise<void> {
 }
 
 export const usersModuleOptions: RoutingControllersOptions = {
-  controllers: [EnrollmentController, ProgressController, AnamolyController],
+  controllers: [
+    EnrollmentController,
+    ProgressController,
+    UserController,
+    AnamolyController,
+  ],
   middlewares: [],
   defaultErrorHandler: true,
   authorizationChecker: async function () {
