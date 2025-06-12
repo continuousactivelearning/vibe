@@ -1,7 +1,7 @@
 import './instrument.js';
 import Express from 'express';
 import * as Sentry from '@sentry/node';
-import {getFromContainer, useContainer} from 'class-validator';
+import {getFromContainer, useContainer} from 'routing-controllers';
 import {Container} from 'inversify';
 import {RoutingControllersOptions, useExpressServer} from 'routing-controllers';
 import {appConfig} from '#config/app.js';
@@ -20,6 +20,11 @@ import {quizzesContainerModule} from '#quizzes/container.js';
 import {quizzesModuleOptions, setupQuizzesContainer} from '#quizzes/index.js';
 import {usersContainerModule} from '#users/container.js';
 import {usersModuleOptions, setupUsersContainer} from '#users/index.js';
+import {
+  settingsModuleOptions,
+  setupSettingsContainer,
+  settingsContainerModule,
+} from '#settings/index.js';
 
 export const application = Express();
 
@@ -106,6 +111,7 @@ const setupAllModulesContainer = async () => {
     authContainerModule,
     coursesContainerModule,
     quizzesContainerModule,
+    settingsContainerModule,
   ];
   await container.load(...modules);
   const inversifyAdapter = new InversifyAdapter(container);
@@ -118,6 +124,7 @@ const allModuleOptions: RoutingControllersOptions = {
     ...(coursesModuleOptions.controllers as Function[]),
     ...(usersModuleOptions.controllers as Function[]),
     ...(quizzesModuleOptions.controllers as Function[]),
+    ...(settingsModuleOptions.controllers as Function[]),
   ],
   middlewares: [],
   defaultErrorHandler: true,
@@ -145,6 +152,10 @@ export const main = async () => {
     case 'quizzes':
       await setupQuizzesContainer();
       module = ServiceFactory(application, quizzesModuleOptions);
+      break;
+    case 'settings':
+      await setupSettingsContainer();
+      module = ServiceFactory(application, settingsModuleOptions);
       break;
     case 'all':
       await setupAllModulesContainer();

@@ -1,14 +1,9 @@
 ﻿import {SMLQuestion} from '#quizzes/classes/index.js';
-import {ILotItem, ILotItemRenderView} from '#shared/index.js';
+import {ILotItem} from '#shared/index.js';
 import {ParameterMap} from '../tag-parser/index.js';
 import {TagParser} from '../tag-parser/TagParser.js';
 import {BaseQuestionRenderer} from './BaseQuestionRenderer.js';
 import {SMLQuestionRenderView} from './interfaces/RenderViews.js';
-
-function toLotItemRenderView(item: ILotItem): ILotItemRenderView {
-  const {explaination, ...rest} = item;
-  return rest;
-}
 
 class SMLQuestionRenderer extends BaseQuestionRenderer {
   declare question: SMLQuestion;
@@ -24,15 +19,16 @@ class SMLQuestionRenderer extends BaseQuestionRenderer {
     ) as SMLQuestion;
 
     // Combine all lot items (correct and incorrect)
-    const lotItems: ILotItemRenderView[] = [
-      ...renderedQuestion.correctLotItems.map(toLotItemRenderView),
-      ...renderedQuestion.incorrectLotItems.map(toLotItemRenderView),
+    const lotItems: ILotItem[] = [
+      ...renderedQuestion.correctLotItems,
+      ...renderedQuestion.incorrectLotItems,
     ];
 
-    // Process text for each lot item
+    // Process text and explanation for each lot item
     const processedLotItems = lotItems.map(item => ({
       ...item,
       text: this.tagParser.processText(item.text, parameterMap),
+      explaination: this.tagParser.processText(item.explaination, parameterMap),
     }));
 
     // Shuffle the lot items

@@ -13,7 +13,13 @@ import {EnrollmentRepository} from '#shared/database/providers/mongo/repositorie
 import {Enrollment} from '#users/classes/transformers/index.js';
 import {USERS_TYPES} from '#users/types.js';
 import {injectable, inject} from 'inversify';
-import {ClientSession, ObjectId} from 'mongodb';
+import {
+  ClientSession,
+  ObjectId,
+  ReadPreference,
+  ReadConcern,
+  WriteConcern,
+} from 'mongodb';
 import {NotFoundError} from 'routing-controllers';
 
 @injectable()
@@ -160,24 +166,6 @@ export class EnrollmentService extends BaseService {
     });
   }
 
-  async getEnrollments(userId: string, skip: number, limit: number) {
-    return this._withTransaction(async (session: ClientSession) => {
-      const result = await this.enrollmentRepo.getEnrollments(
-        userId,
-        skip,
-        limit,
-      );
-      return result;
-    });
-  }
-
-  async countEnrollments(userId: string) {
-    return this._withTransaction(async (session: ClientSession) => {
-      const result = await this.enrollmentRepo.countEnrollments(userId);
-      return result;
-    });
-  }
-
   /**
    * Initialize student progress tracking to the first item in the course.
    * Private helper method for the enrollment process.
@@ -229,6 +217,39 @@ export class EnrollmentService extends BaseService {
       currentSection: firstSection.sectionId,
       currentItem: firstItem._id,
       completed: false,
+    });
+  }
+
+  async getEnrollments(userId: string, skip: number, limit: number) {
+    const client = await this.courseRepo.getDBClient();
+    const session = client.startSession();
+    const txOptions = {
+      readPreference: ReadPreference.primary,
+      readConcern: new ReadConcern('snapshot'),
+      writeConcern: new WriteConcern('majority'),
+    };
+
+    try {
+      await session.startTransaction(txOptions);
+      const result = await this.enrollmentRepo.getEnrollments(
+        userId,
+        skip,
+        limit,
+      );
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async countEnrollments(userId: string) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const result = await this.enrollmentRepo.countEnrollments(userId);
+      return result;
     });
   }
 }
