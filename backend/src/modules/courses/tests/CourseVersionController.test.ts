@@ -2,6 +2,7 @@ import {coursesModuleOptions, CreateItemBody} from '../';
 import {useExpressServer, useContainer} from 'routing-controllers';
 import Express from 'express';
 import request from 'supertest';
+<<<<<<< HEAD
 import {InversifyAdapter} from '../../../inversify-adapter';
 import {Container} from 'inversify';
 import {coursesContainerModule} from '../container';
@@ -12,6 +13,13 @@ import {usersContainerModule} from '../../users/container';
 import {authContainerModule} from '../../auth/container';
 import {jest} from '@jest/globals';
 
+=======
+import {ReadError} from 'shared/errors/errors';
+import {CourseVersionService} from '../services';
+import {dbConfig} from '../../../config/db';
+import {SectionService} from '../services/SectionService';
+jest.setTimeout(90000); // Set a longer timeout for the tests
+>>>>>>> main
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
   let app;

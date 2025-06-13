@@ -1,13 +1,12 @@
 import {ID, EnrollmentRole, EnrollmentStatus} from '#shared/index.js';
 import {Type} from 'class-transformer';
 import {
+  IsArray,
+  IsBoolean,
+  IsDate,
+  IsInt,
   IsMongoId,
   IsString,
-  IsNotEmpty,
-  IsDate,
-  IsEnum,
-  IsInt,
-  IsArray,
   ValidateNested,
 } from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
@@ -151,37 +150,6 @@ export class EnrollUserResponseData {
   })
   @IsNotEmpty()
   progress: ProgressDataResponse;
-}
-
-export class EnrolledUserResponseData {
-  @JSONSchema({
-    description: 'Role of the user in the course',
-    example: 'instructor',
-    type: 'string',
-    enum: ['instructor', 'student'],
-  })
-  @IsNotEmpty()
-  role: EnrollmentRole;
-
-  @JSONSchema({
-    description: 'Status of the enrollment',
-    example: 'active',
-    type: 'string',
-    enum: ['active', 'inactive'],
-  })
-  @IsNotEmpty()
-  status: EnrollmentStatus;
-
-  @JSONSchema({
-    description: 'Date when the user was enrolled',
-    example: '2023-10-01T12:00:00Z',
-    type: 'string',
-    format: 'date-time',
-  })
-  @IsNotEmpty()
-  @IsDate()
-  @Type(() => Date)
-  enrollmentDate: Date;
 }
 
 export class EnrollmentResponse {

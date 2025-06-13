@@ -4,18 +4,33 @@ import {useExpressServer} from 'routing-controllers';
 // TODO: Update the import paths below to your project's structure
 import {authModuleOptions, setupAuthContainer, SignUpBody} from '../index';
 import {faker} from '@faker-js/faker';
+<<<<<<< HEAD
 import {jest} from '@jest/globals';
 
+=======
+import {dbConfig} from '../../../config/db';
+jest.setTimeout(30000); // Set a longer timeout for integration tests
+>>>>>>> main
 describe('Auth Controller Integration Tests', () => {
   const appInstance = Express();
   let app;
 
   beforeAll(async () => {
     // Set up the real MongoDatabase and Repository
+<<<<<<< HEAD
     await setupAuthContainer();
     // Create the Express app with routing-controllers configuration
     app = useExpressServer(appInstance, authModuleOptions);
   }, 30000); // <-- timeout for beforeAll
+=======
+    Container.set('Database', new MongoDatabase(dbConfig.url, dbConfig.dbName));
+    const repo = new UserRepository(Container.get<MongoDatabase>('Database'));
+    Container.set('Repo', repo);
+
+    // Create the Express app with routing-controllers configuration
+    app = useExpressServer(appInstance, authModuleOptions);
+  });
+>>>>>>> main
 
   beforeEach(async () => {
     // TODO: Optionally reset database state before each test

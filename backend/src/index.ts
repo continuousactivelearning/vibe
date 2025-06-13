@@ -23,6 +23,7 @@ import {rateLimiter} from '#shared/index.js';
 import {sharedContainerModule} from '#root/container.js';
 import {authContainerModule} from '#auth/container.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
+//import {notificationsModuleOptions} from './modules/notifications';
 import {Container} from 'inversify';
 import {coursesContainerModule} from '#courses/container.js';
 import {quizzesContainerModule} from '#quizzes/container.js';
@@ -106,65 +107,30 @@ export const ServiceFactory = (
   console.log('Starting Server');
   console.log('--------------------------------------------------------');
 
-  useExpressServer(service, options);
-  if (process.env.NODE_ENV === 'production') {
-    Sentry.setupExpressErrorHandler(service);
-  }
-  return service;
-};
+  // Create combined routing controllers options
+  const routingControllersOptions = {
+    ...options,
+    controllers: [
+      ...(authModuleOptions.controllers as Function[]),
+      ...(coursesModuleOptions.controllers as Function[]),
+      ...(usersModuleOptions.controllers as Function[]),
+    ],
+  };
 
-const setupAllModulesContainer = async () => {
-  const container = new Container();
-  const modules = [
-    sharedContainerModule,
-    usersContainerModule,
-    authContainerModule,
-    coursesContainerModule,
-    quizzesContainerModule,
-    activityContainerModule,
-  ];
-  await container.load(...modules);
-  const inversifyAdapter = new InversifyAdapter(container);
-  useContainer(inversifyAdapter);
+  // try {
+  //   return await authService.verifyToken(token);
+  // } catch (error) {
+  //   return false;
+  // }
 };
-
-const allModuleOptions: RoutingControllersOptions = {
-  controllers: [
-    ...(authModuleOptions.controllers as Function[]),
-    ...(coursesModuleOptions.controllers as Function[]),
-    ...(usersModuleOptions.controllers as Function[]),
-    ...(quizzesModuleOptions.controllers as Function[]),
-    ...(activityModuleOptions.controllers as Function[]),
-  ],
-  middlewares: [],
-  defaultErrorHandler: true,
-  authorizationChecker: async function () {
-    return true;
-  },
-  currentUserChecker: async function (action: Action) {
-    // Use the auth service to check if the user is authorized
-    const authService =
-      getFromContainer<FirebaseAuthService>(FirebaseAuthService);
-    const token = action.request.headers['authorization']?.split(' ')[1];
-    if (!token) {
-      return false;
-    }
-
-    try {
-      return await authService.verifyToken(token);
-    } catch (error) {
-      return false;
-    }
-  },
-  // currentUserChecker:  async function (action: Action) {
-  //   // Use the auth service to check if the user is authorized
-  //   const authService =
-  //     getFromContainer<FirebaseAuthService>(FirebaseAuthService);
-  //   const firebaseUID = action.request.headers.authorization?.split(' ')[1];
-  //   return await authService.verifyToken(firebaseUID);
-  // },
-  validation: true,
-};
+// currentUserChecker:  async function (action: Action) {
+//   // Use the auth service to check if the user is authorized
+//   const authService =
+//     getFromContainer<FirebaseAuthService>(FirebaseAuthService);
+//   const firebaseUID = action.request.headers.authorization?.split(' ')[1];
+//   return await authService.verifyToken(firebaseUID);
+// },
+//validation: true,
 
 export const main = async () => {
   let module;

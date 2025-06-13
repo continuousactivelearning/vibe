@@ -13,13 +13,22 @@ import {
   Post,
   HttpCode,
   Params,
+  Authorized,
+  BadRequestError,
   Get,
+  NotFoundError,
   Param,
   QueryParam,
-  BadRequestError,
-  NotFoundError,
-  Body,
+  InternalServerError,
 } from 'routing-controllers';
+import {Inject, Service} from 'typedi';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
+import {
+  EnrollmentParams,
+  EnrollmentNotFoundErrorResponse,
+  EnrollUserResponseData,
+  EnrollmentResponse,
+} from '../classes/validators/EnrollmentValidators.js';
 
 @JsonController('/users', {transformResponse: true})
 @injectable()
@@ -73,8 +82,25 @@ export class EnrollmentController {
     );
   }
 
+  @Authorized(['student'])
   @Get('/:userId/enrollments')
   @HttpCode(200)
+  @OpenAPI({
+    summary: 'Get User Enrollments',
+    description:
+      'Retrieves a paginated list of courses and course versions a user is enrolled in.',
+  })
+  @ResponseSchema(EnrollmentResponse, {
+    description: 'List of user enrollments',
+  })
+  @ResponseSchema(BadRequestErrorResponse, {
+    statusCode: 400,
+    description: 'Bad Request',
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    statusCode: 404,
+    description: 'Enrollments Not Found',
+  })
   async getUserEnrollments(
     @Param('userId') userId: string,
     @QueryParam('page') page = 1,
@@ -110,23 +136,5 @@ export class EnrollmentController {
       }
       throw new Error('An unexpected error occurred.');
     }
-  }
-
-  @Get('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
-  @HttpCode(200)
-  async getEnrollment(
-    @Params() params: EnrollmentParams,
-  ): Promise<EnrolledUserResponse> {
-    const {userId, courseId, courseVersionId} = params;
-    const enrollmentData = await this.enrollmentService.findEnrollment(
-      userId,
-      courseId,
-      courseVersionId,
-    );
-    return new EnrolledUserResponse(
-      enrollmentData.role,
-      enrollmentData.status,
-      enrollmentData.enrollmentDate,
-    );
   }
 }
