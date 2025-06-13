@@ -53,6 +53,14 @@ class SignUpBody {
   })
   @IsAlpha()
   lastName: string;
+
+  @JSONSchema({
+    title: 'Optional',
+    description: 'User must accept the terms and conditions to register',
+    type: 'boolean',
+    default: false,
+  })
+  roles?: string[];
 }
 
 class VerifySignUpProviderBody {
