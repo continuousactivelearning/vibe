@@ -22,6 +22,7 @@ import {OpenApiSpecService} from './modules/docs';
 import {authModuleOptions} from './modules/auth';
 import {coursesModuleOptions} from './modules/courses';
 import {usersModuleOptions} from './modules/users';
+import {notificationsModuleOptions} from './modules/notifications';
 import {rateLimiter} from 'shared/middleware/rateLimiter';
 
 export const application = Express();
@@ -105,6 +106,7 @@ export const ServiceFactory = (
       ...(authModuleOptions.controllers as Function[]),
       ...(coursesModuleOptions.controllers as Function[]),
       ...(usersModuleOptions.controllers as Function[]),
+      ...(notificationsModuleOptions.controllers as Function[]),
     ],
   };
 

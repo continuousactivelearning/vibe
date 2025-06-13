@@ -10,17 +10,27 @@
 
 import 'reflect-metadata';
 import {Auth} from 'firebase-admin/lib/auth/auth';
-
+import {Inject, Service} from 'typedi';
 import admin from 'firebase-admin';
 import {UserRecord} from 'firebase-admin/lib/auth/user-record';
 import {applicationDefault} from 'firebase-admin/app';
-import {Inject, Service} from 'typedi';
-import {IUser} from 'shared/interfaces/Models';
-import {IUserRepository} from 'shared/database';
+import {
+  IInvite,
+  IUser,
+  IEnrollment,
+  statusType,
+  actionType,
+} from 'shared/interfaces/Models';
+import {IInviteRepository, IUserRepository} from 'shared/database';
 import {IAuthService} from '../interfaces/IAuthService';
 import {ChangePasswordBody, SignUpBody} from '../classes/validators';
 import {ReadConcern, ReadPreference, WriteConcern} from 'mongodb';
 import {CreateError} from 'shared/errors/errors';
+import {UserRepository} from 'shared/database/providers/mongo/repositories/UserRepository';
+import {EnrollmentRepository} from 'shared/database/providers/mongo/repositories/EnrollmentRepository';
+import {IUserRepository as IUserRepo} from 'shared/database/interfaces/IUserRepository';
+import {STATUS_CODES} from 'http';
+import {MailService} from 'modules/notifications/services';
 
 /**
  * Custom error thrown during password change operations.
@@ -65,7 +75,12 @@ export class FirebaseAuthService implements IAuthService {
    * @param userRepository - Repository for storing and retrieving user data
    */
   constructor(
+    @Inject('EnrollmentRepository')
+    private enrollmentRepository: EnrollmentRepository,
     @Inject('UserRepository') private userRepository: IUserRepository,
+    @Inject('InviteRepository') private inviteRepository: IInviteRepository,
+    @Inject('MailService')
+    private readonly mailService: MailService,
   ) {
     admin.initializeApp({
       credential: applicationDefault(),
@@ -121,7 +136,8 @@ export class FirebaseAuthService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
-      throw new Error('Failed to create user in Firebase');
+      console.log('Duplicate email error', error);
+      throw new Error('Failed to create user in Firebase ');
     }
 
     // Prepare user object for storage in our database
@@ -130,6 +146,7 @@ export class FirebaseAuthService implements IAuthService {
       email: body.email,
       firstName: body.firstName,
       lastName: body.lastName,
+      //roles: body.roles || ['student'], // Default to 'student' if no roles provided
       roles: ['student'],
     };
 
@@ -148,6 +165,42 @@ export class FirebaseAuthService implements IAuthService {
       throw new Error('Failed to create user in the repository');
     } finally {
       await session.endSession();
+    }
+    // console.log('User created:', createdUser);
+    // console.log(user);
+    const invites = [];
+    invites.push(await this.inviteRepository.findInviteByEmail(body.email));
+    console.log('Invites found:', invites);
+    for (const invite of invites) {
+      if (invite.status === statusType.PENDING) {
+        const isAlreadyEnrolled =
+          await this.enrollmentRepository.findEnrollment(
+            createdUser.id,
+            invite.courseId,
+            invite.courseVersionId,
+          );
+        console.log('Is already enrolled:', isAlreadyEnrolled);
+
+        if (!isAlreadyEnrolled) {
+          // Enroll the user
+          await this.enrollmentRepository.createEnrollment({
+            userId: createdUser.id,
+            courseId: invite.courseId,
+            courseVersionId: invite.courseVersionId,
+            status: 'active',
+            enrollmentDate: new Date(),
+          });
+
+          // Update invite object
+          invite.action = actionType.NOTIFY;
+          invite.status = statusType.ACCEPTED;
+          invite.updatedAt = new Date(); // optional
+
+          // Save the modified invite back to DB
+          await this.inviteRepository.updateInvite(invite);
+          await this.mailService.sendMail(invite);
+        }
+      }
     }
 
     return createdUser;

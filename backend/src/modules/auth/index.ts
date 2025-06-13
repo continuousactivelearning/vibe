@@ -18,11 +18,15 @@ import {IAuthService} from './interfaces/IAuthService';
 import {FirebaseAuthService} from './services/FirebaseAuthService';
 
 import {dbConfig} from '../../config/db';
-import {IDatabase, IUserRepository} from 'shared/database';
+import {IDatabase, IInviteRepository, IUserRepository} from 'shared/database';
 import {
+  EnrollmentRepository,
+  InviteRepository,
   MongoDatabase,
   UserRepository,
 } from 'shared/database/providers/MongoDatabaseProvider';
+import {Invite} from 'modules/courses/classes/transformers/Invite';
+import {MailService} from 'modules/notifications/services';
 
 useContainer(Container);
 
@@ -40,11 +44,30 @@ export function setupAuthModuleDependencies(): void {
       new UserRepository(Container.get<MongoDatabase>('Database')),
     );
   }
-
+  if (!Container.has('InviteRepository')) {
+    Container.set<IInviteRepository>(
+      'InviteRepository',
+      new InviteRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
+  if (!Container.has('EnrollmentRepository')) {
+    Container.set<EnrollmentRepository>(
+      'EnrollmentRepository',
+      new EnrollmentRepository(Container.get<MongoDatabase>('Database')),
+    );
+  }
+  if (!Container.has('MailService')) {
+    Container.set('MailService', new MailService());
+  }
   if (!Container.has('AuthService')) {
     Container.set<IAuthService>(
       'AuthService',
-      new FirebaseAuthService(Container.get<IUserRepository>('UserRepository')),
+      new FirebaseAuthService(
+        Container.get<EnrollmentRepository>('EnrollmentRepository'),
+        Container.get<IUserRepository>('UserRepository'),
+        Container.get<IInviteRepository>('InviteRepository'),
+        Container.get<MailService>('MailService'),
+      ),
     );
   }
 }
