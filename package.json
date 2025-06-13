@@ -5,8 +5,14 @@
 	"license": "MIT",
 	"author": "adityabmv",
 	"devDependencies": {
+		"@types/jest": "^29.5.14",
+		"eslint": "^9.24.0",
+		"gts": "^6.0.2",
 		"husky": "^9.1.7",
-		"lint-staged": "^15.5.0"
+		"jest": "^29.7.0",
+		"lint-staged": "^15.5.0",
+		"prettier": "^3.5.3",
+		"ts-jest": "^29.3.2"
 	},
 	"scripts": {
 		"prepare": "husky",

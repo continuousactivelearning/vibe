@@ -52,17 +52,25 @@ export class ItemController {
   }
 
   /**
-   * Create a new item under a specific section of a module in a course version.
-   *
-   * @param params - Route parameters including versionId, moduleId, and sectionId.
-   * @param body - The item data to be created.
-   * @returns The updated itemsGroup and version.
-   *
-   * @throws HTTPError(500) on internal errors.
-   *
-   * @category Courses/Controllers
+   * Helper to DRY version/module/section lookup.
    */
+  private async findSection(
+    versionId: string,
+    moduleId: string,
+    sectionId: string,
+  ) {
+    const version = await this.courseRepo.readVersion(versionId);
+    if (!version) throw new HttpError(404, 'Course version not found');
+    const module = version.modules.find(m => m.moduleId === moduleId);
+    if (!module) throw new HttpError(404, 'Module not found');
+    const section = module.sections.find(s => s.sectionId === sectionId);
+    if (!section) throw new HttpError(404, 'Section not found');
+    return {version, module, section};
+  }
 
+  /**
+   * Create a new item under a specific section of a module in a course version.
+   */
   @Authorized(['admin'])
   @Post('/versions/:versionId/modules/:moduleId/sections/:sectionId/items')
   @HttpCode(201)
@@ -72,20 +80,41 @@ export class ItemController {
   ) {
     try {
       const {versionId, moduleId, sectionId} = params;
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
+      const {version, module, section} = await this.findSection(
+        versionId,
+        moduleId,
+        sectionId,
+      );
 
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
+      if (section.itemsGroupId === null) {
+        throw new HttpError(404, 'Section itemsGroupId is missing');
+      }
 
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-
-      //Fetch ItemGroup
+      // Always use plainToInstance for ItemsGroup for consistency
       const itemsGroup = plainToInstance(
         ItemsGroup,
         await this.courseRepo.readItemsGroup(section.itemsGroupId.toString()),
       );
+
+      if (!itemsGroup) throw new HttpError(404, 'ItemsGroup not found');
+
+      // Unique ID validation
+      if (itemsGroup.items.some(item => item.itemId === body.itemId)) {
+        throw new BadRequestError(
+          'Item ID must be unique within the items group.',
+        );
+      }
+
+      // Parameter tagging validation (for parameterized questions)
+      if (body.isParameterized && body.parameters) {
+        for (const param of Object.keys(body.parameters)) {
+          if (!body.questionText.includes(`<QParam>${param}</QParam>`)) {
+            throw new BadRequestError(
+              `Parameter '${param}' is missing from questionText or not properly tagged.`,
+            );
+          }
+        }
+      }
 
       //Create Item
       const newItem = new Item(body, itemsGroup.items);
@@ -93,21 +122,15 @@ export class ItemController {
       //Add Item to ItemsGroup
       itemsGroup.items.push(newItem);
 
-      //Update Section Update Date
+      //Update Section/Module/Version Update Dates
       section.updatedAt = new Date();
-
-      //Update Module Update Date
       module.updatedAt = new Date();
-
-      //Update Version Update Date
       version.updatedAt = new Date();
 
       const updatedItemsGroup = await this.courseRepo.updateItemsGroup(
         section.itemsGroupId.toString(),
         itemsGroup,
       );
-
-      //Update Version
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
@@ -118,64 +141,48 @@ export class ItemController {
         version: instanceToPlain(updatedVersion),
       };
     } catch (error) {
+      console.error('ItemController.create error:', error);
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
       }
+      throw error;
     }
   }
 
   /**
    * Retrieve all items from a section of a module in a course version.
-   *
-   * @param params - Route parameters including versionId, moduleId, and sectionId.
-   * @returns The list of items within the section.
-   *
-   * @throws HTTPError(500) on internal errors.
-   *
-   * @category Courses/Controllers
    */
-
   @Authorized(['admin', 'instructor', 'student'])
   @Get('/versions/:versionId/modules/:moduleId/sections/:sectionId/items')
   async readAll(@Params() params: ReadAllItemsParams) {
     try {
       const {versionId, moduleId, sectionId} = params;
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
+      const {section} = await this.findSection(versionId, moduleId, sectionId);
 
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
+      if (section.itemsGroupId === null)
+        throw new HttpError(404, 'Section itemsGroupId is missing');
 
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-
-      //Fetch Items
-      const itemsGroup = await this.courseRepo.readItemsGroup(
-        section.itemsGroupId.toString(),
+      const itemsGroup = plainToInstance(
+        ItemsGroup,
+        await this.courseRepo.readItemsGroup(section.itemsGroupId.toString()),
       );
+      if (!itemsGroup) throw new HttpError(404, 'ItemsGroup not found');
 
       return {
         itemsGroup: itemsGroup,
       };
     } catch (error) {
+      console.error('ItemController.readAll error:', error);
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
       }
+      throw error;
     }
   }
 
   /**
    * Update an existing item in a section of a module in a course version.
-   *
-   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
-   * @param body - Fields to update, including name, description, type, and itemDetails.
-   * @returns The updated itemsGroup and version.
-   *
-   * @throws HTTPError(500) on internal errors.
-   *
-   * @category Courses/Controllers
    */
-
   @Authorized(['admin'])
   @Put(
     '/versions/:versionId/modules/:moduleId/sections/:sectionId/items/:itemId',
@@ -186,59 +193,57 @@ export class ItemController {
   ) {
     try {
       const {versionId, moduleId, sectionId, itemId} = params;
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
-
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
-
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-
-      //Fetch ItemsGroup
-      const itemsGroup = await this.courseRepo.readItemsGroup(
-        section.itemsGroupId.toString(),
+      const {version, module, section} = await this.findSection(
+        versionId,
+        moduleId,
+        sectionId,
       );
+
+      if (!section.itemsGroupId)
+        throw new HttpError(404, 'Section itemsGroupId is missing');
+
+      const itemsGroup = plainToInstance(
+        ItemsGroup,
+        await this.courseRepo.readItemsGroup(section.itemsGroupId.toString()),
+      );
+      if (!itemsGroup) throw new HttpError(404, 'ItemsGroup not found');
 
       //Find Item
       const item = itemsGroup.items.find(i => i.itemId === itemId);
+      if (!item) throw new HttpError(404, 'Item not found');
 
-      //Update Item
-      Object.assign(item, body.name ? {name: body.name} : {});
-      Object.assign(
-        item,
-        body.description ? {description: body.description} : {},
-      );
-      Object.assign(item, body.type ? {type: body.type} : {});
+      // Parameter tagging validation (for parameterized questions)
+      if (body.isParameterized && body.parameters) {
+        for (const param of Object.keys(body.parameters)) {
+          if (!body.questionText.includes(`<QParam>${param}</QParam>`)) {
+            throw new BadRequestError(
+              `Parameter '${param}' is missing from questionText or not properly tagged.`,
+            );
+          }
+        }
+      }
 
-      //Update Item Details
-      Object.assign(
-        item,
-        body.videoDetails
-          ? {itemDetails: body.videoDetails}
-          : body.blogDetails
-            ? {itemDetails: body.blogDetails}
-            : body.quizDetails
-              ? {itemDetails: body.quizDetails}
-              : {},
-      );
+      //Update Item (simplified and DRY)
+      Object.assign(item, {
+        ...(body.name && {name: body.name}),
+        ...(body.description && {description: body.description}),
+        ...(body.type && {type: body.type}),
+        itemDetails:
+          body.videoDetails ||
+          body.blogDetails ||
+          body.quizDetails ||
+          item.itemDetails,
+      });
 
-      //Update Section Update Date
+      //Update Section/Module/Version Update Dates
       section.updatedAt = new Date();
-
-      //Update Module Update Date
       module.updatedAt = new Date();
-
-      //Update Version Update Date
       version.updatedAt = new Date();
 
-      //Update ItemsGroup
       const updatedItemsGroup = await this.courseRepo.updateItemsGroup(
         section.itemsGroupId.toString(),
         itemsGroup,
       );
-
-      //Update Version
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
@@ -249,52 +254,45 @@ export class ItemController {
         version: instanceToPlain(updatedVersion),
       };
     } catch (error) {
+      console.error('ItemController.update error:', error);
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
       }
+      throw error;
     }
   }
 
   /**
    * Delete an item from a section of a module in a course version.
-   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
-   * @return The updated itemsGroup and version.
-   * @throw HTTPError(500) on internal errors.
-   * @category Courses/Controllers
    */
-
   @Authorized(['instructor', 'admin'])
   @Delete('/itemGroups/:itemsGroupId/items/:itemId')
   async delete(@Params() params: DeleteItemParams) {
     try {
       const {itemsGroupId, itemId} = params;
-
       if (!itemsGroupId || !itemId) {
         throw new DeleteError('Missing required parameters');
       }
 
-      //Fetch ItemsGroup
-      const itemsGroup = await this.courseRepo.readItemsGroup(itemsGroupId);
-      if (!itemsGroup) {
-        throw new DeleteError('ItemsGroup not found');
-      }
+      const itemsGroup = plainToInstance(
+        ItemsGroup,
+        await this.courseRepo.readItemsGroup(itemsGroupId),
+      );
+      if (!itemsGroup) throw new DeleteError('ItemsGroup not found');
 
       const itemToDelete = itemsGroup.items.find(
-        i => i.itemId.toString() === itemId,
+        i =>
+          i.itemId !== undefined &&
+          i.itemId !== null &&
+          i.itemId.toString() === itemId,
       );
-
-      if (!itemToDelete) {
-        throw new DeleteError('Item not found');
-      }
+      if (!itemToDelete) throw new DeleteError('Item not found');
 
       const deletionStatus = await this.courseRepo.deleteItem(
         itemsGroupId,
         itemId,
       );
-
-      if (!deletionStatus) {
-        throw new Error('Unable to delete item');
-      }
+      if (!deletionStatus) throw new Error('Unable to delete item');
 
       const updatedItemsGroup =
         await this.courseRepo.readItemsGroup(itemsGroupId);
@@ -304,29 +302,22 @@ export class ItemController {
         updatedItemsGroup: instanceToPlain(updatedItemsGroup),
       };
     } catch (error) {
-      if (error.message === 'Item not found') {
-        throw new HttpError(404, error.message);
-      }
-      if (error.message === 'Missing required parameters') {
-        throw new BadRequestError(error.message);
-      }
+      console.error('ItemController.delete error:', error);
       if (error instanceof Error) {
+        if (error.message === 'Item not found') {
+          throw new HttpError(404, error.message);
+        }
+        if (error.message === 'Missing required parameters') {
+          throw new BadRequestError(error.message);
+        }
         throw new HttpError(500, error.message);
       }
+      throw error;
     }
   }
 
   /**
    * Move an item to a new position within a section by recalculating its order.
-   *
-   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
-   * @param body - Movement instructions including `afterItemId` or `beforeItemId`.
-   * @returns The updated itemsGroup and version.
-   *
-   * @throws BadRequestError if both afterItemId and beforeItemId are missing.
-   * @throws HTTPError(500) on internal errors.
-   *
-   * @category Courses/Controllers
    */
   @Authorized(['admin'])
   @Put(
@@ -341,22 +332,23 @@ export class ItemController {
         throw new UpdateError('Either afterItemId or beforeItemId is required');
       }
 
-      //Fetch Version
-      const version = await this.courseRepo.readVersion(versionId);
-
-      //Find Module
-      const module = version.modules.find(m => m.moduleId === moduleId);
-
-      //Find Section
-      const section = module.sections.find(s => s.sectionId === sectionId);
-
-      //Fetch ItemsGroup
-      const itemsGroup = await this.courseRepo.readItemsGroup(
-        section.itemsGroupId.toString(),
+      const {version, module, section} = await this.findSection(
+        versionId,
+        moduleId,
+        sectionId,
       );
 
-      //Find Item
+      if (!section.itemsGroupId)
+        throw new HttpError(404, 'Section itemsGroupId is missing');
+
+      const itemsGroup = plainToInstance(
+        ItemsGroup,
+        await this.courseRepo.readItemsGroup(section.itemsGroupId.toString()),
+      );
+      if (!itemsGroup) throw new HttpError(404, 'ItemsGroup not found');
+
       const item = itemsGroup.items.find(i => i.itemId === itemId);
+      if (!item) throw new HttpError(404, 'Item not found');
 
       //Sort Items based on order
       const sortedItems = itemsGroup.items.sort((a, b) =>
@@ -379,13 +371,10 @@ export class ItemController {
       module.updatedAt = new Date();
       version.updatedAt = new Date();
 
-      //Update ItemsGroup
       const updatedItemsGroup = await this.courseRepo.updateItemsGroup(
         section.itemsGroupId.toString(),
         itemsGroup,
       );
-
-      //Update Version
       const updatedVersion = await this.courseRepo.updateVersion(
         versionId,
         version,
@@ -396,12 +385,14 @@ export class ItemController {
         version: instanceToPlain(updatedVersion),
       };
     } catch (error) {
+      console.error('ItemController.move error:', error);
       if (error instanceof UpdateError) {
         throw new BadRequestError(error.message);
       }
       if (error instanceof Error) {
         throw new HttpError(500, error.message);
       }
+      throw error;
     }
   }
 }

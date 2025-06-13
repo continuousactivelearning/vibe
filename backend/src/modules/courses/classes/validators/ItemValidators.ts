@@ -43,7 +43,7 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: LotItemValidator[], args: ValidationArguments) {
           const {questionText, parameters} =
             args.object as SelectOneFromLotValidator;
 
@@ -82,7 +82,6 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
   };
 }
 
-// ...existing class definitions...
 /**
  * Video item details for embedded video learning content.
  *
@@ -289,6 +288,12 @@ class CreateItemBody implements IBaseItem {
   @ValidateNested()
   @Type(() => QuizDetailsPayloadValidator)
   quizDetails?: QuizDetailsPayloadValidator;
+  itemId:
+    | import('c:/Users/USER/Desktop/vibe/backend/src/shared/types').ID
+    | undefined;
+  isParameterized: boolean;
+  parameters: string[];
+  questionText: string;
 }
 
 /**
@@ -397,6 +402,9 @@ class UpdateItemBody implements IBaseItem {
   @ValidateNested()
   @Type(() => QuizDetailsPayloadValidator)
   quizDetails?: QuizDetailsPayloadValidator;
+  isParameterized: boolean;
+  parameters: string[];
+  questionText: string;
 }
 
 /**
@@ -602,6 +610,7 @@ class SelectOneFromLotValidator {
   @IsOptional()
   @IsString()
   explanation?: string;
+  difficulty: number;
 }
 
 /**
@@ -622,7 +631,7 @@ class LotItemValidator {
    */
   @IsNotEmpty()
   @IsString()
-  description: string;
+  lotItemText: string; // was: description
 
   /**
    * Indicates if this item is the correct answer (required).
@@ -630,6 +639,13 @@ class LotItemValidator {
   @IsNotEmpty()
   @IsBoolean()
   isCorrect: boolean;
+
+  /**
+   * Explanation for the correct answer (optional).
+   */
+  @IsOptional()
+  @IsString()
+  explanation?: string;
 }
 
 export {SelectOneFromLotValidator, LotItemValidator};
@@ -665,3 +681,26 @@ export {
   MoveItemParams,
   DeleteItemParams,
 };
+
+/**
+ * Validator for unique lot item IDs within the SOL question type.
+ *
+ * @category Courses/Validators/ItemValidators
+ */
+class UniqueLotItemIds {
+  /**
+   * Validation method to ensure lot item IDs are unique.
+   */
+  validate(value: LotItemValidator[]) {
+    if (!Array.isArray(value)) return false;
+    const ids = value.map(item => item.id);
+    return ids.length === new Set(ids).size;
+  }
+
+  /**
+   * Default error message for duplicate lot item IDs.
+   */
+  defaultMessage() {
+    return 'Each lotItem id must be unique.';
+  }
+}
