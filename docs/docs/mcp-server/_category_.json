@@ -3,6 +3,10 @@
   "position": 8,
   "link": {
     "type": "generated-index",
+<<<<<<< HEAD
     "description": "Additional tools for Github Copilot"
+=======
+    "description": "Additional tools for GitHub Copilot"
+>>>>>>> main
   }
 }

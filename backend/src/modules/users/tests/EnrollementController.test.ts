@@ -444,10 +444,17 @@ describe('Enrollment Controller Integration Tests', () => {
         .post('/auth/signup')
         .send(signUpBody)
         .expect(201);
+<<<<<<< HEAD
       const userId = signUpResponse.body;
 
       // 2. Create two courses and enroll user in both
       const enrollments: any[] = [];
+=======
+      const userId = signUpResponse.body.id;
+
+      // 2. Create two courses and enroll user in both
+      const enrollments = [];
+>>>>>>> main
       for (let i = 0; i < 2; i++) {
         // Create course
         const courseBody: CreateCourseBody = {
@@ -497,6 +504,7 @@ describe('Enrollment Controller Integration Tests', () => {
           createSectionResponse.body.version.modules[0].sections[0].sectionId;
 
         // Create item
+<<<<<<< HEAD
         const itemPayload: CreateItemBody = {
           name: faker.commerce.productName(),
           description: faker.commerce.productDescription(),
@@ -514,6 +522,17 @@ describe('Enrollment Controller Integration Tests', () => {
             showScoreAfterSubmission: true,
             approximateTimeToComplete: '00:30:00',
             passThreshold: 0.7,
+=======
+        const itemPayload = {
+          name: 'Item1',
+          description: 'This an item',
+          type: 'VIDEO',
+          videoDetails: {
+            URL: 'http://url.com',
+            startTime: '00:00:00',
+            endTime: '00:00:40',
+            points: '10.5',
+>>>>>>> main
           },
         };
         const createItemResponse = await request(app)
@@ -522,6 +541,7 @@ describe('Enrollment Controller Integration Tests', () => {
           )
           .send(itemPayload)
           .expect(201);
+<<<<<<< HEAD
         const itemId = createItemResponse.body.itemsGroup.items[0]._id;
 
         // Enroll the user
@@ -532,6 +552,14 @@ describe('Enrollment Controller Integration Tests', () => {
           .send({
             role: 'student',
           });
+=======
+        const itemId = createItemResponse.body.itemsGroup.items[0].itemId;
+
+        // Enroll the user
+        const enrollmentResponse = await request(app).post(
+          `/users/${userId}/enrollments/courses/${courseId}/versions/${courseVersionId}`,
+        );
+>>>>>>> main
         expect(enrollmentResponse.status).toBe(200);
         expect(enrollmentResponse.body).toHaveProperty('enrollment');
         expect(enrollmentResponse.body).toHaveProperty('progress');

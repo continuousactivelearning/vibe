@@ -28,6 +28,7 @@ import {createUser} from './utils/createUser';
 import {createEnrollment} from './utils/createEnrollment';
 import {startStopAndUpdateProgress} from './utils/startStopAndUpdateProgress';
 import {verifyProgressInDatabase} from './utils/verifyProgressInDatabase';
+<<<<<<< HEAD
 import {InversifyAdapter} from '../../../inversify-adapter';
 import {Container} from 'inversify';
 import {sharedContainerModule} from '../../../container';
@@ -37,6 +38,8 @@ import {coursesContainerModule} from '../../courses/container';
 import {usersContainerModule} from '../container';
 import {jest} from '@jest/globals';
 
+=======
+>>>>>>> main
 jest.setTimeout(300000); // Set timeout to 30 seconds for the tests
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -89,10 +92,23 @@ describe('Progress Controller Integration Tests', () => {
       courseData.modules[0].sections[0].sectionId,
       courseData.modules[0].sections[0].items[0].itemId,
     );
+<<<<<<< HEAD
   });
 
   afterAll(async () => {});
 
+=======
+  });
+
+  afterAll(async () => {
+    // Stop the in-memory MongoDB server
+    // await mongoServer.stop();
+    await Container.get<MongoDatabase>('Database').disconnect();
+    // Close all containers
+    Container.reset();
+  });
+
+>>>>>>> main
   beforeEach(async () => {});
 
   // ------Tests for Create <ModuleName>------

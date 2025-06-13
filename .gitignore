@@ -60,6 +60,10 @@ frontend/openapi.json
 
 .venv
 
+<<<<<<< HEAD
 mcp
 frontend/public/models
 dist/
+=======
+mcp
+>>>>>>> main

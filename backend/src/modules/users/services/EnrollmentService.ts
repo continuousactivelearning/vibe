@@ -160,23 +160,12 @@ export class EnrollmentService extends BaseService {
     });
   }
 
-  async getEnrollments(userId: string, skip: number, limit: number) {
-    return this._withTransaction(async (session: ClientSession) => {
-      const result = await this.enrollmentRepo.getEnrollments(
-        userId,
-        skip,
-        limit,
-      );
-      return result;
-    });
-  }
-
-  async countEnrollments(userId: string) {
-    return this._withTransaction(async (session: ClientSession) => {
-      const result = await this.enrollmentRepo.countEnrollments(userId);
-      return result;
-    });
-  }
+  // async countEnrollments(userId: string) {
+  //   return this._withTransaction(async (session: ClientSession) => {
+  //     const result = await this.enrollmentRepo.countEnrollments(userId);
+  //     return result;
+  //   });
+  // }
 
   /**
    * Initialize student progress tracking to the first item in the course.
@@ -230,5 +219,64 @@ export class EnrollmentService extends BaseService {
       currentItem: firstItem._id,
       completed: false,
     });
+  }
+
+  async getEnrollments(userId: string, skip: number, limit: number) {
+    const client = await this.courseRepo.getDBClient();
+    const session = client.startSession();
+    const txOptions = {
+      readPreference: ReadPreference.primary,
+      readConcern: new ReadConcern('snapshot'),
+      writeConcern: new WriteConcern('majority'),
+    };
+
+    try {
+      await session.startTransaction(txOptions);
+      const result = await this.enrollmentRepo.getEnrollments(
+        userId,
+        skip,
+        limit,
+      );
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  // async getEnrollments(userId: string, skip: number, limit: number) {
+  //   return this._withTransaction(async (session: ClientSession) => {
+  //     const result = await this.enrollmentRepo.getEnrollments(
+  //       userId,
+  //       skip,
+  //       limit,
+  //     );
+  //     return result;
+  //   });
+  // }
+
+  async countEnrollments(userId: string) {
+    const client = await this.courseRepo.getDBClient();
+    const session = client.startSession();
+    const txOptions = {
+      readPreference: ReadPreference.primary,
+      readConcern: new ReadConcern('snapshot'),
+      writeConcern: new WriteConcern('majority'),
+    };
+
+    try {
+      await session.startTransaction(txOptions);
+      const result = await this.enrollmentRepo.countEnrollments(userId);
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      await session.endSession();
+    }
   }
 }
