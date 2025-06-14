@@ -9,6 +9,7 @@ import {
   ICourseVersion,
   IWatchTime,
   IProgress,
+  IVideoDetails,
 } from '#shared/index.js';
 import {ProgressRepository} from '#shared/database/providers/mongo/repositories/ProgressRepository.js';
 import {Progress} from '#users/classes/index.js';
@@ -502,44 +503,44 @@ class ProgressService extends BaseService {
   private isValidWatchTime(watchTime: IWatchTime, item: Item) {
     switch (item.type) {
       case 'VIDEO':
-        return true;
-        // if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
-        //   const videoDetails = item.itemDetails as IVideoDetails;
-        //   const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
-        //   const videoEndTime = videoDetails.endTime; // a string in HH:MM:SS format
-        //   const watchStartTime = new Date(watchTime.startTime);
-        //   const watchEndTime = new Date(watchTime.endTime);
+        // return true;
+        if (watchTime.startTime && watchTime.endTime && item.details) {
+          const videoDetails = item.details as IVideoDetails;
+          const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
+          const videoEndTime = videoDetails.endTime; // a string in HH:MM:SS format
+          const watchStartTime = new Date(watchTime.startTime);
+          const watchEndTime = new Date(watchTime.endTime);
 
-        //   // Get Time difference in seconds
-        //   const timeDiff =
-        //     Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
+          // Get Time difference in seconds
+          const timeDiff =
+            Math.abs(watchEndTime.getTime() - watchStartTime.getTime()) / 1000;
 
-        //   // Get Video duration in seconds
-        //   // Convert HH:MM:SS to seconds
-        //   const videoEndTimeInSeconds =
-        //     parseInt(videoEndTime.split(':')[0]) * 3600 +
-        //     parseInt(videoEndTime.split(':')[1]) * 60 +
-        //     parseInt(videoEndTime.split(':')[2]);
-        //   const videoStartTimeInSeconds =
-        //     parseInt(videoStartTime.split(':')[0]) * 3600 +
-        //     parseInt(videoStartTime.split(':')[1]) * 60 +
-        //     parseInt(videoStartTime.split(':')[2]);
+          // Get Video duration in seconds
+          // Convert HH:MM:SS to seconds
+          const videoEndTimeInSeconds =
+            parseInt(videoEndTime.split(':')[0]) * 3600 +
+            parseInt(videoEndTime.split(':')[1]) * 60 +
+            parseInt(videoEndTime.split(':')[2]);
+          const videoStartTimeInSeconds =
+            parseInt(videoStartTime.split(':')[0]) * 3600 +
+            parseInt(videoStartTime.split(':')[1]) * 60 +
+            parseInt(videoStartTime.split(':')[2]);
 
-        //   const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
+          const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
 
-        //   // Check if the watch time is >= 0.5 * video duration
-        //   if (timeDiff >= 0.45 * videoDuration) {
-        //     return true;
-        //   }
-        //   return false;
-        // }
+          // Check if the watch time is >= 0.5 * video duration
+          if (timeDiff >= 0.45 * videoDuration) {
+            return true;
+          }
+          return false;
+        }
 
         break;
 
       case 'BLOG':
         return true;
-        // if (watchTime.startTime && watchTime.endTime && item.itemDetails) {
-        //   const blogDetails = item.itemDetails as IBlogDetails;
+        // if (watchTime.startTime && watchTime.endTime && item.details) {
+        //   const blogDetails = item.details as IBlogDetails;
         //   const watchStartTime = new Date(watchTime.startTime);
         //   const watchEndTime = new Date(watchTime.endTime);
 
@@ -704,16 +705,16 @@ class ProgressService extends BaseService {
           attemptId,
           session,
         );
-        // if (!submittedQuiz) {
-        //   throw new BadRequestError(
-        //     'Quiz not submitted or attemptId is invalid',
-        //   );
-        // }
-        // if (submittedQuiz.gradingResult.gradingStatus !== 'PASSED') {
-        //   throw new BadRequestError(
-        //     'Quiz not passed, user cannot proceed to the next item',
-        //   );
-        // }
+        if (!submittedQuiz) {
+          throw new BadRequestError(
+            'Quiz not submitted or attemptId is invalid',
+          );
+        }
+        if (submittedQuiz.gradingResult.gradingStatus !== 'PASSED') {
+          throw new BadRequestError(
+            'Quiz not passed, user cannot proceed to the next item',
+          );
+        }
       }
 
       // Get the course version

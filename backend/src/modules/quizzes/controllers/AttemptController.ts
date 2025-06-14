@@ -6,6 +6,7 @@ import {
   OnUndefined,
   Params,
   Post,
+  Req,
 } from 'routing-controllers';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {AttemptService} from '#quizzes/services/AttemptService.js';
@@ -21,6 +22,8 @@ import {
 } from '#quizzes/classes/validators/QuizValidator.js';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
 import {IAttempt} from '#quizzes/interfaces/index.js';
+import {AUTH_TYPES} from '#auth/types.js';
+import {FirebaseAuthService} from '#auth/services/FirebaseAuthService.js';
 
 @OpenAPI({
   tags: ['Quiz Attempts'],
@@ -31,6 +34,8 @@ class AttemptController {
   constructor(
     @inject(QUIZZES_TYPES.AttemptService)
     private readonly attemptService: AttemptService,
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: FirebaseAuthService,
   ) {}
 
   @Post('/:quizId/attempt')
@@ -43,11 +48,12 @@ class AttemptController {
     description: 'Quiz attempt created successfully',
   })
   async attempt(
-    @CurrentUser() user: IUser,
+    @Req() req: any,
     @Params() params: CreateAttemptParams,
   ): Promise<CreateAttemptResponse> {
     const {quizId} = params;
-    const attempt = await this.attemptService.attempt(user._id, quizId);
+    const userId = await this.authService.getUserIdFromReq(req);
+    const attempt = await this.attemptService.attempt(userId, quizId);
     return attempt as CreateAttemptResponse;
   }
 
@@ -68,14 +74,14 @@ class AttemptController {
     },
   })
   async save(
-    @CurrentUser() user: IUser,
     @Params() params: SaveAttemptParams,
     @Body() body: QuestionAnswersBody,
+    @Req() req: any,
   ): Promise<void> {
     const {quizId, attemptId} = params;
-
+    const userId = await this.authService.getUserIdFromReq(req);
     const attempt = await this.attemptService.save(
-      user._id,
+      userId,
       quizId,
       attemptId,
       body.answers,
@@ -101,19 +107,20 @@ class AttemptController {
     description: 'Quiz attempt submitted and graded successfully',
   })
   async submit(
-    @CurrentUser() user: IUser,
     @Params() params: SubmitAttemptParams,
     @Body() body: QuestionAnswersBody,
+    @Req() req: any,
   ): Promise<SubmitAttemptResponse> {
     const {quizId, attemptId} = params;
+    const userId = await this.authService.getUserIdFromReq(req);
     console.log('Submitting attempt', {
-      userId: user,
+      userId,
       quizId,
       attemptId,
       answers: body.answers,
     });
     const result = await this.attemptService.submit(
-      user._id,
+      userId,
       quizId,
       attemptId,
       body.answers,
@@ -123,12 +130,13 @@ class AttemptController {
 
   @Get('/:quizId/attempt/:attemptId')
   async getAttempt(
-    @CurrentUser() user: IUser,
+    @Req() req: any,
     @Params() params: SubmitAttemptParams,
   ): Promise<IAttempt> {
     const {quizId, attemptId} = params;
+    const userId = await this.authService.getUserIdFromReq(req);
     const attempt = await this.attemptService.getAttempt(
-      user._id,
+      userId,
       quizId,
       attemptId,
     );

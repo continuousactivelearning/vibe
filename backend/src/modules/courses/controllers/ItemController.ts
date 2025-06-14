@@ -33,10 +33,8 @@ import {ProgressService, USERS_TYPES} from '#users/index.js';
 import {COURSES_TYPES} from '#courses/types.js';
 import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
 import {ResponseSchema} from 'routing-controllers-openapi';
-import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
-import {GLOBAL_TYPES} from '#root/types.js';
-import {getFromContainer} from 'class-validator';
 import {FirebaseAuthService} from '#auth/services/FirebaseAuthService.js';
+import {AUTH_TYPES} from '#auth/types.js';
 
 @injectable()
 @JsonController('/courses')
@@ -46,8 +44,8 @@ export class ItemController {
     private readonly itemService: ItemService,
     @inject(USERS_TYPES.ProgressService)
     private readonly progressService: ProgressService,
-    @inject(GLOBAL_TYPES.UserRepo)
-    private readonly userRepository: IUserRepository,
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: FirebaseAuthService,
   ) {}
 
   @Authorized(['admin'])
@@ -183,20 +181,10 @@ export class ItemController {
     statusCode: 404,
   })
   async getItem(@Params() params: GetItemParams, @Req() req: any) {
-    // console.log(req.headers.authorization)
     const {courseId, courseVersionId, itemId} = params;
-    const token = req.headers.authorization?.split(' ')[1];
-    const authService =
-      getFromContainer<FirebaseAuthService>(FirebaseAuthService);
-    const firebaseUID = await authService.getUIDFromToken(token);
-    console.log('Firebase UID:\n', firebaseUID);
-    const user = await this.userRepository.findByFirebaseUID(firebaseUID);
-    console.log('User from repository:', user);
-    // console.log('Current user:', user);
-    // console.log('User ID:', user._id);
-    // console.log('User Firebase UID:', user.firebaseUID);
+    const userId = await this.authService.getUserIdFromReq(req);
     const progress = await this.progressService.getUserProgress(
-      user._id,
+      userId,
       courseId,
       courseVersionId,
     );

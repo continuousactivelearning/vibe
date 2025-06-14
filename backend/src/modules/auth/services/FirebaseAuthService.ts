@@ -48,14 +48,21 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
       this.auth = admin.auth();
     }
   }
-  async getUIDFromToken(token: string): Promise<string> {
+  async getUserIdFromReq(req: any): Promise<string> {
+    // Extract the token from the request headers
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      throw new InternalServerError('No token provided');
+    }
     await this.verifyToken(token);
     // Decode the token to get the Firebase UID
     const decodedToken = await this.auth.verifyIdToken(token);
     const firebaseUID = decodedToken.uid;
-
-    // Retrieve the user from our repository using the Firebase UID
-    return firebaseUID;
+    const user = await this.userRepository.findByFirebaseUID(firebaseUID);
+    if (!user) {
+      throw new InternalServerError('User not found');
+    }
+    return user._id.toString();
   }
   async verifyToken(token: string): Promise<boolean> {
     // Decode and verify the Firebase token
