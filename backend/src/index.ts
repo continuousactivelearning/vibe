@@ -70,7 +70,7 @@ export const ServiceFactory = (
     getFromContainer<OpenApiSpecService>(OpenApiSpecService);
 
   // Register the /docs route before routing-controllers takes over
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV !== 'production') {
     service.get('/docs', async (req, res) => {
       try {
         const scalar = await import('@scalar/express-api-reference');
