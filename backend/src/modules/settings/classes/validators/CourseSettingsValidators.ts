@@ -23,7 +23,6 @@ import {
 } from '#shared/interfaces/models.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {ProctoringComponent} from '#shared/database/interfaces/ISettingsRepository.js';
-import {register} from 'module';
 
 /**
  * This file contains classes and DTOs for validating course and user settings related to proctoring.
