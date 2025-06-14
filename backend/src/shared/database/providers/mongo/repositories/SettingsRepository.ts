@@ -71,9 +71,9 @@ export class SettingsRepository implements ISettingsRepository {
     // Check if user settings exist for the student in the course version.
     const userSettings = await this.userSettingsCollection.findOne(
       {
-        studentId: studentId,
-        courseId: courseId,
-        courseVersionId: courseVersionId,
+        studentId: new ObjectId(studentId),
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
       },
       {session},
     );
@@ -111,9 +111,9 @@ export class SettingsRepository implements ISettingsRepository {
     // Try updating the existing detector settings
     const result = await this.userSettingsCollection.updateOne(
       {
-        studentId: studentId,
-        courseId: courseId,
-        courseVersionId: courseVersionId,
+        studentId: new ObjectId(studentId),
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
       },
       {
         $set: {
@@ -130,9 +130,9 @@ export class SettingsRepository implements ISettingsRepository {
     if (result.matchedCount === 0) {
       const addResult = await this.userSettingsCollection.updateOne(
         {
-          studentId: studentId,
-          courseId: courseId,
-          courseVersionId: courseVersionId,
+          studentId: new ObjectId(studentId),
+          courseId: new ObjectId(courseId),
+          courseVersionId: new ObjectId(courseVersionId),
         },
         {
           $addToSet: {
@@ -218,8 +218,8 @@ export class SettingsRepository implements ISettingsRepository {
 
     const courseSettings = await this.courseSettingsCollection.findOne(
       {
-        courseId: courseId,
-        courseVersionId: courseVersionId,
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
       },
       {session},
     );
@@ -258,8 +258,8 @@ export class SettingsRepository implements ISettingsRepository {
 
     const result = await this.courseSettingsCollection.updateOne(
       {
-        courseId: courseId,
-        courseVersionId: courseVersionId,
+        courseId: new ObjectId(courseId),
+        courseVersionId: new ObjectId(courseVersionId),
       },
       {
         $set: {
@@ -275,8 +275,8 @@ export class SettingsRepository implements ISettingsRepository {
     if (result.matchedCount === 0) {
       const addResult = await this.courseSettingsCollection.updateOne(
         {
-          courseId: courseId,
-          courseVersionId: courseVersionId,
+          courseId: new ObjectId(courseId),
+          courseVersionId: new ObjectId(courseVersionId),
         },
         {
           $addToSet: {

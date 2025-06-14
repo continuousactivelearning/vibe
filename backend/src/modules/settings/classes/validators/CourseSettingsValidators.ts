@@ -7,6 +7,11 @@ import {
   IsEnum,
   IsBoolean,
   IsArray,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  registerDecorator,
+  ValidationArguments,
+  ValidationOptions,
 } from 'class-validator';
 import {Type} from 'class-transformer';
 import {
@@ -49,6 +54,41 @@ export class SettingsDto {
   @ValidateNested()
   @Type(() => ProctoringSettingsDto)
   proctors: ProctoringSettingsDto;
+}
+
+@ValidatorConstraint({async: false})
+export class containsAllDetectorsConstraint
+  implements ValidatorConstraintInterface
+{
+  validate(value: Array<any>, args: ValidationArguments) {
+    if (!Array.isArray(value)) {
+      return false;
+    }
+
+    const requiredDetectors = Object.values(ProctoringComponent);
+    const detectorNames = value.map(detector => detector.detectorName);
+    return requiredDetectors.every(detectorName =>
+      detectorNames.includes(detectorName),
+    );
+  }
+
+  defaultMessage(validationArguments?: ValidationArguments): string {
+    return `Array must contain all Proctoring Components. Available components: ${Object.values(
+      ProctoringComponent,
+    ).join(', ')}`;
+  }
+}
+
+export function containsAllDetectors(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      constraints: [],
+      validator: containsAllDetectorsConstraint,
+    });
+  };
 }
 
 // This class represents the validation schema for creating course settings.
@@ -141,6 +181,7 @@ export class AddCourseProctoringBody {
   @IsArray()
   @IsNotEmpty()
   @ValidateNested({each: true})
+  @containsAllDetectors()
   @Type(() => DetectorSettingsDto)
   detectors: DetectorSettingsDto[];
 }
@@ -305,6 +346,7 @@ export class AddUserProctoringBody {
   @IsArray()
   @IsNotEmpty()
   @ValidateNested({each: true})
+  @containsAllDetectors()
   @Type(() => DetectorSettingsDto)
   detectors: DetectorSettingsDto[];
 }
