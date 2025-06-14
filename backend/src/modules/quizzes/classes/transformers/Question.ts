@@ -267,7 +267,6 @@ const mtlSolution = {
     },
   ],
 };
-
 const natSolution: INATSolution = {
   decimalPrecision: 1,
   upperLimit: 1.045,

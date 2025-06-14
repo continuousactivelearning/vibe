@@ -1,8 +1,6 @@
-if (process.env.NODE_ENV === 'production') {
-  import('./instrument');
-}
+import 'dotenv/config';
 import Express from 'express';
-import Sentry from '@sentry/node';
+import * as Sentry from '@sentry/node';
 import {loggingHandler} from 'shared/middleware/loggingHandler';
 import {
   RoutingControllersOptions,
@@ -14,15 +12,19 @@ import {IDatabase} from 'shared/database';
 import {MongoDatabase} from 'shared/database/providers/MongoDatabaseProvider';
 import {dbConfig} from 'config/db';
 import * as firebase from 'firebase-admin';
-import {app} from 'firebase-admin';
 import {apiReference} from '@scalar/express-api-reference';
 import {OpenApiSpecService} from './modules/docs';
+import fetch from 'node-fetch';
 
-// Import all module options
 import {authModuleOptions} from './modules/auth';
 import {coursesModuleOptions} from './modules/courses';
 import {usersModuleOptions} from './modules/users';
 import {rateLimiter} from 'shared/middleware/rateLimiter';
+import {QuestionController} from './modules/quizzes/controllers/QuestionController';
+
+if (process.env.NODE_ENV === 'production') {
+  import('./instrument');
+}
 
 export const application = Express();
 
@@ -32,6 +34,9 @@ export const ServiceFactory = (
 ): typeof application => {
   console.log('--------------------------------------------------------');
   console.log('Initializing service server');
+  console.log('ENV Loaded:');
+  console.log('DB_URL:', process.env.DB_URL);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
   console.log('--------------------------------------------------------');
 
   service.use(Express.urlencoded({extended: true}));
@@ -41,31 +46,19 @@ export const ServiceFactory = (
     service.use(rateLimiter);
   }
 
-  console.log('--------------------------------------------------------');
-  console.log('Logging and Configuration Setup');
-  console.log('--------------------------------------------------------');
-
   service.use(loggingHandler);
 
-  console.log('--------------------------------------------------------');
-  console.log('Define Routing');
-  console.log('--------------------------------------------------------');
   service.get('/main/healthcheck', (req, res) => {
     res.send('Hello World');
   });
 
-  // Set up the API documentation route
   const openApiSpecService = Container.get(OpenApiSpecService);
 
-  // Register the /docs route before routing-controllers takes over
   service.get('/docs', (req, res) => {
     try {
       const openApiSpec = openApiSpecService.generateOpenAPISpec();
-
       const handler = apiReference({
-        spec: {
-          content: openApiSpec,
-        },
+        spec: {content: openApiSpec},
         theme: {
           title: 'ViBe API Documentation',
           primaryColor: '#3B82F6',
@@ -75,8 +68,6 @@ export const ServiceFactory = (
           },
         },
       });
-
-      // Call the handler to render the documentation
       handler(req as any, res as any);
     } catch (error) {
       console.error('Error serving API documentation:', error);
@@ -86,25 +77,17 @@ export const ServiceFactory = (
     }
   });
 
-  console.log('--------------------------------------------------------');
-  console.log('Routes Handler');
-  console.log('--------------------------------------------------------');
-  //After Adding Routes
   if (process.env.NODE_ENV === 'production') {
     Sentry.setupExpressErrorHandler(service);
   }
 
-  console.log('--------------------------------------------------------');
-  console.log('Starting Server');
-  console.log('--------------------------------------------------------');
-
-  // Create combined routing controllers options
   const routingControllersOptions = {
     ...options,
     controllers: [
       ...(authModuleOptions.controllers as Function[]),
       ...(coursesModuleOptions.controllers as Function[]),
       ...(usersModuleOptions.controllers as Function[]),
+      QuestionController,
     ],
   };
 
@@ -113,21 +96,95 @@ export const ServiceFactory = (
   return service;
 };
 
-// Create a main function where multiple services are created
-
 useContainer(Container);
 
 if (!Container.has('Database')) {
-  Container.set<IDatabase>('Database', new MongoDatabase(dbConfig.url, 'vibe'));
+  const dbUrl = process.env.DB_URL || dbConfig.url;
+  Container.set<IDatabase>('Database', new MongoDatabase(dbUrl, 'vibe'));
 }
 
-export const main = () => {
-  const service = ServiceFactory(application, authModuleOptions);
-  service.listen(4001, () => {
-    console.log('--------------------------------------------------------');
-    console.log('Started Server at http://localhost:' + 4001);
-    console.log('--------------------------------------------------------');
-  });
-};
+const TEST_AUTH_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummyTokenValue';
 
-main();
+export const main = async () => {
+  try {
+    const service = ServiceFactory(application, authModuleOptions);
+    service.listen(4001, async () => {
+      console.log('--------------------------------------------------------');
+      console.log('Started Server at http://localhost:4001');
+      console.log('--------------------------------------------------------');
+
+      if (process.env.NODE_ENV !== 'production') {
+        const quizId = 'quiz123';
+        const url = `http://localhost:4001/quizzes/${quizId}/questions`;
+
+        const payload = {
+          questionType: 'SML',
+          questionText:
+            'Select the numbers <QParam>a</QParam> and <QParam>b</QParam> from the following options.',
+          hintText:
+            'This is a multiple-choice question where multiple answers are correct.',
+          difficulty: 2,
+          isParameterized: true,
+          parameters: {
+            parameterName: 'a',
+            allowedValued: ['2', '3', '9'],
+          },
+          lot: {
+            lotItems: [
+              {
+                _id: 'item1',
+                text: 'Option 1',
+                explaination: 'Explaination as to why this option is correct.',
+              },
+              {
+                _id: 'item2',
+                text: 'Option 2',
+                explaination:
+                  'Explaination as to why this option is incorrect.',
+              },
+            ],
+          },
+          solution: {
+            SML: {
+              itemIds: ['item1', 'item2'],
+            },
+          },
+          metaDetails: {
+            isStudentGenerated: true,
+            isAIGenerated: false,
+          },
+          timeLimit: 300,
+          points: 20,
+        };
+
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${TEST_AUTH_TOKEN}`,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const contentType = res.headers.get('content-type');
+          console.log('\nTest Response from /quizzes/:quizId/questions');
+          console.log('Status:', res.status);
+
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            console.log('Body:', data);
+          } else {
+            const text = await res.text();
+            console.error('Unexpected response format:', text);
+          }
+        } catch (error) {
+          console.error('Failed to send test request:', error);
+        }
+      }
+    });
+  } catch (err) {
+    console.error('Fatal error starting server:', err);
+    throw new Error('Startup failed');
+  }
+};

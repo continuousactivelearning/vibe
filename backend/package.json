@@ -7,7 +7,7 @@
     "test": "jest --runInBand --detectOpenHandles",
     "test:ci": "jest --runInBand --detectOpenHandles --forceExit",
     "test:watch": "jest --watch --detectOpenHandles",
-    "test:coverage": "jest --coverage  --detectOpenHandles",
+    "test:coverage": "jest --coverage --detectOpenHandles",
     "test:watch:coverage": "jest --watch --coverage --detectOpenHandles",
     "dev": "pnpx ts-node-dev --respawn --transpile-only -r tsconfig-paths/register src/index.ts",
     "build": "tsc && pnpm sentry:sourcemaps",
@@ -23,7 +23,9 @@
     "emulators:functions": "firebase emulators:start --only functions",
     "emulators:all": "firebase emulators:start",
     "exp-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts --stdout",
-    "gen-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts"
+    "gen-openapi": "pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint"
   },
   "keywords": [],
   "author": "",
@@ -41,6 +43,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.7.5",
+    "@types/node-fetch": "^2.6.12",
     "@types/supertest": "^6.0.2",
     "docusaurus-plugin-typedoc": "^1.2.3",
     "gts": "^6.0.2",
@@ -53,7 +56,7 @@
     "tsconfig-paths": "^4.2.0",
     "typedoc": "^0.28.2",
     "typedoc-plugin-markdown": "^4.4.2",
-    "typescript": "^5.8.2"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
     "@scalar/express-api-reference": "^0.7.6",
@@ -70,6 +73,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
+    "firebase": "^11.8.1",
     "firebase-admin": "^13.2.0",
     "graphql": "~16.10.0",
     "jsonwebtoken": "^9.0.2",
@@ -78,6 +82,7 @@
     "mongodb": "^6.15.0",
     "multer": "1.4.5-lts.1",
     "nanoid": "^5.1.2",
+    "node-fetch": "^3.3.2",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.2",
     "routing-controllers-openapi": "github:adityabmv/routing-controllers-openapi",
