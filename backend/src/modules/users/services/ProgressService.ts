@@ -662,7 +662,7 @@ class ProgressService extends BaseService {
     moduleId: string,
     sectionId: string,
     itemId: string,
-    watchItemId: string,
+    watchItemId?: string,
     attemptId?: string,
   ): Promise<void> {
     return this._withTransaction(async session => {

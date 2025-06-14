@@ -243,7 +243,7 @@ export default function CoursePage() {
           moduleId: selectedModuleId ? selectedModuleId : '',
           sectionId: selectedSectionId ? selectedSectionId : '',
           itemId: selectedItemId ? selectedItemId : '',
-          watchItemId: useCourseStore.getState().currentCourse?.watchItemId || '',
+          watchItemId: useCourseStore.getState().currentCourse?.watchItemId,
           attemptId: attemptId,
         },
       }
