@@ -3,16 +3,20 @@ import {Tag, ParameterMap} from './tags/Tag';
 
 class TagParser {
   constructor(private processors: Record<string, Tag>) {}
-
   processText(text: string, context: ParameterMap): string {
-    return text.replace(/<(\w+)>(.*?)<\/\1>/g, (_, tagName, inner) => {
-      const processor = this.processors[tagName];
-      return processor ? processor.process(inner, context) : inner;
-    });
+    return text.replace(
+      /<(\w+)([^>]*)>(.*?)<\/\1>/gs,
+      (_, tagName, attrs, inner) => {
+        const processor = this.processors[tagName];
+        if (!processor) {
+          return inner;
+        }
+        return processor.process(inner, context);
+      },
+    );
   }
 
   isAnyValidTagPresent(text: string): boolean {
-    //loop over all processors and run extract function from each and store the resulting list in gobal list.
     const allContents: string[] = [];
 
     for (const processor of Object.values(this.processors)) {
@@ -20,17 +24,20 @@ class TagParser {
       allContents.push(...tagContents);
     }
 
-    //If tagContents list is empty, return false
-    return allContents.length === 0 ? false : true;
+    return allContents.length > 0;
   }
 
   validateTags(text: string, parameters?: IQuestionParameter[]): void {
-    text.replace(/<(\w+)>(.*?)<\/\1>/g, (matchString, tagName, inner) => {
-      const processor = this.processors[tagName];
-      processor.validate(inner, parameters);
-      return matchString; // Return the original substring to satisfy the type signature
-    });
+    text.replace(
+      /<(\w+)([^>]*)>(.*?)<\/\1>/gs,
+      (matchString, tagName, attrs, inner) => {
+        const processor = this.processors[tagName];
+        if (processor) {
+          processor.validate(inner, parameters);
+        }
+        return matchString;
+      },
+    );
   }
 }
-
 export {TagParser};

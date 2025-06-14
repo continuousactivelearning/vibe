@@ -168,11 +168,18 @@ class CreateQuestionBody {
   @ValidateNested()
   @Type(() => Question)
   question: IQuestion;
+
   @IsNotEmpty()
   @ValidateNested()
-  @Type(({object}) => {
-    const question = object.question as Question;
-    switch (question.type) {
+  @Type(options => {
+    const rawObject = options?.object;
+    const questionType = rawObject?.question?.type;
+
+    if (!questionType || typeof questionType !== 'string') {
+      return Object;
+    }
+
+    switch (questionType) {
       case 'SELECT_ONE_IN_LOT':
         return SOLSolution;
       case 'SELECT_MANY_IN_LOT':
@@ -184,7 +191,7 @@ class CreateQuestionBody {
       case 'DESCRIPTIVE':
         return DESSolution;
       default:
-        throw new Error('Invalid question type');
+        return Object;
     }
   })
   solution:
