@@ -83,10 +83,13 @@ export class UserRepository implements IUserRepository {
   /**
    * Finds a user by Firebase UID.
    */
-  async findByFirebaseUID(firebaseUID: string): Promise<IUser | null> {
+  async findByFirebaseUID(
+    firebaseUID: string,
+    session?: ClientSession,
+  ): Promise<IUser | null> {
     await this.init();
     console.log('Finding user by Firebase UID:', firebaseUID);
-    const user = await this.usersCollection.findOne({firebaseUID});
+    const user = await this.usersCollection.findOne({firebaseUID}, {session});
     if (!user) {
       throw new NotFoundError('User not found');
     }

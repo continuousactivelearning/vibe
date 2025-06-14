@@ -10,6 +10,7 @@ import {
   Params,
   HttpCode,
   Req,
+  ForbiddenError,
 } from 'routing-controllers';
 import {inject, injectable} from 'inversify';
 import {
@@ -32,6 +33,10 @@ import {ProgressService, USERS_TYPES} from '#users/index.js';
 import {COURSES_TYPES} from '#courses/types.js';
 import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
 import {ResponseSchema} from 'routing-controllers-openapi';
+import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
+import {GLOBAL_TYPES} from '#root/types.js';
+import {getFromContainer} from 'class-validator';
+import {FirebaseAuthService} from '#auth/services/FirebaseAuthService.js';
 
 @injectable()
 @JsonController('/courses')
@@ -41,6 +46,8 @@ export class ItemController {
     private readonly itemService: ItemService,
     @inject(USERS_TYPES.ProgressService)
     private readonly progressService: ProgressService,
+    @inject(GLOBAL_TYPES.UserRepo)
+    private readonly userRepository: IUserRepository,
   ) {}
 
   @Authorized(['admin'])
@@ -178,17 +185,24 @@ export class ItemController {
   async getItem(@Params() params: GetItemParams, @Req() req: any) {
     // console.log(req.headers.authorization)
     const {courseId, courseVersionId, itemId} = params;
+    const token = req.headers.authorization?.split(' ')[1];
+    const authService =
+      getFromContainer<FirebaseAuthService>(FirebaseAuthService);
+    const firebaseUID = await authService.getUIDFromToken(token);
+    console.log('Firebase UID:\n', firebaseUID);
+    const user = await this.userRepository.findByFirebaseUID(firebaseUID);
+    console.log('User from repository:', user);
     // console.log('Current user:', user);
     // console.log('User ID:', user._id);
     // console.log('User Firebase UID:', user.firebaseUID);
-    // const progress = await this.progressService.getUserProgress(
-    //   user._id,
-    //   courseId,
-    //   courseVersionId,
-    // );
-    // if (progress.currentItem !== itemId) {
-    //   throw new ForbiddenError('Item does not match current progress');
-    // }
+    const progress = await this.progressService.getUserProgress(
+      user._id,
+      courseId,
+      courseVersionId,
+    );
+    if (progress.currentItem !== itemId) {
+      throw new ForbiddenError('Item does not match current progress');
+    }
     return {
       item: await this.itemService.readItem(courseVersionId, itemId),
     };

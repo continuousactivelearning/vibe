@@ -20,8 +20,7 @@
     "#quizzes/*.js": "./build/modules/quizzes/*.js",
     "#docs/*.js": "./build/modules/docs/*.js",
     "#activity/*.js": "./build/modules/activity/*.js",
-    "#settings/*.js": "./build/modules/settings/*.js",
-    "#docs/*.js": "./build/modules/docs/*.js"
+    "#settings/*.js": "./build/modules/settings/*.js"
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --detectOpenHandles",

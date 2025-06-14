@@ -49,7 +49,7 @@ export const ServiceFactory = (
   service.use(corsHandler);
 
   if (process.env.NODE_ENV === 'production') {
-    service.use(rateLimiter);
+    //service.use(rateLimiter);
   }
 
   console.log('--------------------------------------------------------');
@@ -70,7 +70,7 @@ export const ServiceFactory = (
     getFromContainer<OpenApiSpecService>(OpenApiSpecService);
 
   // Register the /docs route before routing-controllers takes over
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV === 'production') {
     service.get('/docs', async (req, res) => {
       try {
         const scalar = await import('@scalar/express-api-reference');
@@ -149,7 +149,6 @@ const allModuleOptions: RoutingControllersOptions = {
     if (!token) {
       return false;
     }
-
     try {
       return await authService.verifyToken(token);
     } catch (error) {

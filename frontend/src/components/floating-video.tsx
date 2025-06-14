@@ -10,6 +10,9 @@ import FaceRecognitionOverlay from '../ai-components/FaceRecognitionOverlay';
 import { FaceRecognition, FaceRecognitionDebugInfo } from '../ai-components/FaceRecognitionComponent';
 // import FaceRecognitionIntegrated from '../ai-components/FaceRecognitionIntegrated';
 import useCameraProcessor from '../ai-components/useCameraProcessor';
+import { useReportAnomaly } from '@/lib/api/hooks';
+import { useAuthStore } from '@/lib/store/auth-store';
+import { useCourseStore } from '@/lib/store/course-store';
 
 interface FloatingVideoProps {
   isVisible?: boolean;
@@ -55,6 +58,7 @@ function FloatingVideo({
     recognizedFaces: 0,
     lastUpdateTime: Date.now(),
     backendStatus: 'loading'
+
   });
   const [penaltyPoints, setPenaltyPoints] = useState(-10);
   const [penaltyType, setPenaltyType] = useState("");
@@ -66,6 +70,11 @@ function FloatingVideo({
 
   // Get our videoRef and face data from the custom hook
   const { videoRef, modelReady, faces } = useCameraProcessor(1);
+
+  // Add the hooks
+  const { data, error, mutate: reportAnomaly } = useReportAnomaly();
+  const authStore = useAuthStore();
+  const courseStore = useCourseStore();
 
   // Handle face recognition results
   const handleFaceRecognitionResult = useCallback((recognitions: FaceRecognition[]) => {
@@ -198,11 +207,35 @@ function FloatingVideo({
       if (newPenaltyPoints > 0) {
         setPenaltyPoints((prevPoints) => prevPoints + newPenaltyPoints);
         setPenaltyType(newPenaltyType);
+
+        const anomalyType = newPenaltyType === "Focus" ? "focus": newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" :  "faceRecognition";
+        // here to add the hook
+
+        console.log({body: {
+            userId: authStore.user?.userId || "", 
+            courseId: courseStore.currentCourse?.courseId || "", 
+            courseVersionId: courseStore.currentCourse?.versionId || "",
+            moduleId: courseStore.currentCourse?.moduleId || "",
+            sectionId: courseStore.currentCourse?.sectionId || "",
+            itemId: courseStore.currentCourse?.itemId || "",
+            anomalyType: anomalyType
+        }});
+        reportAnomaly({
+          body: {
+            userId: authStore.user?.userId || "", 
+            courseId: courseStore.currentCourse?.courseId || "", 
+            courseVersionId: courseStore.currentCourse?.versionId || "",
+            moduleId: courseStore.currentCourse?.moduleId || "",
+            sectionId: courseStore.currentCourse?.sectionId || "",
+            itemId: courseStore.currentCourse?.itemId || "",
+            anomalyType: anomalyType
+        }})
+        console.log(data, error)
       }
     }, 1000); // Update every second
 
     return () => clearInterval(interval);
-  }, [isSpeaking, facesCount, isBlur, isFocused]);
+  }, [isSpeaking, facesCount, isBlur, isFocused, reportAnomaly, authStore.user?.userId, courseStore.currentCourse]);
   const mul = 7; // For testing purposes, set to 1 for 3 seconds, change to 60 for real-time (2-5 minutes)
   // Random thumbs-up challenge system
   useEffect(() => {

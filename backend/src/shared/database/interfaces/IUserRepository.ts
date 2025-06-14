@@ -53,7 +53,10 @@ export interface IUserRepository {
    * @param firebaseUID - The Firebase UID of the user to find.
    * @returns A promise that resolves to the user if found, or null if not found.
    */
-  findByFirebaseUID(firebaseUID: string): Promise<IUser | null>;
+  findByFirebaseUID(
+    firebaseUID: string,
+    session?: ClientSession,
+  ): Promise<IUser | null>;
 
   /**
    * Finds a user by their ID.

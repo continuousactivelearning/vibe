@@ -6,10 +6,12 @@ import {
   IUserRepository,
   MongoDatabase,
   IUser,
+  UserRepository,
 } from '#shared/index.js';
 import {injectable, inject} from 'inversify';
 import {InternalServerError} from 'routing-controllers';
 import admin from 'firebase-admin';
+import {getFromContainer} from 'class-validator';
 
 /**
  * Custom error thrown during password change operations.
@@ -39,30 +41,33 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     private database: MongoDatabase,
   ) {
     super(database);
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    this.auth = admin.auth();
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+      });
+      this.auth = admin.auth();
+    }
   }
+  async getUIDFromToken(token: string): Promise<string> {
+    await this.verifyToken(token);
+    // Decode the token to get the Firebase UID
+    const decodedToken = await this.auth.verifyIdToken(token);
+    const firebaseUID = decodedToken.uid;
 
-  async verifyToken(token: string): Promise<Partial<IUser>> {
+    // Retrieve the user from our repository using the Firebase UID
+    return firebaseUID;
+  }
+  async verifyToken(token: string): Promise<boolean> {
     // Decode and verify the Firebase token
-    // const decodedToken = await this.auth.verifyIdToken(token);
+    const decodedToken = await this.auth.verifyIdToken(token);
     // // Retrieve the full user record from Firebase
     // const userRecord = await this.auth.getUser(decodedToken.uid);
 
-    // // Map Firebase user data to our application user model
-    // const user: Partial<IUser> = {
-    //   firebaseUID: userRecord.uid,
-    //   email: userRecord.email || '',
-    //   firstName: userRecord.displayName?.split(' ')[0] || '',
-    //   lastName: userRecord.displayName?.split(' ')[1] || '',
-    // };
-    // console.log('Decoded user:', user);
-
-    const result = await this.userRepository.findByFirebaseUID(token);
-
-    return result;
+    // Map Firebase user data to our application user model
+    if (!decodedToken) {
+      return false;
+    }
+    return true;
   }
 
   async signup(body: SignUpBody): Promise<string> {
@@ -77,7 +82,9 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
-      throw new InternalServerError('Failed to create user in Firebase');
+      throw new InternalServerError(
+        `Failed to create user in Firebase: ${error.message}`,
+      );
     }
 
     // Prepare user object for storage in our database
