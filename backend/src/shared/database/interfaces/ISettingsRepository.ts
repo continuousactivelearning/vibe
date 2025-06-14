@@ -17,6 +17,7 @@ import {
 
 // Enum representing the different components of proctoring that can be enabled or disabled.
 export enum ProctoringComponent {
+  FOCUS = 'focus',
   CAMERAMICRO = 'cameraMic',
   BLURDETECTION = 'blurDetection', // bulrDetection
   FACECOUNTDETECTION = 'faceCountDetection', // faceCountDetection
