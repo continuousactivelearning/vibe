@@ -10,6 +10,7 @@ import {ProctoringComponent} from '#shared/database/index.js';
 import {ICourseSettings, IDetectorSettings} from '#shared/interfaces/models.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateCourseSettingsBody} from '../index.js';
+import {ObjectId} from 'mongodb';
 
 /**
  * This class represents the settings for a course, including proctoring configurations.
@@ -95,8 +96,8 @@ class CourseSettings implements ICourseSettings {
 
   constructor(courseSettingsBody?: CreateCourseSettingsBody) {
     if (courseSettingsBody) {
-      this.courseVersionId = courseSettingsBody.courseVersionId;
-      this.courseId = courseSettingsBody.courseId;
+      this.courseVersionId = new ObjectId(courseSettingsBody.courseVersionId);
+      this.courseId = new ObjectId(courseSettingsBody.courseId);
     }
 
     let existingDetectors = courseSettingsBody?.settings?.proctors?.detectors;

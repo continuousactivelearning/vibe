@@ -1,5 +1,11 @@
 import {IUserAnomaly, ProctoringComponent} from '#root/shared/index.js';
-import {IsMongoId, IsString, IsNotEmpty, IsEnum} from 'class-validator';
+import {
+  IsMongoId,
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+} from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
 
 export class CreateAnamolyBody implements Partial<IUserAnomaly> {
@@ -38,7 +44,7 @@ export class CreateAnamolyBody implements Partial<IUserAnomaly> {
 
   @JSONSchema({
     description: 'Type of anomaly detected',
-    example: 'low_progress',
+    example: 'faceDetection',
     type: 'string',
   })
   @IsString()
@@ -46,8 +52,16 @@ export class CreateAnamolyBody implements Partial<IUserAnomaly> {
   @IsEnum(ProctoringComponent)
   anomalyType: ProctoringComponent;
 
-  // Optional fields for module, section, and item IDs
+  @IsString()
+  @IsMongoId()
+  @IsOptional()
   moduleId?: string;
+  @IsString()
+  @IsMongoId()
+  @IsOptional()
   sectionId?: string;
+  @IsString()
+  @IsMongoId()
+  @IsOptional()
   itemId?: string;
 }

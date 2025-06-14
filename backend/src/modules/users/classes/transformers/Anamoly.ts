@@ -52,12 +52,14 @@ export class Anomaly implements IUserAnomaly {
   anomalyType: string;
 
   constructor(anomalyBody: CreateAnamolyBody) {
-    this.userId = anomalyBody.userId;
-    this.courseId = anomalyBody.courseId;
-    this.courseVersionId = anomalyBody.courseVersionId;
-    this.moduleId = anomalyBody.moduleId;
-    this.sectionId = anomalyBody.sectionId;
-    this.itemId = anomalyBody.itemId;
+    this.userId = new ObjectId(anomalyBody.userId);
+    this.courseId = new ObjectId(anomalyBody.courseId);
+    this.courseVersionId = new ObjectId(anomalyBody.courseVersionId);
+    if (anomalyBody.moduleId)
+      this.moduleId = new ObjectId(anomalyBody.moduleId);
+    if (anomalyBody.sectionId)
+      this.sectionId = new ObjectId(anomalyBody.sectionId);
+    if (anomalyBody.itemId) this.itemId = new ObjectId(anomalyBody.itemId);
     this.anomalyType = anomalyBody.anomalyType;
   }
 }

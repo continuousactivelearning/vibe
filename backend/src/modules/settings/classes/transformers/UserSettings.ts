@@ -10,6 +10,7 @@ import {ProctoringComponent} from '#shared/database/index.js';
 import {IDetectorSettings, IUserSettings} from '#shared/interfaces/models.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateUserSettingsBody} from '../index.js';
+import {ObjectId} from 'mongodb';
 
 /**
  * This class represents the settings for a user in a course, including proctoring configurations.
@@ -106,9 +107,9 @@ class UserSettings implements IUserSettings {
 
   constructor(userSettingsBody?: CreateUserSettingsBody) {
     if (userSettingsBody) {
-      this.studentId = userSettingsBody.studentId;
-      this.courseVersionId = userSettingsBody.courseVersionId;
-      this.courseId = userSettingsBody.courseId;
+      this.studentId = new ObjectId(userSettingsBody.studentId);
+      this.courseVersionId = new ObjectId(userSettingsBody.courseVersionId);
+      this.courseId = new ObjectId(userSettingsBody.courseId);
     }
 
     let existingDetectors = userSettingsBody?.settings?.proctors?.detectors;

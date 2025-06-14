@@ -31,6 +31,8 @@ import {activityContainerModule} from '#activity/container.js';
 import {getFromContainer} from 'class-validator';
 import {appConfig} from '#config/app.js';
 import {FirebaseAuthService} from '#auth/services/FirebaseAuthService.js';
+import {settingsContainerModule} from '#settings/container.js';
+import {settingsModuleOptions} from '#settings/index.js';
 
 export const application = Express();
 
@@ -122,6 +124,7 @@ const setupAllModulesContainer = async () => {
     coursesContainerModule,
     quizzesContainerModule,
     activityContainerModule,
+    settingsContainerModule,
   ];
   await container.load(...modules);
   const inversifyAdapter = new InversifyAdapter(container);
@@ -135,6 +138,7 @@ const allModuleOptions: RoutingControllersOptions = {
     ...(usersModuleOptions.controllers as Function[]),
     ...(quizzesModuleOptions.controllers as Function[]),
     ...(activityModuleOptions.controllers as Function[]),
+    ...(settingsModuleOptions.controllers as Function[]),
   ],
   middlewares: [],
   defaultErrorHandler: true,
@@ -188,6 +192,10 @@ export const main = async () => {
     case 'activity':
       await setupActivityContainer();
       module = ServiceFactory(application, activityModuleOptions);
+      break;
+    case 'settings':
+      await setupUsersContainer();
+      module = ServiceFactory(application, settingsModuleOptions);
       break;
     case 'all':
       await setupAllModulesContainer();
