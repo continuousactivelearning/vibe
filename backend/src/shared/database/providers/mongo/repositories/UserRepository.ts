@@ -1,4 +1,3 @@
-
 import {IUserRepository} from '#shared/database/interfaces/IUserRepository.js';
 import {IUser} from '#shared/interfaces/models.js';
 import {instanceToPlain, plainToInstance} from 'class-transformer';
@@ -6,8 +5,8 @@ import {injectable, inject} from 'inversify';
 import {Collection, MongoClient, ClientSession, ObjectId} from 'mongodb';
 import {MongoDatabase} from '../MongoDatabase.js';
 import {InternalServerError, NotFoundError} from 'routing-controllers';
-import { GLOBAL_TYPES } from '#root/types.js';
-import { User } from '#auth/classes/transformers/User.js';
+import {GLOBAL_TYPES} from '#root/types.js';
+import {User} from '#auth/classes/transformers/User.js';
 
 @injectable()
 export class UserRepository implements IUserRepository {

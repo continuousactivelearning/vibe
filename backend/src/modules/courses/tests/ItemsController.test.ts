@@ -10,16 +10,24 @@ import {
 } from './utils/creationFunctions.js';
 import {faker} from '@faker-js/faker';
 import {ItemType} from '#shared/interfaces/models.js';
-import { CreateItemBody } from '../classes/validators/ItemValidators.js';
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi  } from 'vitest';
+import {CreateItemBody} from '../classes/validators/ItemValidators.js';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  vi,
+} from 'vitest';
 
 describe('Item Controller Integration Tests', () => {
   const App = Express();
   let app;
 
-    beforeAll(async () => {
+  beforeAll(async () => {
     process.env.NODE_ENV = 'test';
-    await setupCoursesContainer()
+    await setupCoursesContainer();
     app = useExpressServer(App, coursesModuleOptions);
   });
 

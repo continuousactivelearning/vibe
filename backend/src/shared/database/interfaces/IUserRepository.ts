@@ -1,4 +1,4 @@
-import {IUser, IUserAnomaly} from '#shared/interfaces/models.js';
+import {IUser } from '#shared/interfaces/models.js';
 import {MongoClient, ClientSession, ObjectId} from 'mongodb';
 
 /**
@@ -70,8 +70,8 @@ export interface IUserRepository {
    * @param anamoly - The anomaly document to create.
    */
 
-  createUserAnomaly(
-    anamoly: IUserAnomaly,
-    session?: ClientSession,
-  ): Promise<IUserAnomaly | null>;
+  // createUserAnomaly(
+  //   anamoly: IUserAnomaly,
+  //   session?: ClientSession,
+  // ): Promise<IUserAnomaly | null>;
 }

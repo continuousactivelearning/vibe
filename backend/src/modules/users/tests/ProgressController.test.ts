@@ -1,14 +1,9 @@
 import request from 'supertest';
 import Express from 'express';
-import {
-  useContainer,
-  useExpressServer,
-} from 'routing-controllers';
+import {useContainer, useExpressServer} from 'routing-controllers';
 import {authModuleOptions} from '#auth/index.js';
 import {coursesModuleOptions} from '#courses/index.js';
-import {
-  usersModuleOptions,
-} from '../index.js';
+import {usersModuleOptions} from '../index.js';
 
 import {isMongoId} from 'class-validator';
 import {ProgressService} from '../services/ProgressService.js';
@@ -29,9 +24,13 @@ import {faker} from '@faker-js/faker';
 import {authContainerModule} from '#auth/container.js';
 import {coursesContainerModule} from '#courses/container.js';
 import {usersContainerModule} from '../container.js';
-import { ResetCourseProgressBody, StartItemBody, StopItemBody, UpdateProgressBody } from '../classes/validators/ProgressValidators.js';
-import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
-
+import {
+  ResetCourseProgressBody,
+  StartItemBody,
+  StopItemBody,
+  UpdateProgressBody,
+} from '../classes/validators/ProgressValidators.js';
+import {describe, it, expect, beforeAll, beforeEach, vi} from 'vitest';
 
 describe('Progress Controller Integration Tests', () => {
   const appInstance = Express();
@@ -48,15 +47,15 @@ describe('Progress Controller Integration Tests', () => {
       sharedContainerModule,
       authContainerModule,
       usersContainerModule,
-      coursesContainerModule
+      coursesContainerModule,
     );
     const inversifyAdapter = new InversifyAdapter(container);
     useContainer(inversifyAdapter);
     app = useExpressServer(appInstance, {
       controllers: [
-        ...usersModuleOptions.controllers as Function[],
-        ...authModuleOptions.controllers as Function[],
-        ...coursesModuleOptions.controllers as Function[]
+        ...(usersModuleOptions.controllers as Function[]),
+        ...(authModuleOptions.controllers as Function[]),
+        ...(coursesModuleOptions.controllers as Function[]),
       ],
       authorizationChecker: async () => true,
       defaultErrorHandler: true,
@@ -306,9 +305,10 @@ describe('Progress Controller Integration Tests', () => {
         watchItemId: startItemResponse.body.watchItemId,
       };
 
-      vi
-        .spyOn(ProgressService.prototype as any, 'isValidWatchTime')
-        .mockReturnValueOnce(true);
+      vi.spyOn(
+        ProgressService.prototype as any,
+        'isValidWatchTime',
+      ).mockReturnValueOnce(true);
 
       const updateProgressResponse = await request(app)
         .patch(
@@ -355,9 +355,10 @@ describe('Progress Controller Integration Tests', () => {
         watchItemId: startItemResponse.body.watchItemId,
       };
 
-      vi
-        .spyOn(ProgressService.prototype as any, 'isValidWatchTime')
-        .mockReturnValueOnce(false);
+      vi.spyOn(
+        ProgressService.prototype as any,
+        'isValidWatchTime',
+      ).mockReturnValueOnce(false);
 
       const updateProgressResponse = await request(app)
         .patch(
@@ -417,24 +418,25 @@ describe('Progress Controller Integration Tests', () => {
 
       const originalGet = ProgressRepository.prototype.getWatchTimeById;
 
-      vi
-        .spyOn(ProgressRepository.prototype, 'getWatchTimeById')
-        .mockImplementation(async function (id: string) {
-          // 1. Call the real implementation:
-          const watchTime: IWatchTime = await originalGet.call(this, id);
+      vi.spyOn(
+        ProgressRepository.prototype,
+        'getWatchTimeById',
+      ).mockImplementation(async function (id: string) {
+        // 1. Call the real implementation:
+        const watchTime: IWatchTime = await originalGet.call(this, id);
 
-          if (watchTime) {
-            // 2. Compute new endTime = startTime + 10min
-            const newEnd = new Date(
-              watchTime.startTime.getTime() + 1 * 45 * 1000,
-            );
-            // 3. Either mutate or clone—here we mutate:
-            watchTime.endTime = newEnd;
-          }
+        if (watchTime) {
+          // 2. Compute new endTime = startTime + 10min
+          const newEnd = new Date(
+            watchTime.startTime.getTime() + 1 * 45 * 1000,
+          );
+          // 3. Either mutate or clone—here we mutate:
+          watchTime.endTime = newEnd;
+        }
 
-          // 4. Return the modified document:
-          return watchTime;
-        });
+        // 4. Return the modified document:
+        return watchTime;
+      });
 
       const updateProgressResponse = await request(app)
         .patch(
@@ -780,7 +782,6 @@ describe('Progress Controller Integration Tests', () => {
 
   describe('Student Progress Simulation', () => {
     it('should simulate student completing the course item by item, section by section, and module by module', async () => {
-      
       // Create a course with modules, sections, and items
       courseData = await createCourseWithModulesSectionsAndItems(3, 2, 3, app);
 
@@ -858,5 +859,5 @@ describe('Progress Controller Integration Tests', () => {
         app,
       });
     }); // Increased timeout for this test
-  },600000);
+  }, 600000);
 });

@@ -11,7 +11,6 @@ import {authContainerModule} from './container.js';
 import {AuthController} from './controllers/AuthController.js';
 import {FirebaseAuthService} from './services/FirebaseAuthService.js';
 
-
 export const authContainerModules: ContainerModule[] = [
   authContainerModule,
   sharedContainerModule,

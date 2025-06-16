@@ -28,12 +28,12 @@ import {
   VersionModuleSectionItemParams,
 } from '#courses/classes/validators/ItemValidators.js';
 import {ItemService} from '#courses/services/ItemService.js';
-import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
-import { AUTH_TYPES } from '#root/modules/auth/types.js';
-import { ProgressService } from '#root/modules/users/services/ProgressService.js';
-import { USERS_TYPES } from '#root/modules/users/types.js';
-import { injectable, inject } from 'inversify';
-import { VersionModuleSectionParams } from '../classes/index.js';
+import {FirebaseAuthService} from '#root/modules/auth/services/FirebaseAuthService.js';
+import {AUTH_TYPES} from '#root/modules/auth/types.js';
+import {ProgressService} from '#root/modules/users/services/ProgressService.js';
+import {USERS_TYPES} from '#root/modules/users/types.js';
+import {injectable, inject} from 'inversify';
+import {VersionModuleSectionParams} from '../classes/index.js';
 
 @injectable()
 @JsonController('/courses')
@@ -47,8 +47,8 @@ export class ItemController {
     private readonly authService: FirebaseAuthService,
   ) {}
   @OpenAPI({
-  summary: 'Create an item',
-  description: `Creates a new item within a section.
+    summary: 'Create an item',
+    description: `Creates a new item within a section.
   Accessible to:
   - Instructors, managers or teaching assistants of the course.`,
   })
@@ -104,8 +104,8 @@ export class ItemController {
   }
 
   @OpenAPI({
-  summary: 'Update an item',
-  description: `Updates the configuration or content of a specific item within a section.<br/>
+    summary: 'Update an item',
+    description: `Updates the configuration or content of a specific item within a section.<br/>
   Accessible to:
   - Instructors, managers, and teaching assistants of the course.`,
   })
@@ -139,8 +139,8 @@ export class ItemController {
   }
 
   @OpenAPI({
-  summary: 'Delete an item',
-  description: `Deletes a specific item from a section.<br/>
+    summary: 'Delete an item',
+    description: `Deletes a specific item from a section.<br/>
   Accessible to:
   - Instructors or managers of the course.`,
   })
@@ -163,11 +163,11 @@ export class ItemController {
   }
 
   @OpenAPI({
-  summary: 'Reorder an item',
-  description: `Changes the position of an item within a section of a course version.<br/>
+    summary: 'Reorder an item',
+    description: `Changes the position of an item within a section of a course version.<br/>
 Accessible to:
 - Instructors, managers, and teaching assistants of the course.`,
-})
+  })
   @Authorized(['admin'])
   @Put(
     '/versions/:versionId/modules/:moduleId/sections/:sectionId/items/:itemId/move',
@@ -183,7 +183,10 @@ Accessible to:
     description: 'Item not found',
     statusCode: 404,
   })
-  async move(@Params() params: VersionModuleSectionItemParams, @Body() body: MoveItemBody) {
+  async move(
+    @Params() params: VersionModuleSectionItemParams,
+    @Body() body: MoveItemBody,
+  ) {
     const {versionId, moduleId, sectionId, itemId} = params;
     return await this.itemService.moveItem(
       versionId,
@@ -194,13 +197,13 @@ Accessible to:
     );
   }
 
-@OpenAPI({
-  summary: 'Get an item by ID',
-  description: `Retrieves a specific item from a course version.<br/>
+  @OpenAPI({
+    summary: 'Get an item by ID',
+    description: `Retrieves a specific item from a course version.<br/>
 Access control logic:
 - For students: The item is returned only if it matches the student's current item ID in their course progress.
 - For instructors, managers, and teaching assistants: The item is accessible without this restriction.`,
-})
+  })
   @Authorized(['admin', 'instructor', 'student'])
   @Get('/:courseId/versions/:versionId/item/:itemId')
   @HttpCode(201)

@@ -4,10 +4,10 @@ import {GLOBAL_TYPES} from '#root/types.js';
 import {injectable, inject} from 'inversify';
 import {InternalServerError} from 'routing-controllers';
 import admin from 'firebase-admin';
-import { IUser } from '#root/shared/interfaces/models.js';
-import { BaseService } from '#root/shared/classes/BaseService.js';
-import { IUserRepository } from '#root/shared/database/interfaces/IUserRepository.js';
-import { MongoDatabase } from '#root/shared/database/providers/mongo/MongoDatabase.js';
+import {IUser} from '#root/shared/interfaces/models.js';
+import {BaseService} from '#root/shared/classes/BaseService.js';
+import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
+import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase.js';
 
 /**
  * Custom error thrown during password change operations.
