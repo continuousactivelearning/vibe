@@ -31,12 +31,15 @@ import {
   UpdateProgressBody,
 } from '../classes/validators/ProgressValidators.js';
 import {describe, it, expect, beforeAll, beforeEach, vi} from 'vitest';
+import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
+import { quizzesContainerModule } from '#root/modules/quizzes/container.js';
 
-describe('Progress Controller Integration Tests', () => {
+describe('Progress Controller Integration Tests', {timeout: 30000}, () => {
   const appInstance = Express();
   let app;
   let userId: string;
   let courseData: CourseData;
+  vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId)
 
   beforeAll(async () => {
     //Set env variables
@@ -48,6 +51,7 @@ describe('Progress Controller Integration Tests', () => {
       authContainerModule,
       usersContainerModule,
       coursesContainerModule,
+      quizzesContainerModule
     );
     const inversifyAdapter = new InversifyAdapter(container);
     useContainer(inversifyAdapter);

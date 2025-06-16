@@ -4,20 +4,20 @@ import {
   useContainer,
   useExpressServer,
 } from 'routing-controllers';
-import {sharedContainerModule} from '#root/container.js';
-import {quizzesContainerModule} from '../container.js';
-import {coursesContainerModule} from '#courses/container.js';
-import {usersContainerModule} from '#users/container.js';
-import {authContainerModule} from '#auth/container.js';
-import {Container} from 'inversify';
-import {InversifyAdapter} from '#root/inversify-adapter.js';
+import { sharedContainerModule } from '#root/container.js';
+import { quizzesContainerModule } from '../container.js';
+import { coursesContainerModule } from '#courses/container.js';
+import { usersContainerModule } from '#users/container.js';
+import { authContainerModule } from '#auth/container.js';
+import { Container } from 'inversify';
+import { InversifyAdapter } from '#root/inversify-adapter.js';
 import request from 'supertest';
-import {quizzesModuleOptions} from '../index.js';
-import {coursesModuleOptions} from '#courses/index.js';
-import {authModuleOptions} from '#auth/index.js';
-import {faker} from '@faker-js/faker';
-import {describe, it, expect, beforeAll, beforeEach} from 'vitest';
-import {ItemType} from '#root/shared/interfaces/models.js';
+import { quizzesModuleOptions } from '../index.js';
+import { coursesModuleOptions } from '#courses/index.js';
+import { authModuleOptions } from '#auth/index.js';
+import { faker } from '@faker-js/faker';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+import { ItemType } from '#root/shared/interfaces/models.js';
 import {
   DESquestionData,
   DESsolution,
@@ -30,8 +30,9 @@ import {
   SOLquestionData,
   SOLsolution,
 } from './SamleQuestionBody.js';
+import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
 
-describe('AttemptController', () => {
+describe('AttemptController', async () => {
   const appInstance = Express();
   let app: any;
   let userId: string;
@@ -61,16 +62,14 @@ describe('AttemptController', () => {
       currentUserChecker: async () => {
         return userId
           ? {
-              _id: userId,
-              email: 'attempt_test_user@example.com',
-              name: 'Attempt Test User',
-            }
+            _id: userId,
+            email: 'attempt_test_user@example.com',
+            name: 'Attempt Test User',
+          }
           : null;
       },
     };
     app = useExpressServer(appInstance, options);
-
-    // Sign up a user and store the userId (using AuthController style)
     const signUpBody = {
       email: faker.internet.email(),
       password: 'TestPassword123!',
@@ -81,10 +80,11 @@ describe('AttemptController', () => {
     expect(signupRes.status).toBe(201);
     userId = signupRes.body;
     expect(userId).toBeTruthy();
+    vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId);
   }, 900000);
 
   describe('POST /quizzes/:quizId/attempt', () => {
-    it('should create an attempt for a quiz', async () => {
+    it('should create an attempt for a quiz', { timeout: 30000 }, async () => {
       // Create course
       const courseRes = await request(app).post('/courses').send({
         name: 'Course for Attempt',
@@ -161,7 +161,7 @@ describe('AttemptController', () => {
   });
 
   describe('POST /quizzes/:quizId/attempt/:attemptId/save', () => {
-    it('should save and retrieve answers for an attempt with a question from a question bank', async () => {
+    it('should save and retrieve answers for an attempt with a question from a question bank', { timeout: 30000 }, async () => {
       // 1. Create course
       const courseRes = await request(app).post('/courses').send({
         name: 'Course for Attempt Save Real',
@@ -266,7 +266,7 @@ describe('AttemptController', () => {
             {
               questionId,
               questionType: 'NUMERIC_ANSWER_TYPE',
-              answer: {value: 4},
+              answer: { value: 4 },
             },
           ],
         });
@@ -282,7 +282,7 @@ describe('AttemptController', () => {
   });
 
   describe('POST /quizzes/:quizId/attempt/:attemptId/submit', () => {
-    it('should submit answers for an attempt with a real question from a question bank', async () => {
+    it('should submit answers for an attempt with a real question from a question bank', { timeout: 30000 }, async () => {
       // 1. Create course
       const courseRes = await request(app).post('/courses').send({
         name: 'Course for Attempt Submit Real',
@@ -411,7 +411,7 @@ describe('AttemptController', () => {
             {
               questionId,
               questionType: 'NUMERIC_ANSWER_TYPE',
-              answer: {value: 6},
+              answer: { value: 6 },
             },
           ],
         });
@@ -423,7 +423,7 @@ describe('AttemptController', () => {
   });
 
   describe('POST /quizzes/:quizId/attempt/:attemptId/submit', () => {
-    it('should submit answers for all question types in a single quiz', async () => {
+    it('should submit answers for all question types in a single quiz', { timeout: 30000 }, async () => {
       // 1. Create course
       const courseRes = await request(app).post('/courses').send({
         name: 'Course for Multi-Type Submit',
@@ -466,31 +466,31 @@ describe('AttemptController', () => {
       // 5. Create questions of each type
       const natRes = await request(app)
         .post('/quizzes/questions')
-        .send({question: NATquestionData, solution: NATsolution});
+        .send({ question: NATquestionData, solution: NATsolution });
       expect(natRes.status).toBe(201);
       const natId = natRes.body.questionId;
 
       const solRes = await request(app)
         .post('/quizzes/questions')
-        .send({question: SOLquestionData, solution: SOLsolution});
+        .send({ question: SOLquestionData, solution: SOLsolution });
       expect(solRes.status).toBe(201);
       const solId = solRes.body.questionId;
 
       const smlRes = await request(app)
         .post('/quizzes/questions')
-        .send({question: SMLquestionData, solution: SMLsolution});
+        .send({ question: SMLquestionData, solution: SMLsolution });
       expect(smlRes.status).toBe(201);
       const smlId = smlRes.body.questionId;
 
       const otlRes = await request(app)
         .post('/quizzes/questions')
-        .send({question: OTLquestionData, solution: OTLsolution});
+        .send({ question: OTLquestionData, solution: OTLsolution });
       expect(otlRes.status).toBe(201);
       const otlId = otlRes.body.questionId;
 
       const desRes = await request(app)
         .post('/quizzes/questions')
-        .send({question: DESquestionData, solution: DESsolution});
+        .send({ question: DESquestionData, solution: DESsolution });
       expect(desRes.status).toBe(201);
       const desId = desRes.body.questionId;
 
@@ -552,11 +552,11 @@ describe('AttemptController', () => {
 
       const updateQuizRes = await request(app)
         .post(`/quizzes/quiz/${quizId}/bank`)
-        .send({bankId: mainBankId, count: 4});
+        .send({ bankId: mainBankId, count: 4 });
       expect(updateQuizRes.status).toBe(201);
       const updateDesQuizRes = await request(app)
         .post(`/quizzes/quiz/${quizId}/bank`)
-        .send({bankId: desBankId, count: 1});
+        .send({ bankId: desBankId, count: 1 });
       expect(updateDesQuizRes.status).toBe(201);
 
       // 8. Create attempt
@@ -583,12 +583,12 @@ describe('AttemptController', () => {
       const smlParamValues = [
         ...Object.values(
           smlDetails.body.parameterMap.animal
-            ? {animal: smlDetails.body.parameterMap.animal}
+            ? { animal: smlDetails.body.parameterMap.animal }
             : {},
         ),
         ...Object.values(
           smlDetails.body.parameterMap.color
-            ? {color: smlDetails.body.parameterMap.color}
+            ? { color: smlDetails.body.parameterMap.color }
             : {},
         ),
       ];
@@ -632,31 +632,31 @@ describe('AttemptController', () => {
             {
               questionId: natId,
               questionType: 'NUMERIC_ANSWER_TYPE',
-              answer: {value: 9},
+              answer: { value: 9 },
             },
             // SELECT_ONE_IN_LOT
             {
               questionId: solId,
               questionType: 'SELECT_ONE_IN_LOT',
-              answer: {lotItemId: solCorrectLotItemId},
+              answer: { lotItemId: solCorrectLotItemId },
             },
             // SELECT_MANY_IN_LOT
             {
               questionId: smlId,
               questionType: 'SELECT_MANY_IN_LOT',
-              answer: {lotItemIds: smlCorrectLotItemIds},
+              answer: { lotItemIds: smlCorrectLotItemIds },
             },
             // ORDER_THE_LOTS
             {
               questionId: otlId,
               questionType: 'ORDER_THE_LOTS',
-              answer: {orders: otlOrders},
+              answer: { orders: otlOrders },
             },
             // DESCRIPTIVE
             {
               questionId: desId,
               questionType: 'DESCRIPTIVE',
-              answer: {answerText: 'Compiling is the process...'},
+              answer: { answerText: 'Compiling is the process...' },
             },
           ],
         });

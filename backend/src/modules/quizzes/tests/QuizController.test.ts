@@ -16,10 +16,11 @@ import {quizzesModuleOptions} from '../index.js';
 import {coursesModuleOptions} from '#root/modules/courses/index.js';
 import {authContainerModule} from '#root/modules/auth/container.js';
 import {authModuleOptions} from '#root/modules/auth/index.js';
-import {beforeAll, describe, it, expect, beforeEach} from 'vitest';
+import {beforeAll, describe, it, expect, beforeEach, vi} from 'vitest';
 import {ItemType} from '#root/shared/interfaces/models.js';
+import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
 
-describe('QuizController', () => {
+describe('QuizController',{timeout: 30000}, () => {
   const appInstance = Express();
   let app: any;
   let userId: string;
@@ -69,6 +70,7 @@ describe('QuizController', () => {
     expect(signupRes.status).toBe(201);
     userId = signupRes.body;
     expect(userId).toBeTruthy();
+    vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId)
   }, 900000);
 
   // Helper: create a quiz and question bank, return their IDs

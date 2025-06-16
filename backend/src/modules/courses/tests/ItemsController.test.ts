@@ -73,7 +73,7 @@ describe('Item Controller Integration Tests', () => {
               `/courses/versions/${version._id}/modules/${module.version.modules[0].moduleId}/sections/${section.version.modules[0].sections[0].sectionId}/items`,
             )
             .send(itemPayload);
-
+          expect(itemResponse.status).toBe(201);
           expect(itemResponse.body.itemsGroup.items.length).toBe(1);
         }, 90000);
       });

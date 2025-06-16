@@ -12,11 +12,15 @@ import {
   ModuleController,
   SectionController,
 } from './controllers/index.js';
+import { usersContainerModule } from '../users/container.js';
+import { quizzesContainerModule } from '../quizzes/container.js';
 
 export const coursesContainerModules: ContainerModule[] = [
   coursesContainerModule,
   sharedContainerModule,
   authContainerModule,
+  usersContainerModule,
+  quizzesContainerModule
 ];
 
 export const coursesModuleControllers: Function[] = [

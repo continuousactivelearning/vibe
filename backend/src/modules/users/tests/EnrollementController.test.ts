@@ -40,6 +40,7 @@ import {coursesContainerModule} from '#root/modules/courses/container.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
 import {coursesModuleControllers} from '#root/modules/courses/index.js';
 import {authModuleControllers} from '#root/modules/auth/index.js';
+import { quizzesContainerModule } from '#root/modules/quizzes/container.js';
 
 describe('Enrollment Controller Integration Tests', () => {
   const appInstance = Express();
@@ -55,6 +56,7 @@ describe('Enrollment Controller Integration Tests', () => {
       authContainerModule,
       usersContainerModule,
       coursesContainerModule,
+      quizzesContainerModule,
     );
     const inversifyAdapter = new InversifyAdapter(container);
     useContainer(inversifyAdapter);
