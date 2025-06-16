@@ -37,27 +37,40 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     private database: MongoDatabase,
   ) {
     super(database);
-    admin.initializeApp({
-      credential: admin.credential.applicationDefault(),
-    });
-    this.auth = admin.auth();
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential: admin.credential.applicationDefault(),
+      });
+      this.auth = admin.auth();
+    }
   }
-
-  async verifyToken(token: string): Promise<Partial<IUser>> {
+  async getUserIdFromReq(req: any): Promise<string> {
+    // Extract the token from the request headers
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      throw new InternalServerError('No token provided');
+    }
+    await this.verifyToken(token);
+    // Decode the token to get the Firebase UID
+    const decodedToken = await this.auth.verifyIdToken(token);
+    const firebaseUID = decodedToken.uid;
+    const user = await this.userRepository.findByFirebaseUID(firebaseUID);
+    if (!user) {
+      throw new InternalServerError('User not found');
+    }
+    return user._id.toString();
+  }
+  async verifyToken(token: string): Promise<boolean> {
     // Decode and verify the Firebase token
     const decodedToken = await this.auth.verifyIdToken(token);
-    // Retrieve the full user record from Firebase
-    const userRecord = await this.auth.getUser(decodedToken.uid);
+    // // Retrieve the full user record from Firebase
+    // const userRecord = await this.auth.getUser(decodedToken.uid);
 
     // Map Firebase user data to our application user model
-    const user: Partial<IUser> = {
-      firebaseUID: userRecord.uid,
-      email: userRecord.email || '',
-      firstName: userRecord.displayName?.split(' ')[0] || '',
-      lastName: userRecord.displayName?.split(' ')[1] || '',
-    };
-
-    return user;
+    if (!decodedToken) {
+      return false;
+    }
+    return true;
   }
 
   async signup(body: SignUpBody): Promise<string> {
@@ -72,7 +85,9 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
         disabled: false,
       });
     } catch (error) {
-      throw new InternalServerError('Failed to create user in Firebase');
+      throw new InternalServerError(
+        `Failed to create user in Firebase: ${error.message}`,
+      );
     }
 
     // Prepare user object for storage in our database
