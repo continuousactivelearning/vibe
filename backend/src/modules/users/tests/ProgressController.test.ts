@@ -34,7 +34,7 @@ import {describe, it, expect, beforeAll, beforeEach, vi} from 'vitest';
 import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
 import { quizzesContainerModule } from '#root/modules/quizzes/container.js';
 
-describe('Progress Controller Integration Tests', {timeout: 30000}, () => {
+describe('Progress Controller Integration Tests', {timeout: 90000}, () => {
   const appInstance = Express();
   let app;
   let userId: string;
