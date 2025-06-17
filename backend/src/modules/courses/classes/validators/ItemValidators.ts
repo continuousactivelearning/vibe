@@ -610,6 +610,11 @@ class SelectOneFromLotValidator {
   @IsOptional()
   @IsString()
   explanation?: string;
+
+  /**
+   * Difficulty level of the question (required).
+   */
+  @IsNotEmpty()
   difficulty: number;
 }
 
@@ -631,7 +636,7 @@ class LotItemValidator {
    */
   @IsNotEmpty()
   @IsString()
-  lotItemText: string; // was: description
+  lotItemText: string;
 
   /**
    * Indicates if this item is the correct answer (required).
