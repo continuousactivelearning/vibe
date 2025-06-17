@@ -23,7 +23,6 @@ import {
 } from 'shared/interfaces/IUser';
 import {IsBoolean} from 'class-validator';
 import {ArrayNotEmpty} from 'class-validator';
-
 import {
   registerDecorator,
   ValidationArguments,
@@ -43,9 +42,11 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: LotItemValidator[], args: ValidationArguments) {
-          const {questionText, parameters} =
-            args.object as SelectOneFromLotValidator;
+        validate(_value: unknown, args: ValidationArguments) {
+          const {questionText, parameters} = args.object as {
+            questionText: string;
+            parameters: string[];
+          };
 
           if (!Array.isArray(parameters) || typeof questionText !== 'string') {
             return false;
@@ -61,8 +62,10 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
           return missingParams.length === 0;
         },
         defaultMessage(args: ValidationArguments) {
-          const {parameters} = args.object as SelectOneFromLotValidator;
-          const {questionText} = args.object as SelectOneFromLotValidator;
+          const {parameters, questionText} = args.object as {
+            questionText: string;
+            parameters: string[];
+          };
 
           if (!Array.isArray(parameters) || typeof questionText !== 'string') {
             return 'Invalid parameters or questionText';
@@ -545,6 +548,42 @@ class MoveItemParams {
   @IsString()
   itemId: string;
 }
+
+/**
+ * Validator for individual lot items in the SOL question type.
+ *
+ * @category Courses/Validators/ItemValidators
+ */
+class LotItemValidator {
+  /**
+   * Unique ID for the lot item (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  id: string;
+
+  /**
+   * Description of the lot item (required).
+   */
+  @IsNotEmpty()
+  @IsString()
+  lotItemText: string;
+
+  /**
+   * Indicates if this item is the correct answer (required).
+   */
+  @IsNotEmpty()
+  @IsBoolean()
+  isCorrect: boolean;
+
+  /**
+   * Explanation for the correct answer (optional).
+   */
+  @IsOptional()
+  @IsString()
+  explanation?: string;
+}
+
 /**
  * Validator for Select One from Lot (SOL) question type.
  *
@@ -570,6 +609,10 @@ class SelectOneFromLotValidator {
    */
   @IsOptional()
   @IsString({each: true})
+  @ParametersInQuestionText({
+    message:
+      'All parameters must appear in questionText as <QParam>param</QParam>',
+  })
   parameters?: string[];
 
   /**
@@ -618,42 +661,7 @@ class SelectOneFromLotValidator {
   difficulty: number;
 }
 
-/**
- * Validator for individual lot items in the SOL question type.
- *
- * @category Courses/Validators/ItemValidators
- */
-class LotItemValidator {
-  /**
-   * Unique ID for the lot item (required).
-   */
-  @IsNotEmpty()
-  @IsString()
-  id: string;
-
-  /**
-   * Description of the lot item (required).
-   */
-  @IsNotEmpty()
-  @IsString()
-  lotItemText: string;
-
-  /**
-   * Indicates if this item is the correct answer (required).
-   */
-  @IsNotEmpty()
-  @IsBoolean()
-  isCorrect: boolean;
-
-  /**
-   * Explanation for the correct answer (optional).
-   */
-  @IsOptional()
-  @IsString()
-  explanation?: string;
-}
-
-export {SelectOneFromLotValidator, LotItemValidator};
+export {SelectOneFromLotValidator, LotItemValidator, ParametersInQuestionText};
 /**
  * Route parameters for deleting an item.
  *
