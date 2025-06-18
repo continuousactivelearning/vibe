@@ -39,7 +39,7 @@ export class CourseController {
     summary: 'Create a new course',
     description: `Creates a new course in the system.<br/>.`,
   })
-  @Authorized(['admin', 'instructor'])
+  // @Authorized(['admin', 'instructor'])
   @Post('/', { transformResponse: true })
   @HttpCode(201)
   @ResponseSchema(CourseDataResponse, {
@@ -62,7 +62,7 @@ Accessible to:
 - Users who are part of the course (students, teaching assistants, instructors, or managers)
 `,
   })
-  @Authorized(['admin', 'instructor'])
+  // @Authorized(['admin', 'instructor'])
   @Get('/:id', { transformResponse: true })
   @ResponseSchema(CourseDataResponse, {
     description: 'Course retrieved successfully',

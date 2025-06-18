@@ -1,33 +1,35 @@
 {
     "compilerOptions": {
-        "baseUrl": "src",
+        "baseUrl": ".",
         "target": "esnext",
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "lib": ["ESNext"],
         "outDir": "build",
-        "rootDir": "src",
+        "rootDir": ".", // Changed back to "." to include scripts directory
         "sourceMap": true,
         "strict": false,
         "esModuleInterop": true,
-        "sourceRoot": "c:/Users/Aditya/OneDrive/Documents/vitest-vibe/src",
         "resolveJsonModule": true,
         "allowArbitraryExtensions": false,
         "paths": {
-            "#root/*": ["./*"],
-            "#shared/*": ["./shared/*"],
-            "#auth/*": ["./modules/auth/*"],
-            "#courses/*": ["./modules/courses/*"],
-            "#users/*": ["./modules/users/*"],
-            "#quizzes/*": ["./modules/quizzes/*"],
+            "#root/*": ["./src/*"],
+            "#shared/*": ["./src/shared/*"],
+            "#auth/*": ["./src/modules/auth/*"],
+            "#courses/*": ["./src/modules/courses/*"],
+            "#users/*": ["./src/modules/users/*"],
+            "#quizzes/*": ["./src/modules/quizzes/*"]
         },
         "types": ["node", "express"],
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
         "noEmitOnError": true,
-        "skipLibCheck": true,
-        
+        "skipLibCheck": true
     },
+    "include": [
+        "src/**/*",
+        "scripts/**/*"
+    ],
     "exclude": [
         "build",
         "dist",

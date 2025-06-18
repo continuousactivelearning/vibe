@@ -20,11 +20,11 @@ const outputFile =
     ? args[outputFileIndex + 1]
     : null;
 // Import module options using ES modules
-import {authModuleOptions} from '../src/modules/auth/index.ts';
-import {coursesModuleOptions} from '../src/modules/courses/index.ts';
-import {usersModuleOptions} from '../src/modules/users/index.ts';
-import {docsModuleOptions} from '../src/modules/docs/index.ts';
-import {quizzesModuleOptions} from '../src/modules/quizzes/index.ts';
+import {authModuleOptions} from '../src/modules/auth/index.js';
+import {coursesModuleOptions} from '../src/modules/courses/index.js';
+import {usersModuleOptions} from '../src/modules/users/index.js';
+import {quizzesModuleOptions} from '../src/modules/quizzes/index.js';
+import {genaiModuleOptions} from '../src/modules/genai/index.js';
 
 // Create combined metadata for OpenAPI
 const generateOpenAPISpec = () => {
@@ -45,9 +45,9 @@ const generateOpenAPISpec = () => {
     ...(authModuleOptions.controllers || []),
     ...(coursesModuleOptions.controllers || []),
     ...(usersModuleOptions.controllers || []),
-    ...(docsModuleOptions.controllers || []),
     ...(quizzesModuleOptions.controllers || []),
-  ];
+    ...(genaiModuleOptions.controllers || []),
+  ] as Function[]; // Explicitly cast to Function[]
 
   // Create combined routing-controllers options
   const routingControllersOptions = {
@@ -136,6 +136,12 @@ const generateOpenAPISpec = () => {
         name: 'Quiz Attempts',
         description: 'Operations for managing quiz attempts and submissions',
       },
+
+      // GenAI section
+      {
+        name: 'GenAI',
+        description: 'Operations for AI-powered content generation',
+      },
     ],
     // Use Scalar's preferred grouping approach
     'x-tagGroups': [
@@ -160,6 +166,10 @@ const generateOpenAPISpec = () => {
       {
         name: 'Quiz Management',
         tags: ['Quizzes', 'Questions', 'Question Banks', 'Quiz Attempts'],
+      },
+      {
+        name: 'AI Content Generation',
+        tags: ['GenAI'],
       },
       {
         name: 'Data Models',
