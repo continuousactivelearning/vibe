@@ -34,6 +34,20 @@ function escapeRegExp(string: string): string {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // Escape special characters
 }
 
+/**
+ * Type-safe object expected by the validation decorator.
+ */
+interface ParameterizedQuestion {
+  questionText: string;
+  parameters: string[];
+}
+
+/**
+ * Custom validation decorator to ensure all parameters are present in the question text.
+ *
+ * @category Courses/Validators/ItemValidators
+ */
+
 function ParametersInQuestionText(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
     registerDecorator({
@@ -45,11 +59,20 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
         validate(_value: unknown, args: ValidationArguments) {
           const {questionText, parameters} = args.object as {
             questionText: string;
-            parameters: string[];
+            parameters?: string[];
           };
 
-          if (!Array.isArray(parameters) || typeof questionText !== 'string') {
+          if (typeof questionText !== 'string') {
             return false;
+          }
+
+          if (
+            !parameters ||
+            !Array.isArray(parameters) ||
+            parameters.length === 0
+          ) {
+            // No parameters to check, so valid
+            return true;
           }
 
           const missingParams = parameters.filter(
@@ -64,11 +87,20 @@ function ParametersInQuestionText(validationOptions?: ValidationOptions) {
         defaultMessage(args: ValidationArguments) {
           const {parameters, questionText} = args.object as {
             questionText: string;
-            parameters: string[];
+            parameters?: string[];
           };
 
-          if (!Array.isArray(parameters) || typeof questionText !== 'string') {
-            return 'Invalid parameters or questionText';
+          if (typeof questionText !== 'string') {
+            return 'Invalid questionText';
+          }
+
+          if (
+            !parameters ||
+            !Array.isArray(parameters) ||
+            parameters.length === 0
+          ) {
+            // No parameters to check, so no error
+            return '';
           }
 
           const missingParams = parameters.filter(

@@ -14,13 +14,16 @@ import {
   IBlogDetails,
 } from 'shared/interfaces/IUser';
 import {ID} from 'shared/types';
-import {CreateItemBody} from '../validators/ItemValidators';
+import {CreateItemBody, UpdateItemBody} from '../validators/ItemValidators';
 /**
  * Item data transformation.
  *
  * @category Courses/Transformers/Item
  */
 class Item implements IBaseItem {
+  updateFromBody(body: UpdateItemBody) {
+    throw new Error('Method not implemented.');
+  }
   @Expose()
   @Transform(ObjectIdToString.transformer, {toPlainOnly: true})
   @Transform(StringToObjectId.transformer, {toClassOnly: true})
@@ -47,17 +50,22 @@ class Item implements IBaseItem {
       this.type = itemBody.type;
       switch (this.type) {
         case ItemType.VIDEO:
-          this.itemDetails = itemBody.videoDetails;
+          this.itemDetails = itemBody.videoDetails ?? ({} as IVideoDetails);
           break;
         case ItemType.QUIZ:
-          this.itemDetails = itemBody.quizDetails;
+          this.itemDetails = itemBody.quizDetails ?? ({} as IQuizDetails);
           break;
         case ItemType.BLOG:
-          this.itemDetails = itemBody.blogDetails;
+          this.itemDetails = itemBody.blogDetails ?? ({} as IBlogDetails);
           break;
         default:
+          // Assign a default value to satisfy the type
+          this.itemDetails = {} as IVideoDetails | IQuizDetails | IBlogDetails;
           break;
       }
+    } else {
+      // Assign a default value if itemBody is not provided
+      this.itemDetails = {} as IVideoDetails | IQuizDetails | IBlogDetails;
     }
     this.itemId = new ObjectId();
 
@@ -98,7 +106,7 @@ class ItemsGroup {
 
   constructor(sectionId?: ID, items?: Item[]) {
     this.items = items ? items : [];
-    this.sectionId = sectionId;
+    this.sectionId = sectionId ?? ('' as ID);
   }
 }
 
