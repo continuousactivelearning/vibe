@@ -5,7 +5,7 @@
         "module": "nodenext",
         "moduleResolution": "nodenext",
         "lib": ["ESNext"],
-        "outDir": "build",
+        "outDir": "build/src",
         "rootDir": "src", // Changed back to "." to include scripts directory
         "sourceMap": true,
         "strict": false,
