@@ -10,7 +10,6 @@ import { GENAI_TYPES } from './types.js';
 
 export const genaiContainerModule = new ContainerModule(options => {
   // Controllers
-  options.bind(LLMController).toSelf().inSingletonScope();
   options.bind(GenAIVideoController).toSelf().inSingletonScope();
 
   options.bind(VideoService).toSelf().inSingletonScope();

@@ -6,7 +6,7 @@ import {RoutingControllersOptions, useContainer} from 'routing-controllers';
 import {HttpErrorHandler} from '#shared/index.js';
 import {genaiContainerModule} from './container.js';
 import GenAIVideoController from './GenAIVideoController.js';
-import {LLMController} from './controllers/LLMController.js';
+
 
 export const genaiContainerModules: ContainerModule[] = [
   genaiContainerModule,
@@ -14,8 +14,7 @@ export const genaiContainerModules: ContainerModule[] = [
 ];
 
 export const genaiModuleControllers: Function[] = [
-  GenAIVideoController,
-  LLMController,
+  GenAIVideoController
 ];
 
 export async function setupGenaiContainer(): Promise<void> {

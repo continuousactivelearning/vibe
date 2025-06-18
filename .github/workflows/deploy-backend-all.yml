@@ -1,4 +1,4 @@
-﻿name: Deploy Backend to Google Cloud
+﻿name: Deploy Backend (all modules in a single container) to Google Cloud
 
 on:
   push:
@@ -46,26 +46,19 @@ jobs:
       - name: Build all images with Docker Compose
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          docker compose build
+          docker build -f Dockerfile-all -t all --build-arg SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }} .
         working-directory: backend
         env:
           DB_URL: ${{ secrets.DB_URL }}
-          SENTRY_DSN_AUTH: ${{ secrets.SENTRY_DSN_AUTH }}
-          SENTRY_DSN_COURSES: ${{ secrets.SENTRY_DSN_COURSES }}
-          SENTRY_DSN_QUIZZES: ${{ secrets.SENTRY_DSN_QUIZZES }}
-          SENTRY_DSN_USERS: ${{ secrets.SENTRY_DSN_USERS }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      - name: Tag and Push images
+      - name: Tag and Push image
         run: |
           VERSION=v${{ needs.versioning.outputs.new_version }}
-          SERVICES=(auth courses quizzes users)
-
-          for SERVICE in "${SERVICES[@]}"; do
-            docker tag backend-$SERVICE:latest docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
-            docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION
-          done
+          docker tag all:latest docker.io/${{ secrets.DOCKERHUB_USERNAME }}/all:$VERSION
+          docker push docker.io/${{ secrets.DOCKERHUB_USERNAME }}/all:$VERSION
         working-directory: backend
 
   deploy_staging:
@@ -83,17 +76,13 @@ jobs:
           VERSION=v${{ needs.versioning.outputs.new_version }}
           REGION=asia-south2
           PROJECT=${{ secrets.GCP_PROJECT_ID }}
-          SERVICES=(auth courses quizzes users)
-
-          for SERVICE in "${SERVICES[@]}"; do
-            gcloud run deploy ${SERVICE}-staging \
-              --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION \
-              --region=$REGION \
-              --project=$PROJECT \
-              --platform=managed \
-              --allow-unauthenticated \
-              --set-env-vars=NODE_ENV=staging
-          done
+          gcloud run deploy all-staging \
+            --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/all:$VERSION \
+            --region=$REGION \
+            --project=$PROJECT \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars=NODE_ENV=staging
 
   deploy_production:
     name: Deploy All Modules to Production
@@ -110,14 +99,10 @@ jobs:
           VERSION=v${{ needs.versioning.outputs.new_version }}
           REGION=asia-south2
           PROJECT=${{ secrets.GCP_PROJECT_ID }}
-          SERVICES=(auth courses quizzes users)
-
-          for SERVICE in "${SERVICES[@]}"; do
-            gcloud run deploy ${SERVICE}-production \
-              --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/$SERVICE:$VERSION \
-              --region=$REGION \
-              --project=$PROJECT \
-              --platform=managed \
-              --allow-unauthenticated \
-              --set-env-vars=NODE_ENV=production
-          done
+          gcloud run deploy all-production \
+            --image=docker.io/${{ secrets.DOCKERHUB_USERNAME }}/all:$VERSION \
+            --region=$REGION \
+            --project=$PROJECT \
+            --platform=managed \
+            --allow-unauthenticated \
+            --set-env-vars=NODE_ENV=production

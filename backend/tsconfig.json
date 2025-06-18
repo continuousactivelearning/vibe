@@ -12,6 +12,7 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "allowArbitraryExtensions": false,
+        "incremental": true,
         "paths": {
             "#root/*": ["./src/*"],
             "#shared/*": ["./src/shared/*"],
