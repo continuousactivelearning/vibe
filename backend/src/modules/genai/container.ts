@@ -1,5 +1,4 @@
 import { ContainerModule } from 'inversify';
-import { LLMController } from './controllers/LLMController.js';
 import GenAIVideoController from './GenAIVideoController.js';
 import { VideoService } from './services/VideoService.js';
 import { AudioService } from './services/AudioService.js';
