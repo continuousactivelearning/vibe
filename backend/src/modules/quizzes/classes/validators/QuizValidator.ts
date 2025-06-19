@@ -1234,18 +1234,6 @@ class FlaggedQuestionResponse {
   // Not yet implemented
 }
 
-class AttemptNotFoundErrorResponse {
-  @JSONSchema({
-    description: 'The error message.',
-    example: 'No attempt found.',
-    type: 'string',
-    readOnly: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  message: string;
-}
-
 class SubmissionResponse implements ISubmission {
   @IsMongoId()
   @IsNotEmpty()
@@ -1314,30 +1302,6 @@ class GetAllSubmissionsResponse {
   submissions: SubmissionResponse[];
 }
 
-class QuizNotFoundErrorResponse {
-  @JSONSchema({
-    description: 'The error message.',
-    example: 'Quiz not found.',
-    type: 'string',
-    readOnly: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  message: string;
-}
-
-class GetAllQuestionBanksResponse {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => QuestionBankRefResponse)
-  @JSONSchema({
-    description: 'List of all question banks',
-    type: 'array',
-    items: { $ref: '#/components/schemas/QuestionBankRef' },
-  })
-  questionBanks: IQuestionBankRef[];
-}
-
 class QuestionBankRefResponse implements IQuestionBankRef {
   @IsMongoId()
   @IsNotEmpty()
@@ -1387,6 +1351,43 @@ class QuestionBankRefResponse implements IQuestionBankRef {
     example: 'MCQ',
   })
   type?: string;
+}
+
+class AttemptNotFoundErrorResponse {
+  @JSONSchema({
+    description: 'The error message.',
+    example:
+      'No attempt found.',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+}
+
+class QuizNotFoundErrorResponse {
+  @JSONSchema({
+    description: 'The error message.',
+    example: 'Quiz not found.',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsString()
+  @IsNotEmpty()
+  message: string;
+}
+
+class GetAllQuestionBanksResponse {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuestionBankRefResponse)
+  @JSONSchema({
+    description: 'List of all question banks',
+    type: 'array',
+    items: { $ref: '#/components/schemas/QuestionBankRef' },
+  })
+  questionBanks: IQuestionBankRef[];
 }
 
 export {
