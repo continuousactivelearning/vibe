@@ -173,6 +173,7 @@ export {
   DeleteCourseVersionParams,
   CourseVersionDataResponse,
   CourseVersionNotFoundErrorResponse,
+  CreateCourseVersionResponse,
 };
 
 export const COURSEVERSION_VALIDATORS = [
@@ -183,4 +184,4 @@ export const COURSEVERSION_VALIDATORS = [
   CourseVersionDataResponse,
   CourseVersionNotFoundErrorResponse,
   CreateCourseVersionResponse,
-]
+] 
