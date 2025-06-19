@@ -1,19 +1,4 @@
-import {injectable, inject} from 'inversify';
-import {
-  Body,
-  Get,
-  JsonController,
-  Params,
-  Patch,
-  Post,
-  HttpCode,
-  Delete,
-  OnUndefined,
-} from 'routing-controllers';
-import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {QuizService} from '#quizzes/services/QuizService.js';
-import {QuestionBankService} from '#quizzes/services/QuestionBankService.js';
-import {QuestionBankRef} from '#quizzes/classes/transformers/QuestionBank.js';
+﻿import {QuestionBankRef} from '#quizzes/classes/transformers/QuestionBank.js';
 import {
   QuizIdParam,
   AddQuestionBankBody,
@@ -34,15 +19,35 @@ import {
   RegradeSubmissionBody,
   AddFeedbackParams,
   AddFeedbackBody,
+  GetAllSubmissionsResponse,
+  QuizNotFoundErrorResponse,
+  GetAllQuestionBanksResponse,
 } from '#quizzes/classes/validators/QuizValidator.js';
+import {QuestionBankService} from '#quizzes/services/QuestionBankService.js';
+import {QuizService} from '#quizzes/services/QuizService.js';
+import {injectable, inject} from 'inversify';
+import {
+  JsonController,
+  Post,
+  HttpCode,
+  Params,
+  Body,
+  Delete,
+  Get,
+  OnUndefined,
+  Patch,
+  Authorized,
+  BadRequestError,
+} from 'routing-controllers';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
-import {ISubmission} from '#quizzes/interfaces/grading.js';
+import {ISubmission} from '#quizzes/interfaces/index.js';
 
 @OpenAPI({
   tags: ['Quizzes'],
 })
 @injectable()
-@JsonController('/quiz')
+@JsonController('/quizzes/quiz')
 class QuizController {
   constructor(
     @inject(QUIZZES_TYPES.QuizService)
@@ -51,16 +56,21 @@ class QuizController {
     private readonly questionBankService: QuestionBankService,
   ) {}
 
-  @Post('/:quizId/bank')
-  @HttpCode(201)
   @OpenAPI({
-    summary: 'Add question bank to quiz',
-    description: 'Associate a question bank with a specific quiz',
+    summary: 'Add a question bank to a quiz',
+    description: 'Associates a question bank with a quiz.',
   })
-  @ResponseSchema(QuestionBankRef, {
-    description: 'Question bank added successfully',
-  })
+  @Authorized(['admin', 'instructor'])
+  @Post('/:quizId/bank')
   @OnUndefined(201)
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request body or parameters',
+    statusCode: 400,
+  })
   async addQuestionBank(
     @Params() params: QuizIdParam,
     @Body() body: AddQuestionBankBody,
@@ -69,27 +79,37 @@ class QuizController {
     await this.quizService.addQuestionBank(quizId, body);
   }
 
-  @Delete('/:quizId/bank/:questionBankId')
-  @HttpCode(204)
   @OpenAPI({
-    summary: 'Remove question bank from quiz',
-    description: 'Remove a question bank association from a specific quiz',
+    summary: 'Remove a question bank from a quiz',
+    description: 'Removes the association of a question bank from a quiz.',
   })
+  @Authorized(['admin', 'instructor'])
+  @Delete('/:quizId/bank/:questionBankId')
   @OnUndefined(204)
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz or question bank not found',
+    statusCode: 404,
+  })
   async removeQuestionBank(@Params() params: RemoveQuestionBankParams) {
     const {quizId, questionBankId} = params;
     await this.quizService.removeQuestionBank(quizId, questionBankId);
   }
 
-  @Patch('/:quizId/bank')
-  @HttpCode(200)
   @OpenAPI({
-    summary: 'Edit question bank configuration',
-    description:
-      'Update the configuration of a question bank associated with a quiz',
+    summary: 'Edit question bank configuration for a quiz',
+    description: 'Updates the configuration of a question bank within a quiz.',
   })
-  @Post('/:quizId/bank')
+  @Authorized(['admin', 'instructor'])
+  @Patch('/:quizId/bank')
   @OnUndefined(201)
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request body or parameters',
+    statusCode: 400,
+  })
   async editQuestionBank(
     @Params() params: QuizIdParam,
     @Body() body: EditQuestionBankBody,
@@ -98,16 +118,16 @@ class QuizController {
     await this.quizService.editQuestionBankConfiguration(quizId, body);
   }
 
-  @Get('/:quizId/bank')
   @OpenAPI({
-    summary: 'Get all question banks for quiz',
-    description: 'Retrieve all question banks associated with a quiz',
+    summary: 'Get all question banks for a quiz',
+    description: 'Retrieves all question banks associated with a quiz.',
   })
-  @ResponseSchema(QuestionBankRef, {
-    description: 'Question banks retrieved successfully',
-    isArray: true,
-  })
+  @Get('/:quizId/bank')
   @HttpCode(201)
+  @ResponseSchema(GetAllQuestionBanksResponse, {
+    description: 'List of question banks',
+    statusCode: 200,
+  })
   async getAllQuestionBanks(
     @Params() params: QuizIdParam,
   ): Promise<QuestionBankRef[]> {
@@ -115,16 +135,24 @@ class QuizController {
     return await this.quizService.getAllQuestionBanks(quizId);
   }
 
-  @Get('/:quizId/user/:userId')
   @OpenAPI({
-    summary: 'Get user quiz metrics',
-    description:
-      'Retrieve metrics and performance data for a user on a specific quiz',
+    summary: 'Get user metrics for a quiz',
+    description: 'Retrieves quiz metrics for a specific user.',
   })
-  @ResponseSchema(UserQuizMetricsResponse, {
-    description: 'User quiz metrics retrieved successfully',
-  })
+  @Get('/:quizId/user/:userId')
   @HttpCode(201)
+  @ResponseSchema(UserQuizMetricsResponse, { 
+    description: 'User quiz metrics',
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request parameters',
+    statusCode: 400,
+  })
   async getUserMetrices(
     @Params() params: GetUserMatricesParams,
   ): Promise<UserQuizMetricsResponse> {
@@ -132,15 +160,20 @@ class QuizController {
     return await this.quizService.getUserMetricsForQuiz(userId, quizId);
   }
 
-  @Get('/attempts/:attemptId')
   @OpenAPI({
     summary: 'Get quiz attempt details',
-    description: 'Retrieve detailed information about a specific quiz attempt',
+    description: 'Retrieves details of a specific quiz attempt.',
   })
-  @ResponseSchema(QuizAttemptResponse, {
-    description: 'Quiz attempt details retrieved successfully',
-  })
+  @Get('/attempts/:attemptId')
   @HttpCode(201)
+  @ResponseSchema(QuizAttemptResponse, { 
+    description: 'Quiz attempt details',
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz or attempt not found',
+    statusCode: 404,
+  })
   async getQuizAttempt(
     @Params() params: QuizAttemptParam,
   ): Promise<QuizAttemptResponse> {
@@ -148,16 +181,13 @@ class QuizController {
     return await this.quizService.getAttemptDetails(attemptId);
   }
 
-  @Get('/submissions/:submissionId')
   @OpenAPI({
     summary: 'Get quiz submission details',
-    description:
-      'Retrieve detailed information about a specific quiz submission',
+    description: 'Retrieves details of a specific quiz submission.',
   })
-  @ResponseSchema(QuizSubmissionResponse, {
-    description: 'Quiz submission details retrieved successfully',
-  })
+  @Get('/submissions/:submissionId')
   @HttpCode(201)
+  @ResponseSchema(QuizSubmissionResponse, { description: 'Quiz submission details' })
   async getQuizSubmission(
     @Params() params: QuizSubmissionParam,
   ): Promise<QuizSubmissionResponse> {
@@ -165,8 +195,26 @@ class QuizController {
     return await this.quizService.getSubmissionDetails(submissionId);
   }
 
+  @OpenAPI({
+    summary: 'Get all submissions for a quiz',
+    description: 'Retrieves all submissions for a quiz.',
+  })
+  @Authorized(['admin', 'instructor'])
   @Get('/:quizId/submissions')
   @HttpCode(201)
+  @ResponseSchema(GetAllSubmissionsResponse, {
+    description: 'List of submissions',
+    isArray: true,
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request parameters',
+    statusCode: 400,
+  })
   async getAllSubmissions(
     @Params() params: QuizIdParam,
   ): Promise<ISubmission[]> {
@@ -174,15 +222,17 @@ class QuizController {
     return await this.quizService.getAllSubmissions(quizId);
   }
 
-  @Get('/:quizId/details')
   @OpenAPI({
     summary: 'Get quiz details',
-    description: 'Retrieve detailed configuration and information about a quiz',
+    description: 'Retrieves details of a quiz.',
   })
-  @ResponseSchema(QuizDetailsResponse, {
-    description: 'Quiz details retrieved successfully',
-  })
+  @Authorized(['admin', 'instructor'])
+  @Get('/:quizId/details')
   @HttpCode(201)
+  @ResponseSchema(QuizDetailsResponse, {
+    description: 'Quiz details',
+    statusCode: 201,
+  })
   async getQuizDetails(
     @Params() params: QuizIdParam,
   ): Promise<QuizDetailsResponse> {
@@ -190,15 +240,17 @@ class QuizController {
     return await this.quizService.getQuizDetails(quizId);
   }
 
-  @Get('/:quizId/analytics')
   @OpenAPI({
     summary: 'Get quiz analytics',
-    description: 'Retrieve analytics data for a quiz',
+    description: 'Retrieves analytics data for a quiz.',
   })
-  @ResponseSchema(QuizAnalyticsResponse, {
-    description: 'Quiz analytics retrieved successfully',
-  })
+  @Authorized(['admin', 'instructor'])
+  @Get('/:quizId/analytics')
   @HttpCode(201)
+  @ResponseSchema(QuizAnalyticsResponse, {
+    description: 'Quiz analytics',
+    statusCode: 201,
+  })
   async getQuizAnalytics(
     @Params() params: QuizIdParam,
   ): Promise<QuizAnalyticsResponse> {
@@ -206,16 +258,26 @@ class QuizController {
     return await this.quizService.getQuizAnalytics(quizId);
   }
 
-  @Get('/:quizId/performance')
   @OpenAPI({
     summary: 'Get quiz performance statistics',
-    description: 'Retrieve performance statistics for the quiz',
+    description: 'Retrieves performance statistics for each question in a quiz.',
   })
-  @ResponseSchema(QuizPerformanceResponse, {
-    description: 'Quiz performance statistics retrieved successfully',
-    isArray: true,
-  })
+  @Authorized(['admin', 'instructor'])
+  @Get('/:quizId/performance')
   @HttpCode(201)
+  @ResponseSchema(QuizPerformanceResponse, {
+    isArray: true,
+    description: 'Performance stats per question',
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request parameters',
+    statusCode: 400,
+  })
   async getQuizPerformance(
     @Params() params: QuizIdParam,
   ): Promise<QuizPerformanceResponse[]> {
@@ -223,16 +285,26 @@ class QuizController {
     return await this.quizService.getQuestionPerformanceStats(quizId);
   }
 
-  @Get('/:quizId/results')
   @OpenAPI({
     summary: 'Get quiz results',
-    description: 'Retrieve results for the quiz',
+    description: 'Retrieves results for all students who attempted the quiz.',
   })
-  @ResponseSchema(QuizResultsResponse, {
-    description: 'Quiz results retrieved successfully',
-    isArray: true,
-  })
+  @Authorized(['admin', 'instructor'])
+  @Get('/:quizId/results')
   @HttpCode(201)
+  @ResponseSchema(QuizResultsResponse, {
+    isArray: true,
+    description: 'Quiz results',
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request parameters',
+    statusCode: 400,
+  })
   async getQuizResults(
     @Params() params: QuizIdParam,
   ): Promise<QuizResultsResponse[]> {
@@ -240,15 +312,25 @@ class QuizController {
     return await this.quizService.getQuizResults(quizId);
   }
 
-  @Get('/:quizId/flagged')
   @OpenAPI({
-    summary: 'Get flagged questions',
-    description: 'Retrieve questions that have been flagged in the quiz',
+    summary: 'Get flagged questions for a quiz',
+    description: 'Retrieves all flagged questions for a quiz.',
   })
-  @ResponseSchema(FlaggedQuestionResponse, {
-    description: 'Flagged questions retrieved successfully',
-  })
+  @Authorized(['admin', 'instructor'])
+  @Get('/:quizId/flagged')
   @HttpCode(201)
+  @ResponseSchema(FlaggedQuestionResponse, {
+    description: 'Flagged questions',
+    statusCode: 201,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Quiz not found',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid request parameters',
+    statusCode: 400,
+  })
   async getFlaggedQues(
     @Params() params: QuizIdParam,
   ): Promise<FlaggedQuestionResponse> {
@@ -256,25 +338,41 @@ class QuizController {
     return await this.quizService.getFlaggedQuestionsForQuiz(quizId);
   }
 
-  @Post('/submission/:submissionId/score/:score')
-  @HttpCode(201)
   @OpenAPI({
-    summary: 'Update quiz submission score',
-    description: 'update the score for a specific quiz submission',
+    summary: 'Override submission score',
+    description: 'Overrides the score for a specific quiz submission.',
   })
+  @Authorized(['admin', 'instructor'])
+  @Post('/submission/:submissionId/score/:score')
   @OnUndefined(201)
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid submission ID or score',
+    statusCode: 400,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Submission not found',
+    statusCode: 404,
+  })
   async updateQuizSubmissionScore(@Params() params: UpdateQuizSubmissionParam) {
     const {submissionId, score} = params;
     await this.quizService.overrideSubmissionScore(submissionId, score);
   }
 
-  @Post('/submission/:submissionId/regrade')
-  @HttpCode(201)
   @OpenAPI({
-    summary: 'Regrade quiz submission',
-    description: 'Regrade a quiz submission',
+    summary: 'Regrade a quiz submission',
+    description: 'Regrades a quiz submission with new grading results.',
   })
+  @Authorized(['admin', 'instructor'])
+  @Post('/submission/:submissionId/regrade')
   @OnUndefined(201)
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid submission ID or regrade data',
+    statusCode: 400,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Submission not found',
+    statusCode: 404,
+  })
   async regradeSubmission(
     @Params() params: QuizSubmissionParam,
     @Body() body: RegradeSubmissionBody,
@@ -283,14 +381,21 @@ class QuizController {
     await this.quizService.regradeSubmission(submissionId, body);
   }
 
-  @Post('/submission/:submissionId/question/:questionId/feedback')
-  @HttpCode(201)
   @OpenAPI({
-    summary: 'Add feedback to question answer',
-    description:
-      'Add instructor feedback to a specific question answer in a submission',
+    summary: 'Add feedback to a question in a submission',
+    description: 'Adds feedback to a specific question in a quiz submission.',
   })
+  @Authorized(['admin', 'instructor'])
+  @Post('/submission/:submissionId/question/:questionId/feedback')
   @OnUndefined(201)
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid submission ID or question ID',
+    statusCode: 400,
+  })
+  @ResponseSchema(QuizNotFoundErrorResponse, {
+    description: 'Submission or question not found',
+    statusCode: 404,
+  })
   async addFeedbackToQuestion(
     @Params() params: AddFeedbackParams,
     @Body() body: AddFeedbackBody,

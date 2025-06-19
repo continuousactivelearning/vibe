@@ -1,13 +1,10 @@
 // TypeScript interfaces
-interface SegmentQuestionSpec {
-  Id: string;
-  questionSpecification: Array<{
-    SOL?: number;
-    SML?: number;
-    OTL?: number;
-    NAT?: number;
-    DES?: number;
-  }>;
+interface GlobalQuestionSpec {
+  SOL?: number;
+  SML?: number;
+  OTL?: number;
+  NAT?: number;
+  DES?: number;
 }
 
 interface TranscriptSegment {
@@ -42,7 +39,7 @@ interface GeneratedQuestion {
 }
 export {
   QuestionSchema,
-  SegmentQuestionSpec,
+  GlobalQuestionSpec, 
   TranscriptSegment,
   CleanedSegment,
   GeneratedQuestion,

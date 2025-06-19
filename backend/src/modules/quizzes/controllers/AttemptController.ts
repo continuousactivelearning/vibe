@@ -1,15 +1,15 @@
 import {
   Body,
-  CurrentUser,
   Get,
+  HttpCode,
   JsonController,
   OnUndefined,
   Params,
   Post,
+  Req,
 } from 'routing-controllers';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {AttemptService} from '#quizzes/services/AttemptService.js';
-import {IUser} from '#shared/index.js';
 import {injectable, inject} from 'inversify';
 import {
   CreateAttemptParams,
@@ -18,9 +18,14 @@ import {
   QuestionAnswersBody,
   SubmitAttemptParams,
   SubmitAttemptResponse,
+  GetAttemptResponse,
+  AttemptNotFoundErrorResponse,
 } from '#quizzes/classes/validators/QuizValidator.js';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
 import {IAttempt} from '#quizzes/interfaces/index.js';
+import {AUTH_TYPES} from '#auth/types.js';
+import {FirebaseAuthService} from '#auth/services/FirebaseAuthService.js';
+import { BadRequestErrorResponse } from '#root/shared/index.js';
 
 @OpenAPI({
   tags: ['Quiz Attempts'],
@@ -31,89 +36,82 @@ class AttemptController {
   constructor(
     @inject(QUIZZES_TYPES.AttemptService)
     private readonly attemptService: AttemptService,
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: FirebaseAuthService,
   ) {}
 
-  @Post('/:quizId/attempt')
   @OpenAPI({
-    summary: 'Create a new quiz attempt',
-    description:
-      'Start a new attempt for a quiz. Returns the attempt ID and rendered questions for the user.',
+    summary: 'Start a new quiz attempt',
+    description: 'Creates a new attempt for the specified quiz for the current user.',
   })
+  @Post('/:quizId/attempt')
+  @HttpCode(200)
   @ResponseSchema(CreateAttemptResponse, {
-    description: 'Quiz attempt created successfully',
+    description: 'Attempt created successfully',
+    statusCode: 200,
   })
+  @ResponseSchema(BadRequestErrorResponse, { description: 'Bad Request', statusCode: 400 })
+  @ResponseSchema(AttemptNotFoundErrorResponse, { description: 'Quiz not found', statusCode: 404 })
   async attempt(
-    @CurrentUser() user: IUser,
+    @Req() req: any,
     @Params() params: CreateAttemptParams,
   ): Promise<CreateAttemptResponse> {
     const {quizId} = params;
-    const attempt = await this.attemptService.attempt(user._id, quizId);
+    const userId = await this.authService.getUserIdFromReq(req);
+    const attempt = await this.attemptService.attempt(userId, quizId);
     return attempt as CreateAttemptResponse;
   }
 
-  @OnUndefined(200)
-  @Post('/:quizId/attempt/:attemptId/save')
   @OpenAPI({
-    summary: 'Save quiz attempt progress',
-    description:
-      'Save the current progress of a quiz attempt without submitting. Allows users to continue later.',
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/QuestionAnswersBody',
-          },
-        },
-      },
-    },
+    summary: 'Save answers for an ongoing attempt',
+    description: 'Saves the current answers for a quiz attempt without submitting.',
   })
+  @OnUndefined(200)
+  @ResponseSchema(BadRequestErrorResponse, { description: 'Bad Request', statusCode: 400 })
+  @ResponseSchema(AttemptNotFoundErrorResponse, { description: 'Attempt or Quiz not found', statusCode: 404 })
+  @Post('/:quizId/attempt/:attemptId/save')
   async save(
-    @CurrentUser() user: IUser,
     @Params() params: SaveAttemptParams,
     @Body() body: QuestionAnswersBody,
+    @Req() req: any,
   ): Promise<void> {
     const {quizId, attemptId} = params;
-
-    const attempt = await this.attemptService.save(
-      user._id,
+    const userId = await this.authService.getUserIdFromReq(req);
+    await this.attemptService.save(
+      userId,
       quizId,
       attemptId,
       body.answers,
     );
   }
 
-  @Post('/:quizId/attempt/:attemptId/submit')
   @OpenAPI({
-    summary: 'Submit quiz attempt',
-    description:
-      'Submit a quiz attempt for grading. Once submitted, the attempt cannot be modified and will be graded automatically.',
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/QuestionAnswersBody',
-          },
-        },
-      },
-    },
+    summary: 'Submit a quiz attempt',
+    description: 'Submits the answers for a quiz attempt and returns the result.',
   })
+  @Post('/:quizId/attempt/:attemptId/submit')
+  @HttpCode(200)
   @ResponseSchema(SubmitAttemptResponse, {
-    description: 'Quiz attempt submitted and graded successfully',
+    description: 'Attempt submitted successfully',
+    statusCode: 200,
   })
+  @ResponseSchema(BadRequestErrorResponse, { description: 'Bad Request', statusCode: 400 })
+  @ResponseSchema(AttemptNotFoundErrorResponse, { description: 'Attempt or Quiz not found', statusCode: 404 })
   async submit(
-    @CurrentUser() user: IUser,
     @Params() params: SubmitAttemptParams,
     @Body() body: QuestionAnswersBody,
+    @Req() req: any,
   ): Promise<SubmitAttemptResponse> {
     const {quizId, attemptId} = params;
+    const userId = await this.authService.getUserIdFromReq(req);
     console.log('Submitting attempt', {
-      userId: user,
+      userId,
       quizId,
       attemptId,
       answers: body.answers,
     });
     const result = await this.attemptService.submit(
-      user._id,
+      userId,
       quizId,
       attemptId,
       body.answers,
@@ -121,14 +119,26 @@ class AttemptController {
     return result as SubmitAttemptResponse;
   }
 
+  @OpenAPI({
+    summary: 'Get details of a quiz attempt',
+    description: 'Retrieves the details of a specific quiz attempt for the current user.',
+  })
   @Get('/:quizId/attempt/:attemptId')
+  @HttpCode(200)
+  @ResponseSchema(GetAttemptResponse, {
+    description: 'Attempt retrieved successfully',
+    statusCode: 200,
+  })
+  @ResponseSchema(AttemptNotFoundErrorResponse, { description: 'Attempt not found', statusCode: 404 })
+  @ResponseSchema(BadRequestErrorResponse, { description: 'Attempy does not belong to user or quiz', statusCode: 400 })
   async getAttempt(
-    @CurrentUser() user: IUser,
+    @Req() req: any,
     @Params() params: SubmitAttemptParams,
   ): Promise<IAttempt> {
     const {quizId, attemptId} = params;
+    const userId = await this.authService.getUserIdFromReq(req);
     const attempt = await this.attemptService.getAttempt(
-      user._id,
+      userId,
       quizId,
       attemptId,
     );

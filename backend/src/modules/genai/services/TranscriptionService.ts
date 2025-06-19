@@ -1,14 +1,21 @@
-import path from 'path';
-import fs from 'fs';
-import fsp from 'fs/promises';
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import * as path from 'path';
+import {injectable} from 'inversify';
 import util from 'util';
 import {exec} from 'child_process';
-import {Service} from 'typedi';
-import {InternalServerError} from 'routing-controllers'; // Or a custom error class
+import {InternalServerError} from 'routing-controllers';
+import {fileURLToPath} from 'url';
 
 const execAsync = util.promisify(exec);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-@Service()
+// Supported languages for transcription
+const SUPPORTED_LANGUAGES = ['English', 'Hindi'] as const;
+type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+@injectable()
 export class TranscriptionService {
   // Adapted from runWhisperAndGetText, now a private method
   private async runWhisperAndGetTextInternal(
@@ -83,14 +90,31 @@ export class TranscriptionService {
   }
 
   /**
+   * Validates if the provided language is supported
+   * @param language The language to validate
+   * @returns boolean indicating if the language is supported
+   */
+  private isLanguageSupported(language: string): language is SupportedLanguage {
+    return SUPPORTED_LANGUAGES.includes(language as SupportedLanguage);
+  }
+
+  /**
    * Transcribes an audio file using Whisper CLI.
    * @param audioPath Path to the input audio file (WAV format expected).
+   * @param language Optional language for transcription. Defaults to 'English'. Supported: 'English', 'Hindi'
    * @returns Promise<string> The transcribed text with timestamps.
    * @throws InternalServerError if transcription fails.
    */
-  public async transcribe(audioPath: string): Promise<string> {
+  public async transcribe(audioPath: string, language: string = 'English'): Promise<string> {
     if (!fs.existsSync(audioPath)) {
       throw new InternalServerError(`Input audio file not found: ${audioPath}`);
+    }
+
+    // Validate language support
+    if (!this.isLanguageSupported(language)) {
+      throw new InternalServerError(
+        `Unsupported language: ${language}. Supported languages: ${SUPPORTED_LANGUAGES.join(', ')}`
+      );
     }
 
     const tempTranscriptDir = path.join(__dirname, '..', 'temp_transcripts');
@@ -154,7 +178,7 @@ export class TranscriptionService {
       );
 
       // Use VTT format to get timestamps, and add --verbose=False to reduce stderr output
-      const whisperCommand = `"${finalWhisperExecutablePath}" "${audioPath}" --model small --language English --output_format vtt --output_dir "${tempTranscriptDir}" --verbose False`;
+      const whisperCommand = `"${finalWhisperExecutablePath}" "${audioPath}" --model small --language ${language} --output_format vtt --output_dir "${tempTranscriptDir}" --verbose False`;
 
       console.log(`Executing Whisper CLI: ${whisperCommand}`);
 

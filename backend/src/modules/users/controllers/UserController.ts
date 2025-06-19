@@ -1,27 +1,17 @@
-import 'reflect-metadata';
+import {User} from '#auth/classes/transformers/User.js';
+import {UserService} from '#users/services/UserService.js';
+import {USERS_TYPES} from '#users/types.js';
+import {injectable, inject} from 'inversify';
 import {
   JsonController,
   Get,
-  Param,
-  NotFoundError,
   HttpCode,
+  Param,
+  Params,
 } from 'routing-controllers';
-import {inject, injectable} from 'inversify';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
-import {
-  UserByFirebaseUIDParams,
-  UserByFirebaseUIDResponse,
-  UserNotFoundErrorResponse,
-} from '../classes/validators/UserValidators.js';
-import {IUserRepository} from '#shared/database/interfaces/IUserRepository.js';
-import {BadRequestErrorResponse} from '#shared/middleware/errorHandler.js';
-import {USERS_TYPES} from '../types.js';
+import { UserByFirebaseUIDParams, UserByFirebaseUIDResponse, UserNotFoundErrorResponse } from '../classes/validators/UserValidators.js';
 
-/**
- * Controller for managing user-related operations.
- *
- * @category Users/Controllers
- */
 @OpenAPI({
   tags: ['Users'],
 })
@@ -29,48 +19,28 @@ import {USERS_TYPES} from '../types.js';
 @injectable()
 export class UserController {
   constructor(
-    @inject(USERS_TYPES.UserRepo) private userRepository: IUserRepository,
+    @inject(USERS_TYPES.UserService)
+    private readonly userService: UserService,
   ) {}
 
-  /**
-   * Finds a user by Firebase UID.
-   */
+  @OpenAPI({
+    summary: 'Get user by Firebase UID',
+    description: 'Retrieves a user profile using their Firebase UID.',
+  })
   @Get('/firebase/:firebaseUID')
   @HttpCode(200)
-  @OpenAPI({
-    summary: 'Get User by Firebase UID',
-    description: 'Retrieves a user using their Firebase UID.',
-  })
   @ResponseSchema(UserByFirebaseUIDResponse, {
-    description: 'User found successfully',
+    description: 'User profile retrieved successfully',
   })
   @ResponseSchema(UserNotFoundErrorResponse, {
     description: 'User not found',
     statusCode: 404,
   })
-  @ResponseSchema(BadRequestErrorResponse, {
-    description: 'Bad Request Error',
-    statusCode: 400,
-  })
   async getUserByFirebaseUID(
-    @Param('firebaseUID') firebaseUID: string,
-  ): Promise<UserByFirebaseUIDResponse> {
-    try {
-      const user = await this.userRepository.findByFirebaseUID(firebaseUID);
-
-      return {
-        id: user._id!.toString(),
-        firebaseUID: user.firebaseUID,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: user.roles,
-      };
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        throw error;
-      }
-      throw new Error('An unexpected error occurred while fetching the user.');
-    }
+    @Params() params: UserByFirebaseUIDParams,
+  ): Promise<User> {
+    const {firebaseUID} = params;
+    const user = await this.userService.findByFirebaseUID(firebaseUID);
+    return new User(user);
   }
 }

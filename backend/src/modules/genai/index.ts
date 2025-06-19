@@ -1,17 +1,34 @@
 import 'reflect-metadata';
-import {RoutingControllersOptions} from 'routing-controllers';
-import {Container} from 'typedi';
-import {useContainer} from 'routing-controllers';
-import GenAIVideoController from './GenAIVideoController.js'; // Remove .ts extension
+import {sharedContainerModule} from '#root/container.js';
+import {InversifyAdapter} from '#root/inversify-adapter.js';
+import {Container, ContainerModule} from 'inversify';
+import {RoutingControllersOptions, useContainer} from 'routing-controllers';
+import {HttpErrorHandler} from '#shared/index.js';
+import {genaiContainerModule} from './container.js';
+import GenAIVideoController from './GenAIVideoController.js';
 
-useContainer(Container);
+
+export const genaiContainerModules: ContainerModule[] = [
+  genaiContainerModule,
+  sharedContainerModule,
+];
+
+export const genaiModuleControllers: Function[] = [
+  GenAIVideoController
+];
+
+export async function setupGenaiContainer(): Promise<void> {
+  const container = new Container();
+  await container.load(...genaiContainerModules);
+  const inversifyAdapter = new InversifyAdapter(container);
+  useContainer(inversifyAdapter);
+}
 
 export const genaiModuleOptions: RoutingControllersOptions = {
-  controllers: [GenAIVideoController],
-  defaultErrorHandler: true,
+  controllers: genaiModuleControllers,
+  middlewares: [HttpErrorHandler],
+  defaultErrorHandler: false,
   authorizationChecker: async function () {
-    // For now, allow all requests to GenAI endpoints
-    // You can add authentication logic here if needed
     return true;
   },
   validation: true,

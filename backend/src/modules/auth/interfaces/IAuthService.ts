@@ -1,5 +1,5 @@
 import {SignUpBody, ChangePasswordBody} from '#auth/classes/index.js';
-import {IUser} from '#shared/index.js';
+import {IUser} from '#shared/interfaces/models.js';
 
 /**
  * Interface representing the authentication service.
@@ -29,7 +29,7 @@ export interface IAuthService {
    * @returns A promise that resolves to the user associated with the token
    * @throws Error - If the token is invalid, expired, or cannot be verified
    */
-  verifyToken(token: string): Promise<Partial<IUser>>;
+  verifyToken(token: string): Promise<boolean>;
 
   /**
    * Changes the password for an authenticated user.

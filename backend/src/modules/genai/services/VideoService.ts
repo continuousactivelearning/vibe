@@ -1,14 +1,17 @@
-import path from 'path';
-import fs from 'fs';
-import fsp from 'fs/promises';
-import {execFile} from 'child_process';
-import {promisify} from 'util';
-import {Service} from 'typedi';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import util from 'util';
+import {exec} from 'child_process';
+import {injectable} from 'inversify';
 import {InternalServerError} from 'routing-controllers';
+import {fileURLToPath} from 'url';
 
-const execFileAsync = promisify(execFile);
+const execAsync = util.promisify(exec);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-@Service()
+@injectable()
 export class VideoService {
   public async downloadVideo(youtubeUrl: string): Promise<string> {
     try {
@@ -36,22 +39,12 @@ export class VideoService {
       const formatSelector = 'bv*[height<=720]+ba/bv*+ba/best';
 
       // Arguments for yt-dlp with HLS support
-      const args = [
-        '-f',
-        formatSelector,
-        '--merge-output-format',
-        'mp4',
-        '--no-playlist',
-        '--hls-prefer-ffmpeg',
-        '-o',
-        outputTemplate,
-        youtubeUrl,
-      ];
+      const command = `yt-dlp -f "${formatSelector}" --merge-output-format mp4 --no-playlist --hls-prefer-ffmpeg -o "${outputTemplate}" "${youtubeUrl}"`;
 
-      console.log('Executing yt-dlp with args:', args);
+      console.log('Executing yt-dlp command:', command);
 
-      // Execute the command using execFile
-      const {stdout, stderr} = await execFileAsync('yt-dlp', args);
+      // Execute the command using execAsync
+      const {stdout, stderr} = await execAsync(command);
 
       // Log output for debugging
       if (stdout) {

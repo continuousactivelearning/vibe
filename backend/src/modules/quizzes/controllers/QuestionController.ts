@@ -1,33 +1,33 @@
-import 'reflect-metadata';
-import {
-  JsonController,
-  Authorized,
-  Post,
-  Body,
-  Get,
-  Put,
-  Delete,
-  Params,
-  HttpCode,
-  OnUndefined,
-  Patch,
-} from 'routing-controllers';
 import {
   QuestionBody,
   QuestionId,
   QuestionFactory,
   QuestionResponse,
+  QuestionNotFoundErrorResponse,
 } from '#quizzes/classes/index.js';
 import {QuestionService} from '#quizzes/services/QuestionService.js';
-import {inject, injectable} from 'inversify';
-import {QuestionProcessor} from '#quizzes/question-processing/QuestionProcessor.js';
+import {injectable, inject} from 'inversify';
+import {
+  JsonController,
+  Post,
+  HttpCode,
+  Body,
+  Get,
+  Params,
+  Put,
+  Delete,
+  OnUndefined,
+  BadRequestError,
+  Authorized,
+} from 'routing-controllers';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {QUIZZES_TYPES} from '#quizzes/types.js';
+import {QuestionProcessor} from '#quizzes/question-processing/QuestionProcessor.js';
 
 @OpenAPI({
   tags: ['Questions'],
 })
-@JsonController('/questions')
+@JsonController('/quizzes/questions')
 @injectable()
 class QuestionController {
   constructor(
@@ -35,23 +35,20 @@ class QuestionController {
     private readonly questionService: QuestionService,
   ) {}
 
-  @Post('/')
-  @HttpCode(201)
   @OpenAPI({
     summary: 'Create a new question',
-    description: 'Create a new quiz question with specified type and content',
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/QuestionBody',
-          },
-        },
-      },
-    },
+    description: 'Creates a new quiz question and returns its ID.',
   })
+  @Authorized(['admin', 'instructor'])
+  @Post('/')
+  @HttpCode(201)
   @ResponseSchema(QuestionId, {
     description: 'Question created successfully',
+    statusCode: 201,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Question creation failed due to invalid body',
+    statusCode: 400,
   })
   async create(@Body() body: QuestionBody): Promise<QuestionId> {
     const question = QuestionFactory.createQuestion(body);
@@ -62,13 +59,21 @@ class QuestionController {
     return {questionId: id};
   }
 
-  @Get('/:questionId')
   @OpenAPI({
     summary: 'Get question by ID',
-    description: 'Retrieve a specific question by its unique identifier',
+    description: 'Retrieves a quiz question by its ID.',
   })
+  @Get('/:questionId')
   @ResponseSchema(QuestionResponse, {
     description: 'Question retrieved successfully',
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid question id',
+    statusCode: 400,
+  })
+  @ResponseSchema(QuestionNotFoundErrorResponse, {
+    description: 'Question not found',
+    statusCode: 404,
   })
   async getById(@Params() params: QuestionId): Promise<QuestionResponse> {
     const {questionId} = params;
@@ -78,21 +83,13 @@ class QuestionController {
     return renderedQues;
   }
 
+  @OpenAPI({
+    summary: 'Update a question',
+    description: 'Updates an existing quiz question.',
+  })
+  @Authorized(['admin', 'instructor'])
   @Put('/:questionId')
   @HttpCode(200)
-  @OpenAPI({
-    summary: 'Update question',
-    description: 'Update an existing question with new content or properties',
-    requestBody: {
-      content: {
-        'application/json': {
-          schema: {
-            $ref: '#/components/schemas/QuestionBody',
-          },
-        },
-      },
-    },
-  })
   @ResponseSchema(QuestionResponse, {
     description: 'Question updated successfully',
   })
@@ -102,14 +99,23 @@ class QuestionController {
   ): Promise<QuestionResponse> {
     const {questionId} = params;
     const question = QuestionFactory.createQuestion(body);
-    return this.questionService.update(questionId, question);
+    return await this.questionService.update(questionId, question);
   }
 
+  @OpenAPI({
+    summary: 'Delete a question',
+    description: 'Deletes a quiz question by its ID.',
+  })
+  @Authorized(['admin', 'instructor'])
   @Delete('/:questionId')
   @OnUndefined(204)
-  @OpenAPI({
-    summary: 'Delete question',
-    description: 'Remove a question from the system',
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid question id',
+    statusCode: 400,
+  })
+  @ResponseSchema(QuestionNotFoundErrorResponse, {
+    description: 'Question not found',
+    statusCode: 404,
   })
   async delete(@Params() params: QuestionId): Promise<void> {
     const {questionId} = params;

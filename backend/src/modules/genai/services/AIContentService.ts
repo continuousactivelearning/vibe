@@ -1,6 +1,6 @@
 import axios, {AxiosError} from 'axios';
-import {Service} from 'typedi';
-import {InternalServerError, HttpError} from 'routing-controllers'; // HttpError for input validation if needed
+import {injectable} from 'inversify';
+import {HttpError, InternalServerError} from 'routing-controllers'; // HttpError for input validation if needed
 import {questionSchemas} from '../schemas/index.js';
 import {extractJSONFromMarkdown} from '../utils/extractJSONFromMarkdown.js';
 import {cleanTranscriptLines} from '../utils/cleanTranscriptLines.js';
@@ -14,11 +14,6 @@ export interface TranscriptSegment {
 export interface CleanedSegment {
   end_time: string;
   transcript_lines: string[]; // Text content without timestamps
-}
-
-export interface SegmentQuestionSpec {
-  segmentId: string | number; // Changed from Id to segmentId
-  questionSpecification: Array<Record<string, number>>; // e.g., [{"SOL": 2, "SML": 1}]
 }
 
 // Base for GeneratedQuestion, specific fields will vary by questionType
@@ -40,9 +35,9 @@ export interface QuestionSchema {
   properties: Record<string, any>; // Specific properties for each question type
 }
 
-@Service()
+@injectable()
 export class AIContentService {
-  private readonly ollamaApiBaseUrl = 'http://localhost:11434/api';
+  private readonly ollimaApiBaseUrl = 'http://localhost:11434/api';
   private readonly llmApiUrl = 'http://localhost:11434/api/generate'; // Added missing property
 
   // --- Segmentation Logic ---
@@ -79,21 +74,22 @@ Example format:
 [
   {
     "end_time": "01:30.000",
-    "transcript_lines": ["00:00.000 --> 00:30.000 First topic content", "00:30.000 --> 01:30.000 More content"]
+    "segments": ["00:00.000 --> 00:30.000 First topic content", "00:30.000 --> 01:30.000 More content"]
   },
   {
     "end_time": "03:00.000", 
-    "transcript_lines": ["01:30.000 --> 02:15.000 Second topic content", "02:15.000 --> 03:00.000 Final content"]
+    "segments": ["01:30.000 --> 02:15.000 Second topic content", "02:15.000 --> 03:00.000 Final content"]
   }
 ]
 
 Transcript to process:
 ${transcript}
-`;
+
+JSON:`;
 
     let segments: TranscriptSegment[] = [];
     try {
-      const response = await axios.post(`${this.ollamaApiBaseUrl}/generate`, {
+      const response = await axios.post(`${this.ollimaApiBaseUrl}/generate`, {
         model: model,
         prompt: prompt,
         stream: false,
@@ -106,13 +102,14 @@ ${transcript}
       if (response.data && typeof response.data.response === 'string') {
         const generatedText = response.data.response;
         console.log(
-          'Ollama segmentation response received, length:',
+          'Ollima segmentation response received, length:',
           generatedText.length,
         );
 
         // Log first 500 chars for debugging
         console.log('Response preview:', generatedText.substring(0, 500));
 
+        // Enhanced JSON extraction with multiple fallback strategies
         let cleanedJsonText: string;
         try {
           cleanedJsonText = extractJSONFromMarkdown(generatedText);
@@ -123,10 +120,51 @@ ${transcript}
           cleanedJsonText = generatedText.trim();
         }
 
-        // Single robust JSON parsing strategy
+        // Multiple robust JSON parsing strategies
         try {
-          // Clean up common JSON formatting issues in one go
-          const fixedJson = cleanedJsonText
+          let jsonToParse: string = '';
+          
+          // Strategy 1: Look for JSON array in the response
+          const arrayMatch = cleanedJsonText.match(/\[[\s\S]*?\]/);
+          if (arrayMatch) {
+            jsonToParse = arrayMatch[0];
+          } else {
+            // Strategy 2: Try to find JSON object and wrap in array
+            const objectMatch = cleanedJsonText.match(/\{[\s\S]*?\}/);
+            if (objectMatch) {
+              jsonToParse = `[${objectMatch[0]}]`;
+            } else {
+              // Strategy 3: Remove all non-JSON content before and after
+              const lines = cleanedJsonText.split('\n');
+              let startIdx = -1;
+              let endIdx = -1;
+              
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (line.startsWith('[') || line.startsWith('{')) {
+                  startIdx = i;
+                  break;
+                }
+              }
+              
+              for (let i = lines.length - 1; i >= 0; i--) {
+                const line = lines[i].trim();
+                if (line.endsWith(']') || line.endsWith('}')) {
+                  endIdx = i;
+                  break;
+                }
+              }
+              
+              if (startIdx !== -1 && endIdx !== -1 && endIdx >= startIdx) {
+                jsonToParse = lines.slice(startIdx, endIdx + 1).join('\n');
+              } else {
+                jsonToParse = cleanedJsonText;
+              }
+            }
+          }
+
+          // Clean up common JSON formatting issues
+          const fixedJson = jsonToParse
             .replace(/,\s*}]/g, '}]') // Remove trailing commas before closing
             .replace(/,\s*]/g, ']') // Remove trailing commas in arrays
             .replace(/}\s*{/g, '},{') // Add missing commas between objects
@@ -135,11 +173,8 @@ ${transcript}
             .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
             .trim();
 
-          // Extract JSON array if it's embedded in other text
-          const arrayMatch = fixedJson.match(/\[[\s\S]*\]/);
-          const jsonToParse = arrayMatch ? arrayMatch[0] : fixedJson;
-
-          segments = JSON.parse(jsonToParse);
+          console.log('Attempting to parse JSON:', fixedJson.substring(0, 200) + '...');
+          segments = JSON.parse(fixedJson);
 
           // Validate the parsed segments
           if (!Array.isArray(segments)) {
@@ -160,14 +195,36 @@ ${transcript}
 
           console.log(`Successfully parsed ${segments.length} segments`);
         } catch (parseError: any) {
-          console.error('JSON parsing failed. Raw response:', cleanedJsonText);
-          throw new InternalServerError(
-            `Failed to parse segmentation response: ${parseError.message}`,
-          );
+          console.error('All JSON parsing strategies failed.');
+          console.error('Raw response:', generatedText);
+          console.error('Parse error:', parseError.message);
+          
+          // Final fallback: create a simple segmentation based on transcript length
+          console.log('Creating fallback segmentation...');
+          const transcriptLines = transcript.split('\n').filter(line => line.trim());
+          const linesPerSegment = Math.ceil(transcriptLines.length / 3); // Create 3 segments
+          const fallbackSegments: TranscriptSegment[] = [];
+          
+          for (let i = 0; i < transcriptLines.length; i += linesPerSegment) {
+            const segmentLines = transcriptLines.slice(i, i + linesPerSegment);
+            const lastLine = segmentLines[segmentLines.length - 1];
+            
+            // Extract end time from last line (format: "HH:MM:SS.mmm --> HH:MM:SS.mmm text")
+            const timeMatch = lastLine.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/g);
+            const endTime = timeMatch && timeMatch.length > 1 ? timeMatch[1] : `${String(Math.floor(i / linesPerSegment) + 1).padStart(2, '0')}:00.000`;
+            
+            fallbackSegments.push({
+              end_time: endTime,
+              transcript_lines: segmentLines
+            });
+          }
+          
+          segments = fallbackSegments;
+          console.log(`Created ${segments.length} fallback segments`);
         }
       } else {
         throw new InternalServerError(
-          'Ollama segmentation response missing expected data format.',
+          'Ollima segmentation response missing expected data format.',
         );
       }
     } catch (error: any) {
@@ -175,15 +232,15 @@ ${transcript}
 
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError;
-        console.error('Ollama API Error:', {
+        console.error('Ollima API Error:', {
           status: axiosError.response?.status,
           data: axiosError.response?.data,
         });
 
         const errorMessage =
           (axiosError.response?.data as any)?.error ||
-          'Failed to process transcript with Ollama for segmentation';
-        throw new InternalServerError(`Ollama API error: ${errorMessage}`);
+          'Failed to process transcript with Ollima for segmentation';
+        throw new InternalServerError(`Ollima API error: ${errorMessage}`);
       }
 
       throw new InternalServerError(
@@ -276,10 +333,10 @@ Each question should:
 
   public async generateQuestions(args: {
     segments: Record<string | number, string>; // Dictionary with segmentId as key and transcript as value
-    segmentQuestionSpec: SegmentQuestionSpec[];
+    globalQuestionSpecification: Array<Record<string, number>>; // Global question specification
     model?: string;
   }): Promise<GeneratedQuestion[]> {
-    const {segments, segmentQuestionSpec, model = 'gemma3'} = args;
+    const {segments, globalQuestionSpecification, model = 'gemma3'} = args;
 
     if (
       !segments ||
@@ -292,118 +349,121 @@ Each question should:
       );
     }
     if (
-      !segmentQuestionSpec ||
-      !Array.isArray(segmentQuestionSpec) ||
-      segmentQuestionSpec.length === 0
+      !globalQuestionSpecification ||
+      !Array.isArray(globalQuestionSpecification) ||
+      globalQuestionSpecification.length === 0 ||
+      !globalQuestionSpecification[0] || // Ensure the first element exists
+      typeof globalQuestionSpecification[0] !== 'object' ||
+      Object.keys(globalQuestionSpecification[0]).length === 0
     ) {
       throw new HttpError(
         400,
-        'segmentQuestionSpec is required and must be a non-empty array.',
+        'globalQuestionSpecification is required and must be a non-empty array with a non-empty object defining question types and counts.',
       );
     }
 
     const allGeneratedQuestions: GeneratedQuestion[] = [];
     console.log(`Using model: ${model} for question generation.`);
 
+    const questionSpecs = globalQuestionSpecification[0]; // Assuming the first spec in the array is the global one
+
     // Process each segment
-    for (const segment of segmentQuestionSpec) {
-      const segmentId = segment.segmentId;
-      const questionSpecs = segment.questionSpecification[0]; // Assuming first spec
+    for (const segmentId in segments) {
+      if (Object.prototype.hasOwnProperty.call(segments, segmentId)) {
+        const segmentTranscript = segments[segmentId];
 
-      if (!questionSpecs) {
-        console.warn(
-          `No question specifications found for segment ${segmentId}. Skipping.`,
-        );
-        continue;
-      }
+        if (!segmentTranscript) {
+          console.warn(`No transcript found for segment ${segmentId}. Skipping.`);
+          continue;
+        }
 
-      // Get transcript content for this specific segment
-      const segmentTranscript = segments[segmentId];
+        console.log(`Processing segment ${segmentId} with global specs:`, questionSpecs);
 
-      if (!segmentTranscript) {
-        console.warn(`No transcript found for segment ${segmentId}. Skipping.`);
-        continue;
-      }
+        // Generate questions for each type based on globalQuestionSpecification
+        for (const [questionType, count] of Object.entries(questionSpecs)) {
+          if (typeof count === 'number' && count > 0) {
+            try {
+              // Build schema for structured output
+              let format: any;
+              const baseSchema = (questionSchemas as any)[questionType];
+              if (baseSchema) {
+                if (count === 1) {
+                  format = baseSchema;
+                } else {
+                  format = {
+                    type: 'array',
+                    items: baseSchema,
+                    minItems: count,
+                    maxItems: count,
+                  };
+                }
+              }
 
-      console.log(`Processing segment ${segmentId} with specs:`, questionSpecs);
+              const prompt = this.createQuestionPrompt(
+                questionType,
+                count,
+                segmentTranscript,
+              );
 
-      // Generate questions for each type
-      for (const [questionType, count] of Object.entries(questionSpecs)) {
-        if (typeof count === 'number' && count > 0) {
-          try {
-            // Build schema for structured output
-            let format: any;
-            const baseSchema = (questionSchemas as any)[questionType];
-            if (baseSchema) {
-              if (count === 1) {
-                format = baseSchema;
+              const response = await axios.post(
+                `${this.ollimaApiBaseUrl}/generate`,
+                {
+                  model,
+                  prompt,
+                  stream: false,
+                  format: format || undefined, // Ensure format is passed correctly
+                  options: {temperature: 0},
+                },
+              );
+
+              if (response.data && typeof response.data.response === 'string') {
+                const generatedText = response.data.response;
+                const cleanedJsonText = extractJSONFromMarkdown(generatedText);
+
+                try {
+                  const generated = JSON.parse(cleanedJsonText) as
+                    | GeneratedQuestion
+                    | GeneratedQuestion[];
+                  const arr = Array.isArray(generated) ? generated : [generated];
+
+                  arr.forEach(q => {
+                    q.segmentId = segmentId;
+                    q.questionType = questionType;
+                  });
+
+                  allGeneratedQuestions.push(...arr);
+                  console.log(
+                    `Generated ${arr.length} ${questionType} questions for segment ${segmentId}`,
+                  );
+                } catch (parseError) {
+                  console.error(
+                    `Error parsing JSON for ${questionType} questions in segment ${segmentId}:`,
+                    parseError,
+                  );
+                  // Optionally, handle or log the raw response if JSON parsing fails
+                  // console.error('Raw response for parsing error:', generatedText);
+                }
               } else {
-                format = {
-                  type: 'array',
-                  items: baseSchema,
-                  minItems: count,
-                  maxItems: count,
-                };
+                 console.warn(
+                    `No response data or response.response is not a string for ${questionType} in segment ${segmentId}. Response:`, 
+                    response.data
+                );
               }
-            }
+            } catch (error: any) {
+              console.error(
+                `Error generating ${questionType} questions for segment ${segmentId}:`,
+                error.message,
+              );
 
-            const prompt = this.createQuestionPrompt(
-              questionType,
-              count,
-              segmentTranscript,
-            );
-
-            const response = await axios.post(
-              `${this.ollamaApiBaseUrl}/generate`,
-              {
-                model,
-                prompt,
-                stream: false,
-                format: format || undefined,
-                options: {temperature: 0},
-              },
-            );
-
-            if (response.data && typeof response.data.response === 'string') {
-              const generatedText = response.data.response;
-              const cleanedJsonText = extractJSONFromMarkdown(generatedText);
-
-              try {
-                const generated = JSON.parse(cleanedJsonText) as
-                  | GeneratedQuestion
-                  | GeneratedQuestion[];
-                const arr = Array.isArray(generated) ? generated : [generated];
-
-                arr.forEach(q => {
-                  q.segmentId = segmentId;
-                  q.questionType = questionType;
+              if (axios.isAxiosError(error)) {
+                const axiosError = error as AxiosError;
+                console.error('Ollima API Error:', {
+                  status: axiosError.response?.status,
+                  data: axiosError.response?.data,
                 });
-
-                allGeneratedQuestions.push(...arr);
-                console.log(
-                  `Generated ${arr.length} ${questionType} questions for segment ${segmentId}`,
-                );
-              } catch (parseError) {
-                console.error(
-                  `Error parsing JSON for ${questionType} questions in segment ${segmentId}:`,
-                  parseError,
-                );
               }
+              // Continue to next question type, do not let one error stop all generation
             }
-          } catch (error: any) {
-            console.error(
-              `Error generating ${questionType} questions for segment ${segmentId}:`,
-              error.message,
-            );
-
-            if (axios.isAxiosError(error)) {
-              const axiosError = error as AxiosError;
-              console.error('Ollama API Error:', {
-                status: axiosError.response?.status,
-                data: axiosError.response?.data,
-              });
-            }
-            // Continue to next question type
           }
         }
       }
@@ -412,6 +472,6 @@ Each question should:
     console.log(
       `Question generation completed. Generated ${allGeneratedQuestions.length} total questions.`,
     );
-    return allGeneratedQuestions;
+    return allGeneratedQuestions; // Ensure the function returns the accumulated questions
   }
 }

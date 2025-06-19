@@ -1,3 +1,4 @@
+import { IUser } from '#root/shared/interfaces/models.js';
 import {IsNotEmpty, IsString, IsEmail} from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
 
@@ -22,7 +23,7 @@ export class UserByFirebaseUIDParams {
  *
  * @category Users/Validators
  */
-export class UserByFirebaseUIDResponse {
+export class UserByFirebaseUIDResponse implements IUser {
   @JSONSchema({
     description: 'Unique identifier for the user in the database',
     example: '60d5ec49b3f1c8e4a8f8b8c1',

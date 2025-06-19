@@ -1,26 +1,27 @@
-// import path from 'path';
-// import {fileURLToPath} from 'url';
-
 import {env} from '#root/utils/env.js';
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
+// src/constants/AppModule.ts (or a shared constants directory)
 
-// function getAppPath() {
-//   let currentDir = __dirname;
-//   currentDir = currentDir.replace('/config', '');
-
-//   return currentDir;
-// }
+export enum AppModule {
+  All = 'all',
+  Auth = 'auth',
+  Users = 'users',
+  Courses = 'courses',
+  Quizzes = 'quizzes',
+}
 
 export const appConfig = {
-  node: env('NODE_ENV') || 'development',
   isProduction: env('NODE_ENV') === 'production',
   isStaging: env('NODE_ENV') === 'staging',
   isDevelopment: env('NODE_ENV') === 'development',
-  name: env('APP_NAME'),
-  port: Number(env('APP_PORT')) || 4001,
-  routePrefix: env('APP_ROUTE_PREFIX'),
+  port: Number(env('APP_PORT')) || 3000,
   url: env('APP_URL'),
-  // appPath: getAppPath(),
+  origins: env('APP_ORIGINS')?.split(',') || ['http://localhost:3000'],
+  module: env('APP_MODULE') || 'all',
+  firebase: {
+    clientEmail: env('FIREBASE_CLIENT_EMAIL') || undefined,
+    privateKey: env('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n') || undefined,
+    projectId: env('FIREBASE_PROJECT_ID') || undefined,
+    apiKey: env('FIREBASE_API_KEY') || undefined,
+  }
 };

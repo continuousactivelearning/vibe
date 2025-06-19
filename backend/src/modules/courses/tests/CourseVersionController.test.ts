@@ -1,16 +1,11 @@
-import {coursesModuleOptions, CreateItemBody} from '../';
+import {coursesModuleOptions, setupCoursesContainer} from '../index.js';
 import {useExpressServer, useContainer} from 'routing-controllers';
 import Express from 'express';
 import request from 'supertest';
-import {InversifyAdapter} from '../../../inversify-adapter';
-import {Container} from 'inversify';
-import {coursesContainerModule} from '../container';
-import {sharedContainerModule} from '../../../container';
-import {ItemType} from '../../../shared/interfaces/models';
+import {ItemType} from '#shared/interfaces/models.js';
 import {faker} from '@faker-js/faker';
-import {usersContainerModule} from '../../users/container';
-import {authContainerModule} from '../../auth/container';
-import {jest} from '@jest/globals';
+import {CreateItemBody} from '../classes/validators/ItemValidators.js';
+import {describe, it, expect, beforeAll, beforeEach, vi} from 'vitest';
 
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
@@ -18,23 +13,14 @@ describe('Course Version Controller Integration Tests', () => {
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
-    const container = new Container();
-    await container.load(
-      sharedContainerModule,
-      usersContainerModule,
-      coursesContainerModule,
-    );
-    const inversifyAdapter = new InversifyAdapter(container);
-    useContainer(inversifyAdapter);
+    await setupCoursesContainer();
     app = useExpressServer(App, coursesModuleOptions);
   });
 
-  afterAll(async () => {
-    // Close the in-memory MongoDB server after the tests
-    // await mongoServer.stop();
+  beforeEach(() => {
+    vi.restoreAllMocks();
   });
 
-  // Create course version
   describe('COURSE VERSION CREATION', () => {
     describe('Success Scenario', () => {
       it('should create a course version', async () => {
@@ -79,7 +65,6 @@ describe('Course Version Controller Integration Tests', () => {
         // );
       }, 90000);
     });
-
     describe('Error Scenarios', () => {
       it('should return 404 if course not found', async () => {
         // Create course version
@@ -120,7 +105,6 @@ describe('Course Version Controller Integration Tests', () => {
           description: 'Course version description',
         };
 
-        // log the endpoint to request to
         const endPoint = `/courses/${courseId}/versions`;
         const versionResponse = await request(app)
           .post(endPoint)
@@ -165,7 +149,6 @@ describe('Course Version Controller Integration Tests', () => {
     });
   });
 
-  // Read course version
   describe('COURSE VERSION READ', () => {
     describe('Success Scenario', () => {
       it('should read a course version', async () => {
@@ -209,7 +192,6 @@ describe('Course Version Controller Integration Tests', () => {
         );
       }, 90000);
     });
-
     describe('Error Scenarios', () => {
       it('should return 404 if course version not found', async () => {
         // random mongoid
@@ -224,7 +206,6 @@ describe('Course Version Controller Integration Tests', () => {
     });
   });
 
-  // Delete course version
   describe('COURSE VERSION DELETE', () => {
     const coursePayload = {
       name: 'New Course',

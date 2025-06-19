@@ -1,7 +1,7 @@
-import {promises as fsp} from 'fs';
-import {Service} from 'typedi';
+import * as fs from 'fs/promises';
+import {injectable} from 'inversify';
 
-@Service()
+@injectable()
 export class CleanupService {
   /**
    * Asynchronously deletes a list of files or directories.
@@ -28,7 +28,7 @@ export class CleanupService {
         try {
           // Check if path exists before attempting to delete.
           // fsp.stat will throw if path doesn't exist.
-          await fsp.stat(path);
+          await fs.stat(path);
 
           // Determine if it's a file or directory for logging, though unlink works for files
           // For directories, rmdir would be needed. The original performCleanup used unlink.
@@ -39,14 +39,14 @@ export class CleanupService {
           // fsp.unlink will fail on directories unless they are empty.
           // For robustness, especially with `tempTranscriptDir`, using fsp.rm is better.
 
-          const stats = await fsp.lstat(path); // Use lstat to avoid following symlinks, though stat is often fine.
+          const stats = await fs.lstat(path); // Use lstat to avoid following symlinks, though stat is often fine.
           if (stats.isDirectory()) {
-            await fsp.rm(path, {recursive: true, force: true});
+            await fs.rm(path, {recursive: true, force: true});
             console.log(
               `CleanupService: Successfully deleted directory: ${path}`,
             );
           } else {
-            await fsp.unlink(path);
+            await fs.unlink(path);
             console.log(`CleanupService: Successfully deleted file: ${path}`);
           }
         } catch (error: any) {

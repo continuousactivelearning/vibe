@@ -1,20 +1,20 @@
 import {COURSES_TYPES} from '#courses/types.js';
-import {GLOBAL_TYPES} from '#root/types.js';
+import {BaseService} from '#root/shared/classes/BaseService.js';
+import {ICourseRepository} from '#root/shared/database/interfaces/ICourseRepository.js';
+import {IItemRepository} from '#root/shared/database/interfaces/IItemRepository.js';
+import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
+import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase.js';
 import {
-  BaseService,
-  ICourseRepository,
-  IUserRepository,
-  IItemRepository,
-  MongoDatabase,
   EnrollmentRole,
   ICourseVersion,
-} from '#shared/index.js';
+} from '#root/shared/interfaces/models.js';
+import {GLOBAL_TYPES} from '#root/types.js';
 import {EnrollmentRepository} from '#shared/database/providers/mongo/repositories/EnrollmentRepository.js';
-import {Enrollment} from '#users/classes/transformers/index.js';
+import {Enrollment} from '#users/classes/transformers/Enrollment.js';
 import {USERS_TYPES} from '#users/types.js';
 import {injectable, inject} from 'inversify';
 import {ClientSession, ObjectId} from 'mongodb';
-import {NotFoundError} from 'routing-controllers';
+import {BadRequestError, NotFoundError} from 'routing-controllers';
 
 @injectable()
 export class EnrollmentService extends BaseService {
@@ -23,7 +23,7 @@ export class EnrollmentService extends BaseService {
     private readonly enrollmentRepo: EnrollmentRepository,
     @inject(GLOBAL_TYPES.CourseRepo)
     private readonly courseRepo: ICourseRepository,
-    @inject(USERS_TYPES.UserRepo) private readonly userRepo: IUserRepository,
+    @inject(GLOBAL_TYPES.UserRepo) private readonly userRepo: IUserRepository,
     @inject(COURSES_TYPES.ItemRepo) private readonly itemRepo: IItemRepository,
     @inject(GLOBAL_TYPES.Database)
     private readonly database: MongoDatabase,
@@ -60,7 +60,7 @@ export class EnrollmentService extends BaseService {
         courseVersionId,
       );
       if (existingEnrollment) {
-        throw new Error('User is already enrolled in this course version');
+        throw new BadRequestError('User is already enrolled in this course version');
       }
 
       const enrollment = new Enrollment(userId, courseId, courseVersionId);

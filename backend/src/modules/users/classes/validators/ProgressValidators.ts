@@ -1,4 +1,4 @@
-import {ID} from '#shared/index.js';
+import {ID, IProgress} from '#root/shared/interfaces/models.js';
 import {Expose} from 'class-transformer';
 import {
   IsNotEmpty,
@@ -13,7 +13,6 @@ import {JSONSchema} from 'class-validator-jsonschema';
 export class GetUserProgressParams {
   @JSONSchema({
     description: 'User ID to retrieve progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -24,7 +23,6 @@ export class GetUserProgressParams {
 
   @JSONSchema({
     description: 'Course ID to retrieve progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c2',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -35,7 +33,6 @@ export class GetUserProgressParams {
 
   @JSONSchema({
     description: 'Course version ID to retrieve progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -83,7 +80,6 @@ export class StartItemBody {
 export class StartItemParams {
   @JSONSchema({
     description: 'User ID to track progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -94,7 +90,6 @@ export class StartItemParams {
 
   @JSONSchema({
     description: 'Course ID to track progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c2',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -105,7 +100,6 @@ export class StartItemParams {
 
   @JSONSchema({
     description: 'Course version ID to track progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -136,7 +130,6 @@ export class StartItemResponse {
 export class StopItemParams {
   @JSONSchema({
     description: 'User ID to stop tracking progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -147,7 +140,6 @@ export class StopItemParams {
 
   @JSONSchema({
     description: 'Course ID to stop tracking progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c2',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -158,7 +150,6 @@ export class StopItemParams {
 
   @JSONSchema({
     description: 'Course version ID to stop tracking progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -254,16 +245,26 @@ export class UpdateProgressBody {
     type: 'string',
     format: 'Mongo Object ID',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @IsMongoId()
-  watchItemId: string;
+  watchItemId?: string;
+
+  @JSONSchema({
+    description: 'ID of the attempt for quiz',
+    example: '60d5ec49b3f1c8e4a8f8b8c6',
+    type: 'string',
+    format: 'Mongo Object ID',
+  })
+  @IsOptional()
+  @IsString()
+  @IsMongoId()
+  attemptId?: string;
 }
 
 export class UpdateProgressParams {
   @JSONSchema({
     description: 'User ID to update progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -274,7 +275,6 @@ export class UpdateProgressParams {
 
   @JSONSchema({
     description: 'Course ID to update progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c2',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -285,7 +285,6 @@ export class UpdateProgressParams {
 
   @JSONSchema({
     description: 'Course version ID to update progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -298,7 +297,6 @@ export class UpdateProgressParams {
 export class ResetCourseProgressParams {
   @JSONSchema({
     description: 'User ID to reset progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -309,7 +307,6 @@ export class ResetCourseProgressParams {
 
   @JSONSchema({
     description: 'Course ID to reset progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c2',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -320,7 +317,6 @@ export class ResetCourseProgressParams {
 
   @JSONSchema({
     description: 'Course version ID to reset progress for',
-    example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
     format: 'Mongo Object ID',
   })
@@ -379,7 +375,7 @@ export class ResetCourseProgressBody {
   invalidFieldsCheck2?: any; // dummy field to trigger validation error
 }
 
-export class ProgressDataResponse {
+export class ProgressDataResponse implements IProgress{
   @JSONSchema({
     description: 'Unique identifier for the progress record',
     example: '60d5ec49b3f1c8e4a8f8b8d1',
@@ -465,4 +461,15 @@ export class ProgressDataResponse {
   @IsNotEmpty()
   @IsBoolean()
   completed: boolean;
+}
+
+export class ProgressNotFoundErrorResponse {
+  @JSONSchema({
+    description: 'Error message indicating progress not found',
+    example: 'Progress not found for the specified user and course version',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsNotEmpty()
+  message: string;
 }

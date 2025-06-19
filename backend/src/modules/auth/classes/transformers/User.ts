@@ -1,4 +1,8 @@
-import {IUser, ObjectIdToString, StringToObjectId} from '#shared/index.js';
+import {
+  ObjectIdToString,
+  StringToObjectId,
+} from '#shared/constants/transformerConstants.js';
+import {IUser} from '#shared/interfaces/models.js';
 import {Expose, Transform} from 'class-transformer';
 import {ObjectId} from 'mongodb';
 

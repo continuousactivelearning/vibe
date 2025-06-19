@@ -1,6 +1,6 @@
-import {Container} from 'inversify';
 import {sharedContainerModule} from '#root/container.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
+import {Container, ContainerModule} from 'inversify';
 import {
   RoutingControllersOptions,
   Action,
@@ -10,16 +10,24 @@ import {
 import {authContainerModule} from './container.js';
 import {AuthController} from './controllers/AuthController.js';
 import {FirebaseAuthService} from './services/FirebaseAuthService.js';
+import { AUTH_VALIDATORS, SignUpBody, SignUpResponse } from './classes/index.js';
+
+export const authContainerModules: ContainerModule[] = [
+  authContainerModule,
+  sharedContainerModule,
+];
+
+export const authModuleControllers: Function[] = [AuthController];
 
 export async function setupAuthContainer(): Promise<void> {
   const container = new Container();
-  await container.load(sharedContainerModule, authContainerModule);
+  await container.load(...authContainerModules);
   const inversifyAdapter = new InversifyAdapter(container);
   useContainer(inversifyAdapter);
 }
 
 export const authModuleOptions: RoutingControllersOptions = {
-  controllers: [AuthController],
+  controllers: authModuleControllers,
   authorizationChecker: async function (action: Action, roles: string[]) {
     // Use the auth service to check if the user is authorized
     const authService =
@@ -30,15 +38,14 @@ export const authModuleOptions: RoutingControllersOptions = {
     }
 
     try {
-      const user = await authService.verifyToken(token);
-      action.request.user = user;
+      return await authService.verifyToken(token);
+      // const user = await authService.getUserFromToken(token);
+      // action.request.user = user;
 
       // Check if the user's roles match the required roles
-      if (roles.length > 0 && !roles.some(role => user.roles.includes(role))) {
-        return false;
-      }
-
-      return true;
+      // if (roles.length > 0 && !roles.some(role => user.roles.includes(role))) {
+      //   return false;
+      // }
     } catch (error) {
       return false;
     }
@@ -57,11 +64,16 @@ export const authModuleOptions: RoutingControllersOptions = {
       return null;
     }
   },
+  validation: true,
 };
 
-export * from './classes/index.js';
-export * from './controllers/index.js';
-export * from './interfaces/index.js';
-export * from './services/index.js';
-export * from './container.js';
-export * from './types.js';
+export const authModuleValidators: Function[] = [
+...AUTH_VALIDATORS
+];
+
+// export * from './classes/index.js';
+// export * from './controllers/index.js';
+// export * from './interfaces/index.js';
+// export * from './services/index.js';
+// export * from './container.js';
+// export * from './types.js';

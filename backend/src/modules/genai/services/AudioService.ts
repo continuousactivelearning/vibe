@@ -1,11 +1,16 @@
-import path from 'path';
-import fs from 'fs';
-import fsp from 'fs/promises';
+import * as fs from 'fs';
+import * as fsp from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
 import ffmpeg from 'fluent-ffmpeg';
-import {Service} from 'typedi';
-import {InternalServerError} from 'routing-controllers'; // Or a custom error class
+import {injectable} from 'inversify';
+import {InternalServerError} from 'routing-controllers';
+import {fileURLToPath} from 'url';
 
-@Service()
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+@injectable()
 export class AudioService {
   /**
    * Extracts audio from a video file, converts it to 16kHz, 1-channel WAV format.
