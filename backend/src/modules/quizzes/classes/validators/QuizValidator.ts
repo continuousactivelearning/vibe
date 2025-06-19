@@ -1422,3 +1422,36 @@ export {
   QuizNotFoundErrorResponse,
   GetAllQuestionBanksResponse
 };
+
+export const QUIZ_VALIDATORS = [
+  CreateAttemptParams,
+  SaveAttemptParams,
+  SubmitAttemptParams,
+  CreateAttemptResponse,
+  SubmitAttemptResponse,
+  GetAttemptResponse,
+  QuestionAnswersBody,
+  AddQuestionBankBody,
+  EditQuestionBankBody,
+  RegradeSubmissionBody,
+  AddFeedbackBody,
+  QuizIdParam,
+  QuizAttemptParam,
+  QuizSubmissionParam,
+  UpdateQuizSubmissionParam,
+  RemoveQuestionBankParams,
+  GetUserMatricesParams,
+  AddFeedbackParams,
+  UserQuizMetricsResponse,
+  QuizAttemptResponse,
+  QuizSubmissionResponse,
+  QuizDetailsResponse,
+  QuizAnalyticsResponse,
+  QuizPerformanceResponse,
+  QuizResultsResponse,
+  FlaggedQuestionResponse,
+  AttemptNotFoundErrorResponse,
+  GetAllSubmissionsResponse,
+  QuizNotFoundErrorResponse,
+  GetAllQuestionBanksResponse
+]

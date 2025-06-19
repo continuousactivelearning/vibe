@@ -569,6 +569,7 @@ class DeleteItemParams {
   @IsString()
   itemId: string;
 }
+
 class GetItemParams {
   @JSONSchema({
     title: 'Course ID',
@@ -666,3 +667,18 @@ export {
   DeletedItemResponse,
   GetItemParams,
 };
+
+export const ITEM_VALIDATORS = [
+  CreateItemBody,
+  UpdateItemBody,
+  MoveItemBody,
+  VideoDetailsPayloadValidator,
+  QuizDetailsPayloadValidator,
+  BlogDetailsPayloadValidator,
+  VersionModuleSectionItemParams,
+  DeleteItemParams,
+  ItemNotFoundErrorResponse,
+  ItemDataResponse,
+  DeletedItemResponse,
+  GetItemParams,
+]
