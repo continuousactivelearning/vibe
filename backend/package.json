@@ -46,12 +46,14 @@
     "lexorank": "^1.0.5",
     "mathjs": "^14.5.2",
     "mongodb": "^6.17.0",
+    "nodemailer": "^7.0.3",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.2",
     "routing-controllers-openapi": "github:adityabmv/routing-controllers-openapi",
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "@docusaurus/tsconfig": "3.7.0",
     "@faker-js/faker": "^9.8.0",
     "@scalar/express-api-reference": "^0.8.4",
     "@swc/cli": "^0.7.7",
@@ -67,6 +69,7 @@
     "nodemon": "^3.1.10",
     "plop": "^4.0.1",
     "supertest": "^7.1.1",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3",
     "unplugin-swc": "^1.5.4",
     "vite-tsconfig-paths": "^5.1.4",
