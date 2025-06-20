@@ -354,3 +354,16 @@ export interface IWatchTime {
   startTime: Date;
   endTime?: Date;
 }
+
+
+export interface AuthenticatedUserEnrollements {
+    courseId: string,
+    versionId: string,
+    role: "student" | "instructor" | "manager" | "ta"
+}
+
+export interface AuthenticatedUser {
+    userId: string,
+    globalRole: 'admin' | 'user',
+    enrollments: AuthenticatedUserEnrollements[],
+}

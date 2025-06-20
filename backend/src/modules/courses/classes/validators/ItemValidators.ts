@@ -379,38 +379,6 @@ class UpdateItemBody implements Partial<IBaseItem> {
   description: string;
 
   @JSONSchema({
-    title: 'Item Order',
-    description: 'Order key for item placement (auto-managed)',
-    example: 'a1b2c3',
-    type: 'string',
-    readOnly: true,
-  })
-  @IsEmpty()
-  order: string;
-
-  @JSONSchema({
-    title: 'Item Details',
-    description: 'Item details (depends on type) – video, blog, or quiz',
-    type: 'object',
-    readOnly: true,
-  })
-  @JSONSchema({
-    title: 'Created At',
-    description: 'Item creation timestamp (auto-managed)',
-    example: '2023-10-01T12:00:00Z',
-    type: 'string',
-    format: 'date-time',
-    readOnly: true,
-  })
-  @JSONSchema({
-    title: 'Updated At',
-    description: 'Item update timestamp (auto-managed)',
-    example: '2023-10-05T15:30:00Z',
-    type: 'string',
-    format: 'date-time',
-    readOnly: true,
-  })
-  @JSONSchema({
     title: 'After Item ID',
     description: 'Place item after this item ID',
     example: '60d5ec49b3f1c8e4a8f8b8c3',
@@ -451,8 +419,7 @@ class UpdateItemBody implements Partial<IBaseItem> {
 
   @JSONSchema({
     title: 'Blog Details',
-    description: 'Updated details specific to blog items',
-    type: 'object',
+    description: 'Updated details specific to blog items'
   })
   @ValidateIf(o => o.type === ItemType.BLOG)
   @IsNotEmpty()
@@ -462,8 +429,7 @@ class UpdateItemBody implements Partial<IBaseItem> {
 
   @JSONSchema({
     title: 'Quiz Details',
-    description: 'Updated details specific to quiz items',
-    type: 'object',
+    description: 'Updated details specific to quiz items'
   })
   @ValidateIf(o => o.type === ItemType.QUIZ)
   @IsNotEmpty()
@@ -664,3 +630,16 @@ export {
   DeletedItemResponse,
   GetItemParams,
 };
+
+
+export const ITEM_VALIDATORS = [
+  CreateItemBody,
+  UpdateItemBody,
+  MoveItemBody,
+  VersionModuleSectionItemParams,
+  DeleteItemParams,
+  GetItemParams,
+  ItemNotFoundErrorResponse,
+  ItemDataResponse,
+  DeletedItemResponse,
+];

@@ -160,7 +160,7 @@ export class EnrollmentService extends BaseService {
     });
   }
 
-  async getEnrollments(userId: string, skip: number, limit: number) {
+  async getEnrollments(userId: string, skip?: number, limit?: number) {
     return this._withTransaction(async (session: ClientSession) => {
       const result = await this.enrollmentRepo.getEnrollments(
         userId,

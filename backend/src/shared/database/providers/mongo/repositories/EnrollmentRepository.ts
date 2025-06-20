@@ -146,19 +146,23 @@ export class EnrollmentRepository {
   /**
    * Get paginated enrollments for a user
    */
-  async getEnrollments(userId: string, skip: number, limit: number) {
+  async getEnrollments(userId: string, skip?: number, limit?: number) {
     await this.init();
+    if(skip && limit){
     return this.enrollmentCollection
-      .find({userId})
-      .skip(skip)
-      .limit(limit)
-      .sort({enrollmentDate: -1})
-      .toArray();
+        .find({userId})
+        .skip(skip)
+        .limit(limit)
+        .sort({enrollmentDate: -1})
+        .toArray();
+    } else {
+      return this.enrollmentCollection
+        .find({userId})
+        .sort({enrollmentDate: -1})
+        .toArray();
+    }
   }
 
-  /**
-   * Count total enrollments for a user
-   */
   async countEnrollments(userId: string) {
     await this.init();
     return this.enrollmentCollection.countDocuments({userId});

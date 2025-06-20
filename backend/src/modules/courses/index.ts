@@ -14,7 +14,11 @@ import {
 } from './controllers/index.js';
 import { usersContainerModule } from '../users/container.js';
 import { quizzesContainerModule } from '../quizzes/container.js';
-
+import { COURSE_VALIDATORS } from './classes/validators/CourseValidators.js';
+import { COURSE_VERSION_VALIDATORS } from './classes/validators/CourseVersionValidators.js';
+import { MODULE_VALIDATORS } from './classes/validators/ModuleValidators.js';
+import { SECTION_VALIDATORS } from './classes/validators/SectionValidators.js';
+import { ITEM_VALIDATORS } from './classes/validators/ItemValidators.js';
 export const coursesContainerModules: ContainerModule[] = [
   coursesContainerModule,
   sharedContainerModule,
@@ -47,3 +51,11 @@ export const coursesModuleOptions: RoutingControllersOptions = {
   },
   validation: true,
 };
+
+export const coursesModuleValidators = [
+  ...COURSE_VALIDATORS,
+  ...COURSE_VERSION_VALIDATORS,
+  ...MODULE_VALIDATORS,
+  ...SECTION_VALIDATORS,
+  ...ITEM_VALIDATORS
+]

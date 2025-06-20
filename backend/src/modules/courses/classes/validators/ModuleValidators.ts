@@ -196,3 +196,15 @@ export {
   ModuleNotFoundErrorResponse,
   ModuleDeletedResponse,
 };
+
+
+export const MODULE_VALIDATORS = [
+  CreateModuleBody,
+  UpdateModuleBody,
+  CreateModuleParams,
+  VersionModuleParams,
+  MoveModuleBody,
+  ModuleDataResponse,
+  ModuleNotFoundErrorResponse,
+  ModuleDeletedResponse,
+]

@@ -18,6 +18,8 @@ export const currentUserChecker: CurrentUserChecker = async (action): Promise<IU
   try {
     // Get the current user from the token
     const user = await authService.getCurrentUserFromToken(token);
+    // Attach user to the request object for further use
+    action.request.user = user;
     return user;
   } catch (error) {
     throw new ForbiddenError('Invalid or expired token');

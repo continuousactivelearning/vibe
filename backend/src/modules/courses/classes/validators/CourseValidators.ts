@@ -139,3 +139,11 @@ export {
   CourseDataResponse,
   CourseNotFoundErrorResponse,
 };
+
+
+export const COURSE_VALIDATORS = [
+  CourseBody,
+  CourseIdParams,
+  CourseDataResponse,
+  CourseNotFoundErrorResponse,
+];

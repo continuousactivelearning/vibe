@@ -175,3 +175,14 @@ export {
   CourseVersionNotFoundErrorResponse,
   CreateCourseVersionResponse,
 };
+
+
+export const COURSE_VERSION_VALIDATORS = [
+  CreateCourseVersionBody,
+  CreateCourseVersionParams,
+  ReadCourseVersionParams,
+  DeleteCourseVersionParams,
+  CourseVersionDataResponse,
+  CourseVersionNotFoundErrorResponse,
+  CreateCourseVersionResponse,
+];

@@ -1,0 +1,7 @@
+{
+    "watch": ["src", ".env", "tsconfig.tsbuildinfo"],
+    "ext": "js,json,ts",
+    "ignore": ["node_modules", "build"],
+    "exec": "node build/index.js",
+    "delay": "500"
+}
