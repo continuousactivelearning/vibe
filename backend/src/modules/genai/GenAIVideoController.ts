@@ -45,13 +45,14 @@ export default class GenAIVideoController {
   @Post('/generate/transcript')
   @HttpCode(200)
   async generateTranscript(
-    @Body() body: {youtubeUrl: string},
+    @Body() body: {youtubeUrl: string; language?: string},
     @Res() res: Response,
   ) {
     const tempPaths: string[] = [];
 
     try {
-      const {youtubeUrl} = body;
+      console.log('Received /generate/transcript request with body:', body);
+      const {youtubeUrl, language} = body;
 
       if (!youtubeUrl) {
         return res.status(400).json({
@@ -71,7 +72,10 @@ export default class GenAIVideoController {
         tempPaths.push(audioPath);
 
         // 3. Transcribe audio
-        transcript = await this.transcriptionService.transcribe(audioPath);
+        transcript = await this.transcriptionService.transcribe(
+          audioPath,
+          language,
+        );
       }
 
       // 4. Return transcript
@@ -171,6 +175,7 @@ export default class GenAIVideoController {
       sectionId: string;
       courseId: string; // Added courseId parameter
       videoURL: string;
+      numQues?: number;
       globalQuestionSpecification?: {
         SOL?: number;
         SML?: number;
@@ -198,6 +203,7 @@ export default class GenAIVideoController {
       videoItemBaseName,
       quizItemBaseName,
       questionBankOptions,
+      numQues,
     } = body;
 
     if (!versionId || !moduleId || !sectionId || !videoURL || !courseId) {
@@ -216,18 +222,9 @@ export default class GenAIVideoController {
       const transcript = await this.transcriptionService.transcribe(audioPath);
 
       // 2. Segment Transcript
-      const rawSegments =
-        await this.aiContentService.segmentTranscript(transcript);
-      const segmentsMap: Record<string, string> = Array.isArray(rawSegments)
-        ? rawSegments.reduce((obj, seg, i) => {
-            const key =
-              typeof seg === 'object' && seg.endTime
-                ? seg.endTime
-                : `segment_id_${i + 1}`;
-            const text = typeof seg === 'object' && seg.text ? seg.text : seg;
-            return {...obj, [key]: text as string};
-          }, {})
-        : (rawSegments as Record<string, string>) || {};
+      const segmentsMap = await this.aiContentService.segmentTranscript(transcript);
+      
+      console.log('Debug: Received segments from segmentTranscript:', Object.keys(segmentsMap));
 
       // 3. Generate Questions for all relevant segments
       const transformedGlobalQuestionSpec = [globalQuestionSpecification || {}];
@@ -412,7 +409,10 @@ export default class GenAIVideoController {
             try {
               await this.quizService.addQuestionBank(quizId, {
                 bankId: questionBankId,
-                count: questionBankOptions?.count ?? createdQuestionIds.length,
+                count:
+                  numQues ??
+                  questionBankOptions?.count ??
+                  createdQuestionIds.length,
                 difficulty: questionBankOptions?.difficulty,
                 tags: questionBankOptions?.tags,
               });

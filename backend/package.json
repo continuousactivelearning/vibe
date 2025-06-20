@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node build/src/index.js",
+    "start": "tsc && node build/index.js",
     "dev": "concurrently \"pnpm run watch:compile\" \"pnpm run watch:build\"",
     "watch:compile": "tsc --watch",
-    "watch:build": "nodemon --watch build --ext js --exec \"node build/src/index.js\"",
+    "watch:build": "nodemon --watch build --ext js --exec \"node build/index.js\"",
     "build": "tsc",
     "generate": "plop",
     "test": "vitest --ui",
@@ -15,12 +15,12 @@
     "test:ci": "vitest run --coverage --reporter=html"
   },
   "imports": {
-    "#root/*.js": "./build/src/*.js",
-    "#shared/*.js": "./build/src/shared/*.js",
-    "#auth/*.js": "./build/src/modules/auth/*.js",
-    "#courses/*.js": "./build/src/modules/courses/*.js",
-    "#users/*.js": "./build/src/modules/users/*.js",
-    "#quizzes/*.js": "./build/src/modules/quizzes/*.js"
+    "#root/*.js": "./build/*.js",
+    "#shared/*.js": "./build/shared/*.js",
+    "#auth/*.js": "./build/modules/auth/*.js",
+    "#courses/*.js": "./build/modules/courses/*.js",
+    "#users/*.js": "./build/modules/users/*.js",
+    "#quizzes/*.js": "./build/modules/quizzes/*.js"
   },
   "type": "module",
   "keywords": [],

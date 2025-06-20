@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename);
 export class VideoService {
   public async downloadVideo(youtubeUrl: string): Promise<string> {
     try {
-      const videoId = new URL(youtubeUrl).searchParams.get('v');
+      const videoId = this.extractYouTubeVideoId(youtubeUrl);
       if (!videoId) {
         throw new InternalServerError('Invalid YouTube URL: Missing video ID');
       }
@@ -41,22 +41,21 @@ export class VideoService {
       // Arguments for yt-dlp with HLS support
       const command = `yt-dlp -f "${formatSelector}" --merge-output-format mp4 --no-playlist --hls-prefer-ffmpeg -o "${outputTemplate}" "${youtubeUrl}"`;
 
-      console.log('Executing yt-dlp command:', command);
+      console.log('🎥 Downloading video with command:', command);
 
-      // Execute the command using execAsync
-      const {stdout, stderr} = await execAsync(command);
+      // Execute the command using execAsync with increased buffer size
+      const { stdout, stderr } = await execAsync(command, {
+        maxBuffer: 1024 * 1024 * 50, // 50MB buffer for command output (not video file)
+        timeout: 600000, // 10 minutes timeout for large videos
+      });
 
-      // Log output for debugging
-      if (stdout) {
-        console.log(`yt-dlp stdout: ${stdout}`);
-      }
-      if (stderr) {
-        console.log(`yt-dlp stderr: ${stderr}`);
+      if (stderr && stderr.includes('ERROR')) {
+        console.error('yt-dlp stderr (potential error):', stderr);
       }
 
       // Find the actual downloaded file (since extension might vary)
       const files = await fsp.readdir(videosDirPath);
-      const downloadedFile = files.find(file => file.startsWith(videoId));
+      const downloadedFile = files.find(file => file.startsWith(videoId!));
 
       if (!downloadedFile) {
         console.error(
@@ -68,7 +67,6 @@ export class VideoService {
       }
 
       const finalPath = path.join(videosDirPath, downloadedFile);
-      console.log(`Video downloaded successfully to ${finalPath}`);
       return finalPath;
     } catch (error: any) {
       console.error('Error downloading video:', error);
@@ -84,5 +82,28 @@ export class VideoService {
         `Failed to download video: ${errorMessage}`,
       );
     }
+  }
+
+  private extractYouTubeVideoId(url: string): string | null {
+    if (typeof url !== 'string' || url.trim() === '') {
+      return null;
+    }
+
+    // Comprehensive regex to find a YouTube video ID from various URL formats.
+    const urlRegex =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(urlRegex);
+
+    if (match && match[2] && match[2].length === 11) {
+      return match[2];
+    }
+
+    // If no match from URL, check if the input string is just a video ID
+    const idRegex = /^[a-zA-Z0-9_-]{11}$/;
+    if (idRegex.test(url)) {
+      return url;
+    }
+
+    return null;
   }
 }

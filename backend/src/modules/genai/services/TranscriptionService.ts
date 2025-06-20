@@ -17,20 +17,18 @@ type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
 
 @injectable()
 export class TranscriptionService {
-  // Adapted from runWhisperAndGetText, now a private method
   private async runWhisperAndGetTextInternal(
     whisperCommand: string,
     expectedTranscriptFilePath: string,
-    // tempTranscriptDir: string, // No longer needed as argument
+
   ): Promise<string> {
-    // The tempTranscriptDir is created by the calling method `transcribe`
+    
     const {stdout, stderr} = await execAsync(whisperCommand); // stdout from whisper CLI might not be useful
 
     // Whisper CLI can write to stderr for progress/info even on success.
     // The primary check is the existence of the transcript file.
     if (stderr && !fs.existsSync(expectedTranscriptFilePath)) {
       console.error(`Whisper CLI stderr: ${stderr}`);
-      // Throw error only if the expected file isn't there and there's stderr
       throw new InternalServerError(`Whisper processing error: ${stderr}`);
     }
 
@@ -45,7 +43,6 @@ export class TranscriptionService {
 
     const text = await fsp.readFile(expectedTranscriptFilePath, 'utf-8');
     return text.trim();
-    // Removed outer try-catch; specific errors are thrown, others will propagate.
   }
 
   /**

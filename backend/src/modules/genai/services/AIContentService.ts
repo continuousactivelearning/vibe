@@ -1,51 +1,30 @@
-import axios, {AxiosError} from 'axios';
-import {injectable} from 'inversify';
-import {HttpError, InternalServerError} from 'routing-controllers'; // HttpError for input validation if needed
-import {questionSchemas} from '../schemas/index.js';
-import {extractJSONFromMarkdown} from '../utils/extractJSONFromMarkdown.js';
-import {cleanTranscriptLines} from '../utils/cleanTranscriptLines.js';
-// --- Type Definitions (Inferred or to be replaced by actual imports if available) ---
+import axios, { AxiosError } from 'axios';
+import { injectable } from 'inversify';
+import { HttpError, InternalServerError } from 'routing-controllers';
+import { segmentTranscriptByTimes } from '../utils/segmentationHelper.js';
+import { questionSchemas } from '../schemas/index.js';
+import { extractJSONFromMarkdown } from '../utils/extractJSONFromMarkdown.js';
 
-export interface TranscriptSegment {
-  end_time: string;
-  transcript_lines: string[];
-}
-
-export interface CleanedSegment {
-  end_time: string;
-  transcript_lines: string[]; // Text content without timestamps
-}
-
-// Base for GeneratedQuestion, specific fields will vary by questionType
+// --- Type Definitions ---
 export interface GeneratedQuestion {
-  segmentId?: string | number; // Changed to support both string and number
+  segmentId?: string | number;
   questionType?: string;
-  questionText: string; // Example common field
-  options?: Array<{text: string; correct?: boolean; explanation?: string}>; // For MCQs
-  solution?: any; // For various types
+  questionText: string;
+  options?: Array<{text: string; correct?: boolean; explanation?: string}>;
+  solution?: any;
   isParameterized?: boolean;
   timeLimitSeconds?: number;
   points?: number;
-  // ... other fields based on specific question schemas
-}
-
-// Placeholder for questionSchemas. In a real scenario, this would be more complex
-export interface QuestionSchema {
-  type: string; // e.g., 'SOL', 'SML', etc.
-  properties: Record<string, any>; // Specific properties for each question type
 }
 
 @injectable()
 export class AIContentService {
-  private readonly ollimaApiBaseUrl = 'http://localhost:11434/api';
-  private readonly llmApiUrl = 'http://localhost:11434/api/generate'; // Added missing property
+  private readonly ollimaApiBaseUrl = 'http://100.100.108.12:11434/api';
 
-  // --- Segmentation Logic ---
   public async segmentTranscript(
     transcript: string,
-    model = 'gemma3', // Default model
+    model = 'deepseek-r1:70b',
   ): Promise<Record<string, string>> {
-    // Changed return type
     if (
       !transcript ||
       typeof transcript !== 'string' ||
@@ -57,219 +36,108 @@ export class AIContentService {
       );
     }
 
-    console.log(
-      `Processing transcript for segmentation with LLM (length: ${transcript.length} chars) using model: ${model}`,
-    );
+    console.log('🔍 Starting transcript segmentation...');
+    console.log('📝 Transcript length:', transcript.length);
+    console.log('📋 First 200 chars of transcript:', transcript.substring(0, 200));
 
-    const prompt = `Analyze the following timed lecture transcript. Your task is to segment it into meaningful subtopics (not too many, maximum 5 segments).
-The transcript is formatted with each line as: [start_time --> end_time] text OR start_time --> end_time text.
+    const prompt = `You are analyzing a timed transcript to identify natural breakpoints between topics. 
 
-For each identified subtopic, you must provide:
-1. "end_time": The end timestamp of the *last transcript line* that belongs to this subtopic (e.g., "02:53.000").
-2. "transcript_lines": An array of strings, where each string is an *original transcript line (including its timestamps and text)* that belongs to this subtopic.
+CRITICAL: Look at the ACTUAL timestamps in the transcript below. The transcript shows real time ranges like [00:00.000 --> 00:07.760], [00:07.760 --> 00:14.480], etc.
 
-IMPORTANT: Your response must be ONLY a valid JSON array. Do not include any explanatory text, markdown formatting, or comments.
+Your job is to:
+1. Read through the transcript content and identify where major topics change
+2. Find the END timestamp of the last line before each topic change
+3. Ensure there is a MINIMUM 5-minute gap between consecutive end times
+4. The LAST end time must be the actual end timestamp of the entire transcript
+5. Return ONLY a JSON array of these end timestamps in "MM:SS" format
 
-Example format:
-[
-  {
-    "end_time": "01:30.000",
-    "segments": ["00:00.000 --> 00:30.000 First topic content", "00:30.000 --> 01:30.000 More content"]
-  },
-  {
-    "end_time": "03:00.000", 
-    "segments": ["01:30.000 --> 02:15.000 Second topic content", "02:15.000 --> 03:00.000 Final content"]
-  }
-]
+REQUIREMENTS:
+- Minimum 5-minute (05:00) gap between any two consecutive end times
+- Last timestamp must match the end of the final transcript line
+- Use ACTUAL timestamps from the transcript, not arbitrary times
 
-Transcript to process:
+For example, if you see:
+- Lines [00:00.000 --> 00:07.760] through [07:15.000 --> 07:30.000] discuss Topic A
+- Lines [07:30.000 --> 07:45.000] through [15:00.000 --> 15:15.000] discuss Topic B  
+- Lines [15:15.000 --> 15:30.000] through [23:45.000 --> 24:00.000] discuss Topic C (final line)
+
+Then return: ["07:30", "15:15", "24:00"]
+(Note: 5+ minute gaps: 7:30→15:15 = 7:45 gap, 15:15→24:00 = 8:45 gap)
+
+DO NOT use arbitrary times like ["00:01", "00:02"]. Use the ACTUAL timestamps from the transcript with proper 5-minute spacing.
+
+Transcript to analyze:
 ${transcript}
 
-JSON:`;
+Return ONLY a JSON array of end timestamps with 5+ minute gaps:`;
 
-    let segments: TranscriptSegment[] = [];
     try {
+      console.log('🤖 Calling AI model for end times...');
       const response = await axios.post(`${this.ollimaApiBaseUrl}/generate`, {
         model: model,
         prompt: prompt,
         stream: false,
+        format: 'json',
         options: {
-          temperature: 0.1, // Lower temperature for more consistent output
-          top_p: 0.9,
+          temperature: 0.0,
         },
       });
 
       if (response.data && typeof response.data.response === 'string') {
         const generatedText = response.data.response;
-        console.log(
-          'Ollima segmentation response received, length:',
-          generatedText.length,
-        );
+        console.log('✅ AI response received for end times');
 
-        // Log first 500 chars for debugging
-        console.log('Response preview:', generatedText.substring(0, 500));
-
-        // Enhanced JSON extraction with multiple fallback strategies
-        let cleanedJsonText: string;
         try {
-          cleanedJsonText = extractJSONFromMarkdown(generatedText);
-        } catch (extractError) {
-          console.warn(
-            'Failed to extract JSON from markdown, using raw response',
-          );
-          cleanedJsonText = generatedText.trim();
-        }
+          let endTimes = JSON.parse(generatedText);
 
-        // Multiple robust JSON parsing strategies
-        try {
-          let jsonToParse: string = '';
+          // The LLM sometimes wraps the array in an object, e.g., { "end_times": [...] }
+          if (typeof endTimes === 'object' && endTimes !== null && !Array.isArray(endTimes)) {
+            const keys = Object.keys(endTimes);
+            const arrayKey = keys.find(key => Array.isArray(endTimes[key]));
+            if (arrayKey) {
+              endTimes = endTimes[arrayKey];
+            }
+          }
+
+          if (!Array.isArray(endTimes) || !endTimes.every(t => typeof t === 'string')) {
+            console.error('❌ LLM did not return a valid JSON array of strings for end times.');
+            console.error('🔍 Received data type:', typeof endTimes);
+            console.error('🔍 Is array?:', Array.isArray(endTimes));
+            console.error('🔍 Raw response:', generatedText);
+            return {};
+          }
+
+          console.log('✅ Successfully parsed end times:', endTimes);
+
+          // Use the helper to segment the transcript
+          console.log('📊 Starting transcript segmentation with helper...');
+          const segmentedTranscript = segmentTranscriptByTimes(endTimes, transcript);
           
-          // Strategy 1: Look for JSON array in the response
-          const arrayMatch = cleanedJsonText.match(/\[[\s\S]*?\]/);
-          if (arrayMatch) {
-            jsonToParse = arrayMatch[0];
-          } else {
-            // Strategy 2: Try to find JSON object and wrap in array
-            const objectMatch = cleanedJsonText.match(/\{[\s\S]*?\}/);
-            if (objectMatch) {
-              jsonToParse = `[${objectMatch[0]}]`;
-            } else {
-              // Strategy 3: Remove all non-JSON content before and after
-              const lines = cleanedJsonText.split('\n');
-              let startIdx = -1;
-              let endIdx = -1;
-              
-              for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (line.startsWith('[') || line.startsWith('{')) {
-                  startIdx = i;
-                  break;
-                }
-              }
-              
-              for (let i = lines.length - 1; i >= 0; i--) {
-                const line = lines[i].trim();
-                if (line.endsWith(']') || line.endsWith('}')) {
-                  endIdx = i;
-                  break;
-                }
-              }
-              
-              if (startIdx !== -1 && endIdx !== -1 && endIdx >= startIdx) {
-                jsonToParse = lines.slice(startIdx, endIdx + 1).join('\n');
-              } else {
-                jsonToParse = cleanedJsonText;
-              }
-            }
-          }
-
-          // Clean up common JSON formatting issues
-          const fixedJson = jsonToParse
-            .replace(/,\s*}]/g, '}]') // Remove trailing commas before closing
-            .replace(/,\s*]/g, ']') // Remove trailing commas in arrays
-            .replace(/}\s*{/g, '},{') // Add missing commas between objects
-            .replace(/]\s*\[/g, '],[') // Add missing commas between arrays
-            .replace(/[\r\n\t]/g, ' ') // Replace newlines and tabs with spaces
-            .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
-            .trim();
-
-          console.log('Attempting to parse JSON:', fixedJson.substring(0, 200) + '...');
-          segments = JSON.parse(fixedJson);
-
-          // Validate the parsed segments
-          if (!Array.isArray(segments)) {
-            throw new Error('Response is not an array');
-          }
-
-          if (segments.length === 0) {
-            throw new Error('Segments array is empty');
-          }
-
-          // Validate segment structure
-          for (let i = 0; i < segments.length; i++) {
-            const segment = segments[i];
-            if (!segment.end_time || !Array.isArray(segment.transcript_lines)) {
-              throw new Error(`Invalid segment structure at index ${i}`);
-            }
-          }
-
-          console.log(`Successfully parsed ${segments.length} segments`);
+          console.log('✅ Segmentation completed');
+          console.log('📈 Number of segments created:', Object.keys(segmentedTranscript.segments).length);
+          console.log('🔑 Segment keys:', Object.keys(segmentedTranscript.segments));
+          
+          return segmentedTranscript.segments;
         } catch (parseError: any) {
-          console.error('All JSON parsing strategies failed.');
-          console.error('Raw response:', generatedText);
-          console.error('Parse error:', parseError.message);
-          
-          // Final fallback: create a simple segmentation based on transcript length
-          console.log('Creating fallback segmentation...');
-          const transcriptLines = transcript.split('\n').filter(line => line.trim());
-          const linesPerSegment = Math.ceil(transcriptLines.length / 3); // Create 3 segments
-          const fallbackSegments: TranscriptSegment[] = [];
-          
-          for (let i = 0; i < transcriptLines.length; i += linesPerSegment) {
-            const segmentLines = transcriptLines.slice(i, i + linesPerSegment);
-            const lastLine = segmentLines[segmentLines.length - 1];
-            
-            // Extract end time from last line (format: "HH:MM:SS.mmm --> HH:MM:SS.mmm text")
-            const timeMatch = lastLine.match(/(\d{2}:\d{2}:\d{2}\.\d{3})/g);
-            const endTime = timeMatch && timeMatch.length > 1 ? timeMatch[1] : `${String(Math.floor(i / linesPerSegment) + 1).padStart(2, '0')}:00.000`;
-            
-            fallbackSegments.push({
-              end_time: endTime,
-              transcript_lines: segmentLines
-            });
-          }
-          
-          segments = fallbackSegments;
-          console.log(`Created ${segments.length} fallback segments`);
+          console.error('❌ Failed to parse LLM response as JSON:', parseError.message);
+          console.error('🔍 Raw response that failed to parse:', generatedText);
+          return {};
         }
       } else {
-        throw new InternalServerError(
-          'Ollima segmentation response missing expected data format.',
-        );
+        console.error('❌ LLM response was empty or in an invalid format.');
+        console.error('🔍 Response data:', response.data);
+        throw new InternalServerError('LLM response was empty or in an invalid format.');
       }
     } catch (error: any) {
-      console.error('Error in transcript segmentation:', error.message);
-
+      console.error('❌ Error in segmentation:', error.message);
       if (axios.isAxiosError(error)) {
-        const axiosError = error as AxiosError;
-        console.error('Ollima API Error:', {
-          status: axiosError.response?.status,
-          data: axiosError.response?.data,
+        console.error('🔍 Ollima API Error:', {
+          status: error.response?.status,
+          data: error.response?.data,
         });
-
-        const errorMessage =
-          (axiosError.response?.data as any)?.error ||
-          'Failed to process transcript with Ollima for segmentation';
-        throw new InternalServerError(`Ollima API error: ${errorMessage}`);
       }
-
-      throw new InternalServerError(
-        `Error segmenting transcript: ${error.message}`,
-      );
+      return {};
     }
-
-    // Convert to the required format: {"end_time": "cleaned_transcript"}
-    const segmentsForGeneration: Record<string, string> = {};
-    segments.forEach(segment => {
-      try {
-        const cleanedTranscript = cleanTranscriptLines(
-          segment.transcript_lines,
-        );
-        if (cleanedTranscript && cleanedTranscript.trim().length > 0) {
-          segmentsForGeneration[segment.end_time] = cleanedTranscript;
-        }
-      } catch (cleanError) {
-        console.warn(
-          `Failed to clean transcript for segment ${segment.end_time}:`,
-          cleanError,
-        );
-      }
-    });
-
-    console.log(
-      `Segmentation completed. Found ${Object.keys(segmentsForGeneration).length} segments.`,
-    );
-    return segmentsForGeneration;
   }
 
   // --- Question Generation Logic ---
@@ -332,11 +200,11 @@ Each question should:
   }
 
   public async generateQuestions(args: {
-    segments: Record<string | number, string>; // Dictionary with segmentId as key and transcript as value
-    globalQuestionSpecification: Array<Record<string, number>>; // Global question specification
+    segments: Record<string | number, string>;
+    globalQuestionSpecification: Array<Record<string, number>>;
     model?: string;
   }): Promise<GeneratedQuestion[]> {
-    const {segments, globalQuestionSpecification, model = 'gemma3'} = args;
+    const {segments, globalQuestionSpecification, model = 'deepseek-r1:70b'} = args;
 
     if (
       !segments ||
@@ -352,7 +220,7 @@ Each question should:
       !globalQuestionSpecification ||
       !Array.isArray(globalQuestionSpecification) ||
       globalQuestionSpecification.length === 0 ||
-      !globalQuestionSpecification[0] || // Ensure the first element exists
+      !globalQuestionSpecification[0] ||
       typeof globalQuestionSpecification[0] !== 'object' ||
       Object.keys(globalQuestionSpecification[0]).length === 0
     ) {
@@ -365,7 +233,7 @@ Each question should:
     const allGeneratedQuestions: GeneratedQuestion[] = [];
     console.log(`Using model: ${model} for question generation.`);
 
-    const questionSpecs = globalQuestionSpecification[0]; // Assuming the first spec in the array is the global one
+    const questionSpecs = globalQuestionSpecification[0];
 
     // Process each segment
     for (const segmentId in segments) {
@@ -405,13 +273,15 @@ Each question should:
                 segmentTranscript,
               );
 
+              console.log(`🚀 Starting AI generation for ${count} ${questionType} questions in segment ${segmentId}...`);
+
               const response = await axios.post(
                 `${this.ollimaApiBaseUrl}/generate`,
                 {
                   model,
                   prompt,
                   stream: false,
-                  format: format || undefined, // Ensure format is passed correctly
+                  format: format || undefined,
                   options: {temperature: 0},
                 },
               );
@@ -440,13 +310,11 @@ Each question should:
                     `Error parsing JSON for ${questionType} questions in segment ${segmentId}:`,
                     parseError,
                   );
-                  // Optionally, handle or log the raw response if JSON parsing fails
-                  // console.error('Raw response for parsing error:', generatedText);
                 }
               } else {
-                 console.warn(
-                    `No response data or response.response is not a string for ${questionType} in segment ${segmentId}. Response:`, 
-                    response.data
+                console.warn(
+                  `No response data or response.response is not a string for ${questionType} in segment ${segmentId}. Response:`, 
+                  response.data
                 );
               }
             } catch (error: any) {
@@ -462,7 +330,6 @@ Each question should:
                   data: axiosError.response?.data,
                 });
               }
-              // Continue to next question type, do not let one error stop all generation
             }
           }
         }
@@ -472,6 +339,6 @@ Each question should:
     console.log(
       `Question generation completed. Generated ${allGeneratedQuestions.length} total questions.`,
     );
-    return allGeneratedQuestions; // Ensure the function returns the accumulated questions
+    return allGeneratedQuestions;
   }
 }
