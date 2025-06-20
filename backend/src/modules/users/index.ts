@@ -6,8 +6,11 @@ import {RoutingControllersOptions, useContainer} from 'routing-controllers';
 import {usersContainerModule} from './container.js';
 import {EnrollmentController} from './controllers/EnrollmentController.js';
 import {ProgressController} from './controllers/ProgressController.js';
-import {CourseController} from '../courses/controllers/CourseController.js';
-import {coursesContainerModule} from '../courses/container.js';
+import {UserController} from './controllers/UserController.js';
+import { CourseController } from '../courses/controllers/CourseController.js';
+import { coursesContainerModule } from '../courses/container.js';
+import { ENROLLMENT_VALIDATORS, PROGRESS_VALIDATORS, USER_VALIDATORS } from './classes/validators/index.js';
+
 
 export const usersContainerModules: ContainerModule[] = [
   usersContainerModule,
@@ -19,6 +22,7 @@ export const usersContainerModules: ContainerModule[] = [
 export const usersModuleControllers: Function[] = [
   EnrollmentController,
   ProgressController,
+  UserController,
   CourseController,
 ];
 
@@ -38,3 +42,9 @@ export const usersModuleOptions: RoutingControllersOptions = {
   },
   validation: true,
 };
+
+export const usersModuleValidators: Function[] = [
+  ...ENROLLMENT_VALIDATORS,
+  ...PROGRESS_VALIDATORS,
+  ...USER_VALIDATORS
+]

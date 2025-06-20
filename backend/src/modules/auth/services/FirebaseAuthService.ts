@@ -14,6 +14,7 @@ import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase
 import { statusType, actionType } from '#root/shared/interfaces/models.js';
 import { MailService } from '#root/modules/notifications/index.js';
 
+import { appConfig } from '#root/config/app.js';
 
 /**
  * Custom error thrown during password change operations.
@@ -49,11 +50,36 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
   ) {
     super(database);
     if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
-      });
+      if (appConfig.isDevelopment) {
+        admin.initializeApp({
+          credential: admin.credential.cert(
+            {
+              clientEmail: appConfig.firebase.clientEmail,
+              privateKey: appConfig.firebase.privateKey.replace(/\\n/g, '\n'),
+              projectId: appConfig.firebase.projectId,
+            }
+          ),
+        });
+      } else {
+        admin.initializeApp({
+          credential: admin.credential.applicationDefault(),
+        });
+      }
       this.auth = admin.auth();
     }
+  }
+  async getCurrentUserFromToken(token: string): Promise<IUser> {
+    // Verify the token and decode it to get the Firebase UID
+    const decodedToken = await this.auth.verifyIdToken(token);
+    const firebaseUID = decodedToken.uid;
+
+    // Retrieve the user from our database using the Firebase UID
+    const user = await this.userRepository.findByFirebaseUID(firebaseUID);
+    if (!user) {
+      throw new InternalServerError('User not found');
+    }
+
+    return user;
   }
   async getUserIdFromReq(req: any): Promise<string> {
     // Extract the token from the request headers
