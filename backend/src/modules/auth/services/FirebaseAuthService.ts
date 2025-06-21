@@ -147,7 +147,7 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     });
     const invites = await this.inviteRepository.findInviteByEmail(body.email);
     for (const invite of invites) {
-      console.log(invite)
+     
       if (invite.status == statusType.PENDING) {
         const isAlreadyEnrolled =
           await this.enrollmentRepository.findEnrollment(
@@ -155,7 +155,7 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
             invite.courseId,
             invite.courseVersionId,
           );
-        console.log('Is already enrolled:', isAlreadyEnrolled);
+   
 
         if (!isAlreadyEnrolled) {
           // Enroll the user
@@ -176,7 +176,7 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
           // Save the modified invite back to DB
           await this.inviteRepository.updateInvite(invite);
           await this.mailService.sendMail(invite);
-          console.log('Invite updated and email sent:', invite);
+          
         }
       }
     }

@@ -51,7 +51,7 @@ export class InviteService {
         message: "",
         action: "",
       }
-      console.log(email);
+  
       const inviteObject = plainToClass(Invite, {
         email: email,
         courseId: courseId, // Must be a valid MongoDB ObjectId string
@@ -66,7 +66,7 @@ export class InviteService {
       try {
         user = await this.userRepo.findByEmail(inviteObject.email);
         result.status = 'User exists in platform';
-        console.log('User found:', user);
+        
         const enrollment = await this.enrollmentRepo.findEnrollment(
           user._id.toString(),
           inviteObject.courseId,
@@ -94,23 +94,22 @@ export class InviteService {
         result.message = "User not found, signup required";
         result.action = "signup";
       }
-      //inviteObject.token = crypto.randomBytes(32).toString('hex');
-      //console.log('Token Created !', inviteObject.token);
+    
       const invitePlain = instanceToPlain(inviteObject);
       try {
         const res = await this.inviteRepo.create(invitePlain);
-        console.log('✅  invite stored with _id:',  res.insertedId.toString());
+        
         inviteObject.token = res.insertedId.toString();
 
       } catch (error) {
-        console.error('❌ Error storing invite:', error);
+        
         throw error;
       }
       try{
         await this.mailService.sendMail(inviteObject);
         results.push(result);
       } catch (error) {
-        console.error('❌ Error sending invite email:', error);
+        
         result.status = 'error';
         result.message = 'Failed to send invite email';
       }
@@ -122,7 +121,7 @@ export class InviteService {
 
   async processInvite(token: string): Promise<any> {
     const invite = await this.inviteRepo.findInviteByToken(token);
-    console.log('Invite found:', invite);
+   
 
     // Step 1: Validate invite
     if (!invite || invite.status !== statusType.PENDING) {

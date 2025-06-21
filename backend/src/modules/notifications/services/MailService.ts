@@ -29,7 +29,7 @@ export class MailService {
       text: string;
       html: string;
     };
-    //console.log('Preparing to send email for invite:', invite);
+    
 
     const BASE_URL = process.env.CLIENT_BASE_URL || 'https://yourdomain.com';
 
@@ -74,14 +74,14 @@ export class MailService {
       text: mailContent.text,
       html: mailContent.html,
     };
-    console.log('Sending email to:', invite.email);
+    
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.messageId);
+      
       return info;
     } catch (error) {
-      console.error('Failed to send email:', error);
+      
       throw error;
     }
   }

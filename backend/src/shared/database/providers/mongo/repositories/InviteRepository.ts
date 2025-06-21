@@ -45,30 +45,15 @@ export class InviteRepository implements IInviteRepository {
 
   async create(invite: any, session?: ClientSession): Promise<any> {
     await this.init();
-    //const result = await this.courseCollection.insertOne(course, { session });
+    
     try {
-      console.log('HElllow wolld');
+      
       const result = await this.inviteCollection.insertOne(invite, {session});
       return result;
     } catch {
-      //throw new CreateError('Failed to create invite');
+      throw new Error('Failed to create invite');
     }
   }
-  // async findInviteByEmail(email: string): Promise<any | null> {
-  //   await this.init(); // Ensure collection is initialized
-
-  //   try {
-      
-  //     const invites = await this.inviteCollection.find({email}).toArray();
-      
-      
-
-  //     return invites;
-  //   } catch (error) {
-  //     console.error('❌ Failed to find invite by email:', error);
-  //     //throw new ReadError('Failed to find invite by email');
-  //   }
-  // }
   async findInviteByEmail(email: string): Promise<any | null> {
     await this.init(); // Ensure collection is initialized
 
@@ -76,8 +61,8 @@ export class InviteRepository implements IInviteRepository {
       const invites = await this.inviteCollection.find({email}).toArray();
       return invites;
     } catch (error) {
-      console.error('❌ Failed to find invite by email:', error);
-      //throw new ReadError('Failed to find invite by email');
+      
+      throw new Error('Failed to find invite by email');
     }
   }
 
@@ -96,7 +81,7 @@ export class InviteRepository implements IInviteRepository {
     );
 
     if (result.modifiedCount === 0) {
-      //throw new UpdateError(`Failed to update invite with ID: ${_id}`);
+      throw new Error(`Failed to update invite with ID: ${_id}`);
     }
   }
 
@@ -107,8 +92,7 @@ export class InviteRepository implements IInviteRepository {
       const invite = await this.inviteCollection.findOne({ _id: new ObjectId(token) });
       return invite;
     } catch (error) {
-      console.error('❌ Failed to find invite by token:', error);
-      //throw new ReadError('Failed to find invite by token');
+      throw error;
     }
   }
 }

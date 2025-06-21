@@ -55,10 +55,10 @@ export class UserRepository implements IUserRepository {
     session?: ClientSession,
   ): Promise<IUser | null> {
     await this.init();
-    console.log('Finding user by email:', email);
+    
     const user = await this.usersCollection.findOne({email}, {session});
     if (!user) {
-      console.log('User not found for email:', email);
+      
       throw new NotFoundError('User not found');
     }
     return instanceToPlain(new User(user)) as IUser;

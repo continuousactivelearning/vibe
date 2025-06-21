@@ -60,8 +60,7 @@ export class InviteController {
     @Param('courseId') courseId: string,
     @Param('courseVersionId') courseVersionId: string,
   ) {
-    console.info(`📩 Inviting users to course ${courseId} version ${courseVersionId}`);
-    console.debug('Request body:', body);
+    
 
     if (!body.emails || !Array.isArray(body.emails) || body.emails.length === 0) {
       throw new BadRequestError('Email list is missing or invalid');
@@ -74,69 +73,17 @@ export class InviteController {
         courseVersionId,
       );
 
-      console.info('✅ Invite operation successful');
       return {
         statusCode: 200,
         results,
       };
     } catch (error) {
-      console.error('❌ Error inviting users:', error);
+      
       throw new InternalServerError('Failed to invite users. Please try again.');
     }
   }
 
   
-  
-
-  // @Post('/:token')
-  // @HttpCode(200)
-  // @OpenAPI({
-  //   summary: 'Process Invite',
-  //   description: 'Process an invite using a token.',
-  // })
-  // async process(@Param('token') token: string): Promise<{message: string}> {
-  //   const result = await this.inviteService.processInvite(token);
-  //   return {message: result};
-  // }
-
-  // @Post('/:token')
-  // @HttpCode(200)
-  // @OpenAPI({
-  //   summary: 'Process Invite',
-  //   description: 'Process an invite using a token.',
-  //   responses: {
-  //     '200': {
-  //       description: 'Invite processed successfully',
-  //     },
-  //     '400': {
-  //       description: 'Invalid or expired token / signup required / no account',
-  //     },
-  //     '500': {
-  //       description: 'Internal server error',
-  //     },
-  //   },
-  // })
-  // async process(
-  //   @Param('token') token: string,
-  //   @Res() res: Response,
-  // ): Promise<Response> {
-  //   try {
-  //     const result = await this.inviteService.processInvite(token);
-
-  //     // Handle cases with specific status codes
-  //     if (result.statusCode && result.statusCode !== 200) {
-  //       return result.message;
-  //     }
-
-  //     // Default: success response
-  //     return result.message
-  //   } catch (err) {
-  //     console.error('Invite processing error:', err);
-  //     return err;
-  //   }
-  // }
-
-
 
   @Post('/:token')
   @HttpCode(200)
@@ -176,7 +123,7 @@ export class InviteController {
         );
       }
     } catch (error) {
-      console.error('Invite processing error:', error);
+      
       return new InviteProResponse(
         500,
         'internal_server_error',
