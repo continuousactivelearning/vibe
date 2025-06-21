@@ -276,8 +276,18 @@ export default class GenAIVideoController {
         questionIds: string[];
       }> = [];
 
+      // Helper function to convert time strings (like "5:15" or "1:02:30") to seconds for correct sorting
+      const timeToSeconds = (timeStr: string): number => {
+        const parts = timeStr.split(':').map(Number).reverse(); // [ss, mm, hh]
+        let seconds = 0;
+        if (parts[0]) seconds += parts[0]; // seconds
+        if (parts[1]) seconds += parts[1] * 60; // minutes
+        if (parts[2]) seconds += parts[2] * 3600; // hours
+        return seconds;
+      };
+
       const sortedSegmentIds = Object.keys(segmentsMap).sort((a, b) =>
-        a.localeCompare(b),
+        timeToSeconds(a) - timeToSeconds(b)
       );
       let previousSegmentEndTime = '0:00:00';
 
