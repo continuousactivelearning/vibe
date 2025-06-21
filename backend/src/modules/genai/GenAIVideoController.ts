@@ -21,7 +21,7 @@ import {QuestionBankService} from '../quizzes/services/QuestionBankService.js';
 import {QuestionService} from '../quizzes/services/QuestionService.js';
 import {QuizService} from '../quizzes/services/QuizService.js';
 import {QuestionBank} from '../quizzes/classes/transformers/QuestionBank.js';
-import {BaseQuestion} from '../quizzes/classes/transformers/Question.js';
+import {BaseQuestion, QuestionFactory} from '../quizzes/classes/transformers/Question.js';
 import {CreateItemBody} from '../courses/classes/validators/ItemValidators.js';
 import {ItemType} from '#shared/interfaces/models.js';
 
@@ -306,13 +306,13 @@ export default class GenAIVideoController {
             points: 10,
           },
         };
-        const createdVideoItem = await this.itemService.createItem(
+                const createdVideoItem = await this.itemService.createItem(
           versionId,
           moduleId,
           sectionId,
           videoItemBody,
         );
-        createdVideoItemsInfo.push({
+                createdVideoItemsInfo.push({
           id: createdVideoItem.createdItem?._id?.toString(),
           name: videoSegName,
           segmentId: currentSegmentId,
@@ -324,7 +324,7 @@ export default class GenAIVideoController {
         // Create Question Bank and Questions for the segment
         const questionsForSegment = questionsGroupedBySegment[currentSegmentId] || [];
         if (questionsForSegment.length > 0) {
-          // Create Question Bank for this segment
+                    // Create Question Bank for this segment
           const questionBankName = `Question Bank - Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
           const questionBank = new QuestionBank({
             title: questionBankName,
@@ -353,8 +353,9 @@ export default class GenAIVideoController {
                 solution: questionData.solution, 
                 tags: [`segment_${currentSegmentId}`, 'ai_generated', questionData.question.type.toLowerCase()],
               };
+              const questionnew=QuestionFactory.createQuestion({question: questionData.question,solution: questionData.solution});
 
-              const questionId = await this.questionService.create(questionPayload);
+              const questionId = await this.questionService.create(questionnew);
               createdQuestionIds.push(questionId);
 
               // Add question to the question bank
@@ -372,7 +373,7 @@ export default class GenAIVideoController {
             questionIds: createdQuestionIds,
           });
 
-          // Create Quiz Item for the segment
+          // Create Quiz Item (this will be added immediately after the video item)
           const quizSegName = quizItemBaseName
             ? `${quizItemBaseName} - Segment Quiz (${segmentStartTime} - ${currentSegmentEndTime})`
             : `Quiz for Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
@@ -396,6 +397,7 @@ export default class GenAIVideoController {
               deadline: undefined,
             },
           };
+          
           const createdQuizItem = await this.itemService.createItem(
             versionId,
             moduleId,
@@ -433,7 +435,7 @@ export default class GenAIVideoController {
         }
         
         previousSegmentEndTime = currentSegmentEndTime;
-      }
+              }
 
       return res.json({
         message:

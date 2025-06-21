@@ -7,12 +7,22 @@ const timeToMs = (time: string): number => {
     const s = parseInt(parts[1], 10) * 1000;
     return m + s;
   }
-  // Handle MM:SS.mmm format  
+  // Handle MM:SS.mmm format (transcript lines use this format)
   else if (parts.length === 3) {
-    const m = parseInt(parts[0], 10) * 60 * 1000;
-    const s = parseInt(parts[1], 10) * 1000;
-    const ms = parseInt(parts[2], 10);
-    return m + s + ms;
+    // Check if this looks like MM:SS.mmm (transcript format) or HH:MM:SS (AI format)
+    if (time.includes('.')) {
+      // MM:SS.mmm format (e.g., "00:07.760")
+      const m = parseInt(parts[0], 10) * 60 * 1000;
+      const s = parseInt(parts[1], 10) * 1000;
+      const ms = parseInt(parts[2], 10);
+      return m + s + ms;
+    } else {
+      // HH:MM:SS format (e.g., "00:05:00")
+      const h = parseInt(parts[0], 10) * 60 * 60 * 1000;
+      const m = parseInt(parts[1], 10) * 60 * 1000;
+      const s = parseInt(parts[2], 10) * 1000;
+      return h + m + s;
+    }
   }
   // Handle HH:MM:SS.mmm format
   else if (parts.length === 4) {
@@ -36,9 +46,7 @@ export function segmentTranscriptByTimes(
   const segments: Record<string, string> = {};
   const transcriptLines = transcript.split('\n').filter(line => line.trim().includes('-->'));
   
-  console.log('🔍 Segmentation Helper Debug:');
   console.log('📋 Total transcript lines:', transcriptLines.length);
-  console.log('⏱️ End times to process:', endTimes);
   
   // Show first few transcript lines with their time ranges
   console.log('📄 First 3 transcript lines:');
@@ -68,7 +76,7 @@ export function segmentTranscriptByTimes(
         const lineEndTimeMs = timeToMs(timeMatch[2]);
 
         // Include lines that start within the current segment's time range  
-        if (lineStartTimeMs >= previousEndTimeMs && lineStartTimeMs < currentEndTimeMs) {
+        if (lineStartTimeMs >= previousEndTimeMs && lineStartTimeMs <= currentEndTimeMs) {
           const text = line.replace(/\[.*?\]\s*/, '').trim();
           if (text) {
             segmentLines.push(text);

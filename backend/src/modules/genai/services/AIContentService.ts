@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import { injectable } from 'inversify';
 import { HttpError, InternalServerError } from 'routing-controllers';
 import { segmentTranscriptByTimes } from '../utils/segmentationHelper.js';
+import { preprocessTranscriptForAnalysis } from '../utils/transcriptPreprocessor.js';
 import { questionSchemas } from '../schemas/index.js';
 import { extractJSONFromMarkdown } from '../utils/extractJSONFromMarkdown.js';
 
@@ -40,36 +41,32 @@ export class AIContentService {
     console.log('📝 Transcript length:', transcript.length);
     console.log('📋 First 200 chars of transcript:', transcript.substring(0, 200));
 
-    const prompt = `You are analyzing a timed transcript to identify natural breakpoints between topics. 
+    // Preprocess transcript for better topic analysis
+    const cleanedTranscript = preprocessTranscriptForAnalysis(transcript);
 
-CRITICAL: Look at the ACTUAL timestamps in the transcript below. The transcript shows real time ranges like [00:00.000 --> 00:07.760], [00:07.760 --> 00:14.480], etc.
+    const prompt = `You are analyzing a lecture transcript to identify NATURAL TOPIC BOUNDARIES.
 
-Your job is to:
-1. Read through the transcript content and identify where major topics change
-2. Find the END timestamp of the last line before each topic change
-3. Ensure there is a MINIMUM 5-minute gap between consecutive end times
-4. The LAST end time must be the actual end timestamp of the entire transcript
-5. Return ONLY a JSON array of these end timestamps in "MM:SS" format
+The transcript is formatted as:
+[TIMESTAMP] Content text for that section
+
+INSTRUCTIONS:
+1. Read through the content and identify where sub topics or themes change
+2. Look for natural transitions: new concepts, different subjects, conclusion statements
+3. Each segment should contain substantial content (minimum 5 minutes)
+4. Return the END timestamps where topics naturally conclude
 
 REQUIREMENTS:
-- Minimum 5-minute (05:00) gap between any two consecutive end times
-- Last timestamp must match the end of the final transcript line
-- Use ACTUAL timestamps from the transcript, not arbitrary times
+- Only break at genuine topic changes, not arbitrary time intervals
+- Minimum 5-minute gaps between segments
+- return the timestamps in format as shown in brackets
+- Include the final timestamp as the last segment boundary
 
-For example, if you see:
-- Lines [00:00.000 --> 00:07.760] through [07:15.000 --> 07:30.000] discuss Topic A
-- Lines [07:30.000 --> 07:45.000] through [15:00.000 --> 15:15.000] discuss Topic B  
-- Lines [15:15.000 --> 15:30.000] through [23:45.000 --> 24:00.000] discuss Topic C (final line)
+For the transcript below, identify where topics naturally transition and return ONLY the END timestamps of each topic section as a JSON array.
 
-Then return: ["07:30", "15:15", "24:00"]
-(Note: 5+ minute gaps: 7:30→15:15 = 7:45 gap, 15:15→24:00 = 8:45 gap)
+TRANSCRIPT:
+${cleanedTranscript}
 
-DO NOT use arbitrary times like ["00:01", "00:02"]. Use the ACTUAL timestamps from the transcript with proper 5-minute spacing.
-
-Transcript to analyze:
-${transcript}
-
-Return ONLY a JSON array of end timestamps with 5+ minute gaps:`;
+Return JSON array of topic boundary timestamps:`;
 
     try {
       console.log('🤖 Calling AI model for end times...');
@@ -86,16 +83,36 @@ Return ONLY a JSON array of end timestamps with 5+ minute gaps:`;
       if (response.data && typeof response.data.response === 'string') {
         const generatedText = response.data.response;
         console.log('✅ AI response received for end times');
+        console.log('📋 Raw AI response:', generatedText);
 
         try {
           let endTimes = JSON.parse(generatedText);
 
-          // The LLM sometimes wraps the array in an object, e.g., { "end_times": [...] }
+          // Handle different response formats from the LLM
           if (typeof endTimes === 'object' && endTimes !== null && !Array.isArray(endTimes)) {
+            // Handle object with array property
             const keys = Object.keys(endTimes);
             const arrayKey = keys.find(key => Array.isArray(endTimes[key]));
             if (arrayKey) {
-              endTimes = endTimes[arrayKey];
+              console.log(`Found end times array under key: '${arrayKey}'`);
+              const extractedArray = endTimes[arrayKey];
+
+              // Check if the array contains objects with a 'timestamp' key
+              if (
+                Array.isArray(extractedArray) &&
+                extractedArray.length > 0 &&
+                typeof extractedArray[0] === 'object' &&
+                extractedArray[0] !== null &&
+                'timestamp' in extractedArray[0]
+              ) {
+                console.log('🤖 Array contains objects with timestamps. Extracting...');
+                endTimes = extractedArray.map((item: any) => item.timestamp.toString());
+                console.log('✅ Extracted timestamps:', endTimes);
+              } else {
+                endTimes = extractedArray;
+              }
+            } else {
+              throw new Error('AI returned object without timestamp array');
             }
           }
 
@@ -112,10 +129,8 @@ Return ONLY a JSON array of end timestamps with 5+ minute gaps:`;
           // Use the helper to segment the transcript
           console.log('📊 Starting transcript segmentation with helper...');
           const segmentedTranscript = segmentTranscriptByTimes(endTimes, transcript);
-          
-          console.log('✅ Segmentation completed');
+        
           console.log('📈 Number of segments created:', Object.keys(segmentedTranscript.segments).length);
-          console.log('🔑 Segment keys:', Object.keys(segmentedTranscript.segments));
           
           return segmentedTranscript.segments;
         } catch (parseError: any) {
@@ -309,6 +324,7 @@ Each question should:
                   console.error(
                     `Error parsing JSON for ${questionType} questions in segment ${segmentId}:`,
                     parseError,
+ 
                   );
                 }
               } else {
