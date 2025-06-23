@@ -84,7 +84,7 @@ describe('InviteController', () => {
   }
 
   describe('POST /notifications/invite/courses/:courseId/versions/:courseVersionId', () => {
-    it('should invite users with valid data', async () => {
+    it('invites users with valid email and role', async () => {
       const res = await createInvite();
       expect(res.status).toBe(200);
       expect(res.body.invites).toBeInstanceOf(Array);
@@ -92,7 +92,7 @@ describe('InviteController', () => {
       expect(res.body.invites[0]).toHaveProperty('inviteStatus');
     });
     
-    it('should invite but user is already enrolled', async () => {
+    it('returns "ALREADY_ENROLLED" when user is already enrolled in the course', async () => {
       const email = faker.internet.email();
       const signUpBody: SignUpBody = {
         email: email,
@@ -118,7 +118,7 @@ describe('InviteController', () => {
       expect(res.body.invites[0].inviteStatus).toBe('ALREADY_ENROLLED');
     });
     
-    it('should fail with invalid email', async () => {
+    it('fails because of invalid email', async () => {
       const body = createInviteBody('not-an-email');
       const res = await request(app)
         .post(`/notifications/invite/courses/${courseId}/versions/${version._id.toString()}`)
@@ -126,7 +126,7 @@ describe('InviteController', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should fail with missing inviteData', async () => {
+    it('fails because of missing inviteData', async () => {
       const res = await request(app)
         .post(`/notifications/invite/courses/${courseId}/versions/${version._id.toString()}`)
         .send({});
@@ -135,7 +135,7 @@ describe('InviteController', () => {
   });
 
   describe('GET /notifications/invite/courses/:courseId/versions/:courseVersionId', () => {
-    it('should get invites for a course version', async () => {
+    it('fetches all invites for a specific course version', async () => {
       const res = await request(app)
         .get(`/notifications/invite/courses/${courseId}/versions/${version._id.toString()}`);
       expect(res.status).toBe(200);
@@ -144,7 +144,7 @@ describe('InviteController', () => {
   });
 
   describe('GET /notifications/invite/:inviteId', () => {
-    it('should process invite of an unregistered user and signup later', async () => {
+    it('accepts invite for unregistered user and links it after signup', async () => {
       // You may need to create an invite first and get its ID
       const email = faker.internet.email();
       const inviteResponse = await createInvite(email);
@@ -170,7 +170,7 @@ describe('InviteController', () => {
       expect(signUpResponse.body.invites[0].inviteStatus).toBe('ACCEPTED');
     });
 
-    it('should process invite of a registered user, try to accept again and check enrollments', async () => {
+    it('enrolls registered user via invite, fails if tried to accept again and then fetch user enrollemnts for verification', async () => {
       // You may need to create an invite first and get its ID
       const email = faker.internet.email();
       const signUpBody: SignUpBody = {
@@ -202,28 +202,28 @@ describe('InviteController', () => {
       expect(getEnrollmentsResponse.body.enrollments[0].role).toBe('INSTRUCTOR');
     });
 
-    it('should fail with invalid inviteId', async () => {
+    it('returns 400 for malformed or invalid inviteId', async () => {
       const res = await request(app).get('/notifications/invite/invalid-id');
       expect(res.status).toBe(400);
     });
   });
 
   describe('POST /notifications/invite/resend/:inviteId', () => {
-    it('should resend invite with valid inviteId', async () => {
+    it('takes invite id and resends invite email to user', async () => {
       const inviteResponse = await createInvite();
       const inviteId = inviteResponse.body.invites[0].inviteId;
       const res = await request(app).post(`/notifications/invite/resend/${inviteId}`);
       expect(res.status).toBe(200);
     });
 
-    it('should fail to resend with invalid inviteId', async () => {
+    it('fails to resend because of invalid inviteId', async () => {
       const res = await request(app).post('/notifications/invite/resend/invalid-id');
       expect(res.status).toBe(400);
     });
   });
 
   describe('POST /notifications/invite/cancel/:inviteId', () => {
-    it('should cancel invite and try to accept it later', async () => {
+    it('cancels invite and fails if tried to accept later', async () => {
       const inviteResponse = await createInvite();
       const inviteId = inviteResponse.body.invites[0].inviteId;
       const res = await request(app).post(`/notifications/invite/cancel/${inviteId}`);
@@ -232,13 +232,13 @@ describe('InviteController', () => {
       expect(res2.body.message).toBe('This invite has been cancelled.');
     });
 
-    it('should fail to cancel with invalid inviteId', async () => {
+    it('returns 400 when cancelling with invalid inviteId', async () => {
       const res = await request(app).post('/notifications/invite/cancel/invalid-id');
       expect(res.status).toBe(400);
     });
   });
 
-  it('Should create multiple invites and accept one', async () => {
+  it('send multiple invite to users, after user accepts one invite, it should throw an error when user tries to accept another invite for the same course', async () => {
     const email = faker.internet.email();
       const signUpBody: SignUpBody = {
         email: email,
