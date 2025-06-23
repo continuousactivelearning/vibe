@@ -8,7 +8,6 @@ import {
 import {InviteController} from './controllers/InviteController.js';
 import { notificationsContainerModule } from './container.js';
 import {usersContainerModule} from '#root/modules/users/container.js';
-import { coursesContainerModule } from '../courses/container.js';
 
 export const notificationsModuleControllers: Function[] = [
   InviteController,
@@ -19,7 +18,6 @@ export const notificationsContainerModules: ContainerModule[] = [
   notificationsContainerModule,
   sharedContainerModule,
   usersContainerModule,
-  coursesContainerModule
 ];
 
 
