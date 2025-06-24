@@ -157,7 +157,7 @@ export class TranscriptionService {
       // Fallback to check if whisper is in PATH
       if (!fs.existsSync(finalWhisperExecutablePath)) {
         // Removed try-catch around execAsync, errors will propagate
-        const {stdout} = await execAsync('which whisper');
+        const {stdout} = await execAsync('where whisper');
         finalWhisperExecutablePath = stdout.trim();
         console.log(`Found whisper in PATH: ${finalWhisperExecutablePath}`);
         if (!finalWhisperExecutablePath) {
