@@ -9,6 +9,9 @@ import {
 import {injectable, inject} from 'inversify';
 import {Request, Response} from 'express';
 
+import multer from "multer";
+const upload = multer({ dest: "uploads/" });
+
 import {VideoService} from './services/VideoService.js';
 import {AudioService} from './services/AudioService.js';
 import {TranscriptionService} from './services/TranscriptionService.js';
@@ -46,22 +49,44 @@ export default class GenAIVideoController {
   @HttpCode(200)
   async generateTranscript(
     @Body() body: {youtubeUrl: string},
+    @Req() req: Request,
     @Res() res: Response,
   ) {
     const tempPaths: string[] = [];
+        // Use multer to handle file upload
+    await new Promise<void>((resolve, reject) => {
+      upload.single("file")(req, res, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
 
     try {
-      const {youtubeUrl} = body;
+      let youtubeUrl = req.body.youtubeUrl;
+      //const {youtubeUrl} = body;
+      //if (!youtubeUrl) {
+      //  return res.status(400).json({
+      //    message: 'YouTube URL is required.',
+      //  });
+      //}
+      let transcript = "";
+      //let transcript = '';
 
-      if (!youtubeUrl) {
-        return res.status(400).json({
-          message: 'YouTube URL is required.',
-        });
+      // If a file is uploaded, use it
+      if (req.file) {
+        const filePath = req.file.path;
+        tempPaths.push(filePath);
+        // If it's a video, extract audio; if audio, use directly
+        let audioPath = filePath;
+        if (req.file.mimetype.startsWith("video/")) {
+          audioPath = await this.audioService.extractAudio(filePath);
+          tempPaths.push(audioPath);
+        }
+        transcript = await this.transcriptionService.transcribe(audioPath);
+        youtubeUrl = null;
       }
-
-      let transcript = '';
-
-      if (youtubeUrl) {
+      else if (youtubeUrl) {
+        // Fallback: YouTube URL logic
         // 1. Download video
         const videoPath = await this.videoService.downloadVideo(youtubeUrl);
         tempPaths.push(videoPath);
@@ -72,6 +97,11 @@ export default class GenAIVideoController {
 
         // 3. Transcribe audio
         transcript = await this.transcriptionService.transcribe(audioPath);
+      }
+      else {
+        return res.status(400).json({
+          message: "You must provide either a YouTube URL or a file upload.",
+        });
       }
 
       // 4. Return transcript

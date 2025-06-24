@@ -29,6 +29,8 @@ import Editor from '@/pages/teacher/create-article'
 import FaceDetectors from '@/pages/testing-proctoring/face-detectors'
 import { NotFoundComponent } from '@/components/not-found'
 import { useCourseStore } from '@/lib/store/course-store'
+import GenAIHomePage from '@/pages/teacher/genai-home'
+import { LiveQuiz } from '@/pages/teacher/live-quiz'
 
 const sampleText = `
 # 🌟 Sample Markdown Document
@@ -262,6 +264,20 @@ const teacherDashboardRoute = new Route({
   component: Dashboard,
 });
 
+// Teacher genAI home route
+const teacherGenAIHomeRoute = new Route({
+  getParentRoute: () => teacherLayoutRoute,
+  path: '/genai',
+  component: GenAIHomePage,
+});
+
+// Teacher live quiz route
+const teacherLiveQuizRoute = new Route({
+  getParentRoute: () => teacherLayoutRoute,
+  path: '/live-quiz',
+  component: LiveQuiz,
+});
+
 // Teacher create course route
 const teacherCreateCourseRoute = new Route({
   getParentRoute: () => teacherLayoutRoute,
@@ -374,6 +390,8 @@ const routeTree = rootRoute.addChildren([
     teacherCreateArticleRoute,
     teacherGetCourseRoute,
     teacherTestingRoute,
+    teacherGenAIHomeRoute,
+    teacherLiveQuizRoute,
   ]),
   studentLayoutRoute.addChildren([
     studentDashboardRoute,

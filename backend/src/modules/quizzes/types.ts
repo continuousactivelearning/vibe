@@ -1,12 +1,14 @@
 const TYPES = {
   //Controllers
   QuestionController: Symbol.for('QuestionController'),
+  LivePollController: Symbol.for('LivePollController'),
 
   //Services
   QuestionService: Symbol.for('QuestionService'),
   AttemptService: Symbol.for('AttemptService'),
   QuestionBankService: Symbol.for('QuestionBankService'),
   QuizService: Symbol.for('QuizService'),
+  LivePollService: Symbol.for('LivePollService'),
 
   //Repositories
   QuestionRepo: Symbol.for('QuestionRepo'),
@@ -17,4 +19,16 @@ const TYPES = {
   UserQuizMetricsRepo: Symbol.for('UserQuizMetricsRepo'),
 };
 
-export {TYPES as QUIZZES_TYPES};
+interface LivePollInput {
+  question: string;
+  options: string[];
+  duration?: number;
+}
+
+interface LivePoll extends LivePollInput {
+  id: string;
+  createdBy: string;
+  createdAt: number;
+}
+
+export { TYPES as QUIZZES_TYPES, LivePollInput, LivePoll };
