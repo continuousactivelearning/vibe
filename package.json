@@ -5,6 +5,7 @@
 	"license": "MIT",
 	"author": "adityabmv",
 	"devDependencies": {
+		"@types/socket.io": "^3.0.2",
 		"husky": "^9.1.7",
 		"lint-staged": "^15.5.0"
 	},
@@ -19,6 +20,8 @@
 		]
 	},
 	"dependencies": {
+		"axios": "^1.10.0",
+		"socket.io": "^4.8.1",
 		"vibe": "link:cli"
 	}
 }

@@ -5,6 +5,7 @@ import studentRoutes from "./student-routes";
 import { useAuthStore } from "@/lib/store/auth-store";
 import { JSX } from "react";
 import React from "react";
+import GenAIHomePage from "@/pages/teacher/genai-home";
 
 // ✅ Role-Based Route Guard using Zustand
 function ProtectedRoute({ role, children }: { role: "teacher" | "student"; children: JSX.Element }) {
@@ -52,6 +53,7 @@ export default function AppRoutes() {
                 </Route>
 
                 <Route path="/" element={<Navigate to="/auth" />} />
+                <Route path="/debug/genai" element={<GenAIHomePage />} />
             </Routes>
         </BrowserRouter>
     );

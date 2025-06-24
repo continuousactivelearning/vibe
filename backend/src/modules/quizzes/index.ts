@@ -11,6 +11,7 @@ import {QuizController} from './controllers/QuizController.js';
 import { } from './classes/validators/QuestionBankValidator.js';
 import { QUESTIONBANK_VALIDATORS, QUESTION_VALIDATORS, QUIZ_VALIDATORS } from './classes/validators/index.js';
 import { } from './classes/validators/QuizValidator.js';
+import { LivePollController } from './controllers/LivePollController.js';
 
 export const quizzesContainerModules: ContainerModule[] = [
   quizzesContainerModule,
@@ -23,11 +24,16 @@ export const quizzesModuleControllers: Function[] = [
   QuestionBankController,
   AttemptController,
   QuizController,
+  LivePollController,
 ];
 
-export async function setupQuizzesContainer(): Promise<void> {
+export async function setupQuizzesContainer(
+  //io: import('socket.io').Server
+  ): Promise<void> {
   const container = new Container();
   await container.load(...quizzesContainerModules);
+  // 👇 Manually bind the Socket.IO instance for DI
+  // container.bind<import('socket.io').Server>('SocketIO').toConstantValue(io);
   const inversifyAdapter = new InversifyAdapter(container);
   useContainer(inversifyAdapter);
 }

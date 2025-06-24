@@ -20,6 +20,8 @@ import {
 } from './services/index.js';
 import {QUIZZES_TYPES} from './types.js';
 import {QuestionService} from './services/QuestionService.js';
+import { LivePollController } from './controllers/LivePollController.js';
+import { LivePollService } from './services/LivePollService.js';
 
 export const quizzesContainerModule = new ContainerModule(options => {
   // Repositories
@@ -59,10 +61,12 @@ export const quizzesContainerModule = new ContainerModule(options => {
     .to(AttemptService)
     .inSingletonScope();
   options.bind(QUIZZES_TYPES.QuizService).to(QuizService).inSingletonScope();
+  options.bind(QUIZZES_TYPES.LivePollService).to(LivePollService).inSingletonScope();
 
   // Controllers
   options.bind(QuestionController).toSelf().inSingletonScope();
   options.bind(QuestionBankController).toSelf().inSingletonScope();
   options.bind(AttemptController).toSelf().inSingletonScope();
   options.bind(QuizController).toSelf().inSingletonScope();
+  options.bind(LivePollController).toSelf().inSingletonScope();
 });
