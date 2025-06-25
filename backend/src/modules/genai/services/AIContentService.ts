@@ -1,10 +1,17 @@
 import axios, { AxiosError } from 'axios';
 import { injectable } from 'inversify';
 import { HttpError, InternalServerError } from 'routing-controllers';
-import { segmentTranscriptByTimes } from '../utils/segmentationHelper.js';
 import { preprocessTranscriptForAnalysis } from '../utils/transcriptPreprocessor.js';
 import { questionSchemas } from '../schemas/index.js';
 import { extractJSONFromMarkdown } from '../utils/extractJSONFromMarkdown.js';
+import { 
+  createTimeBasedWindows, 
+  createTokenBasedWindows, 
+  detectTopicBoundaries, 
+  createSegmentsFromBoundaries,
+  TranscriptWindow,
+  LabeledWindow 
+} from '../utils/windowSegmentation.js';
 
 // --- Type Definitions ---
 export interface GeneratedQuestion {
@@ -24,7 +31,7 @@ export class AIContentService {
 
   public async segmentTranscript(
     transcript: string,
-    model = 'deepseek-r1:70b',
+    model = 'deepseek-r1:70b'
   ): Promise<Record<string, string>> {
     if (
       !transcript ||
@@ -37,114 +44,159 @@ export class AIContentService {
       );
     }
 
-    console.log('🔍 Starting transcript segmentation...');
+    console.log('🔍 Starting change-detection transcript segmentation...');
     console.log('📝 Transcript length:', transcript.length);
-    console.log('📋 First 200 chars of transcript:', transcript.substring(0, 200));
-
-    // Preprocess transcript for better topic analysis
-    const cleanedTranscript = preprocessTranscriptForAnalysis(transcript);
-
-    const prompt = `You are analyzing a lecture transcript to identify NATURAL TOPIC BOUNDARIES.
-
-The transcript is formatted as:
-[TIMESTAMP] Content text for that section
-
-INSTRUCTIONS:
-1. Read through the content and identify where sub topics or themes change
-2. Look for natural transitions: new concepts, different subjects, conclusion statements
-3. Each segment should contain substantial content (minimum 5 minutes)
-4. Return the END timestamps where topics naturally conclude
-
-REQUIREMENTS:
-- Only break at genuine topic changes, not arbitrary time intervals
-- Minimum 5-minute gaps between segments
-- return the timestamps in format as shown in brackets
-- Include the final timestamp as the last segment boundary
-
-For the transcript below, identify where topics naturally transition and return ONLY the END timestamps of each topic section as a JSON array.
-
-TRANSCRIPT:
-${cleanedTranscript}
-
-Return JSON array of topic boundary timestamps:`;
 
     try {
-      console.log('🤖 Calling AI model for end times...');
-      const response = await axios.post(`${this.ollimaApiBaseUrl}/generate`, {
-        model: model,
-        prompt: prompt,
-        stream: false,
-        format: 'json',
-        options: {
-          temperature: 0.0,
-        },
-      });
-
-      if (response.data && typeof response.data.response === 'string') {
-        const generatedText = response.data.response;
-        console.log('✅ AI response received for end times');
-        console.log('📋 Raw AI response:', generatedText);
-
-        try {
-          let endTimes = JSON.parse(generatedText);
-
-          // Handle different response formats from the LLM
-          if (typeof endTimes === 'object' && endTimes !== null && !Array.isArray(endTimes)) {
-            // Handle object with array property
-            const keys = Object.keys(endTimes);
-            const arrayKey = keys.find(key => Array.isArray(endTimes[key]));
-            if (arrayKey) {
-              console.log(`Found end times array under key: '${arrayKey}'`);
-              const extractedArray = endTimes[arrayKey];
-
-              // Check if the array contains objects with a 'timestamp' key
-              if (
-                Array.isArray(extractedArray) &&
-                extractedArray.length > 0 &&
-                typeof extractedArray[0] === 'object' &&
-                extractedArray[0] !== null &&
-                'timestamp' in extractedArray[0]
-              ) {
-                console.log('🤖 Array contains objects with timestamps. Extracting...');
-                endTimes = extractedArray.map((item: any) => item.timestamp.toString());
-                console.log('✅ Extracted timestamps:', endTimes);
-              } else {
-                endTimes = extractedArray;
-              }
-            } else {
-              throw new Error('AI returned object without timestamp array');
+      // STAGE 1: Change detection at minute intervals
+      console.log('🔄 Stage 1: Detecting topic changes at minute intervals...');
+      const boundaries: string[] = [];
+      
+      // Get the transcript duration and determine minute boundaries
+      const lines = transcript.split('\n').filter(line => line.trim());
+      const timestampRegex = /^\[(\d{2}):(\d{2})\.\d{3}\s+-->\s+(\d{2}):(\d{2})\.\d{3}\]/;
+      
+      // Find the last timestamp to determine total duration
+      let maxMinutes = 0;
+      for (const line of lines) {
+        const match = line.match(timestampRegex);
+        if (match) {
+          const endMinutes = parseInt(match[3]);
+          const endSeconds = parseInt(match[4]);
+          const totalMinutes = endMinutes + (endSeconds >= 30 ? 1 : 0);
+          maxMinutes = Math.max(maxMinutes, totalMinutes);
+        }
+      }
+      
+      console.log(`🔧 DEBUG: Video duration is ${maxMinutes} minutes - processing entire video`);
+      
+      // Check for topic changes at each minute boundary (01:00, 02:00, 03:00, etc.)
+      for (let minute = 1; minute <= maxMinutes; minute++) {
+        const minuteTimestamp = `${minute.toString().padStart(2, '0')}:00`;
+        console.log(`🔧 DEBUG: Checking topic change at ${minuteTimestamp} (${minute}/${maxMinutes})`);
+        
+        // Get content before and after this minute mark
+        const beforeLines: string[] = [];
+        const afterLines: string[] = [];
+        
+        for (const line of lines) {
+          const match = line.match(timestampRegex);
+          if (match) {
+            const startMinutes = parseInt(match[1]);
+            const startSeconds = parseInt(match[2]);
+            const lineTimeInSeconds = startMinutes * 60 + startSeconds;
+            const boundaryTimeInSeconds = minute * 60;
+            
+            // Include lines within 30 seconds before/after the minute mark
+            if (lineTimeInSeconds >= boundaryTimeInSeconds - 30 && lineTimeInSeconds < boundaryTimeInSeconds) {
+              beforeLines.push(line);
+            } else if (lineTimeInSeconds >= boundaryTimeInSeconds && lineTimeInSeconds < boundaryTimeInSeconds + 30) {
+              afterLines.push(line);
             }
           }
-
-          if (!Array.isArray(endTimes) || !endTimes.every(t => typeof t === 'string')) {
-            console.error('❌ LLM did not return a valid JSON array of strings for end times.');
-            console.error('🔍 Received data type:', typeof endTimes);
-            console.error('🔍 Is array?:', Array.isArray(endTimes));
-            console.error('🔍 Raw response:', generatedText);
-            return {};
-          }
-
-          console.log('✅ Successfully parsed end times:', endTimes);
-
-          // Use the helper to segment the transcript
-          console.log('📊 Starting transcript segmentation with helper...');
-          const segmentedTranscript = segmentTranscriptByTimes(endTimes, transcript);
-        
-          console.log('📈 Number of segments created:', Object.keys(segmentedTranscript.segments).length);
-          
-          return segmentedTranscript.segments;
-        } catch (parseError: any) {
-          console.error('❌ Failed to parse LLM response as JSON:', parseError.message);
-          console.error('🔍 Raw response that failed to parse:', generatedText);
-          return {};
         }
-      } else {
-        console.error('❌ LLM response was empty or in an invalid format.');
-        console.error('🔍 Response data:', response.data);
-        throw new InternalServerError('LLM response was empty or in an invalid format.');
+        
+        // Skip if we don't have content on both sides
+        if (beforeLines.length === 0 || afterLines.length === 0) {
+          console.log(`⏭️ Skipping ${minuteTimestamp} - insufficient content`);
+          continue;
+        }
+        
+        const beforeContent = beforeLines.join('\n');
+        const afterContent = afterLines.join('\n');
+        const cleanedBefore = preprocessTranscriptForAnalysis(beforeContent);
+        const cleanedAfter = preprocessTranscriptForAnalysis(afterContent);
+        
+        const changeDetectionPrompt = `Analyze this transcript content and determine if there is a significant topic change at the ${minuteTimestamp} minute mark.
+
+BEFORE (content leading up to ${minuteTimestamp}):
+${cleanedBefore}
+
+AFTER (content starting from ${minuteTimestamp}):
+${cleanedAfter}
+
+Question: At the ${minuteTimestamp} mark, does a new technical topic begin that is clearly distinct from the previous segment??
+
+Respond with ONLY "YES" or "NO", nothing else.
+
+Answer:`;
+
+        try {
+          const response = await axios.post(`${this.ollimaApiBaseUrl}/generate`, {
+            model: model,
+            prompt: changeDetectionPrompt,
+            stream: false,
+            options: {
+              temperature: 0.0,
+            },
+          });
+
+          if (response.data && typeof response.data.response === 'string') {
+            let answer = response.data.response.trim().toUpperCase();
+            console.log(`🔧 DEBUG: Response for ${minuteTimestamp}:`, answer);
+            
+            // Extract YES/NO from response, handling <THINK> tags
+            let finalAnswer = '';
+            const thinkMatch = answer.match(/<THINK>[\s\S]*?<\/THINK>\s*(YES|NO)/);
+            if (thinkMatch) {
+              finalAnswer = thinkMatch[1];
+            } else {
+              // If no <THINK> tags, look for YES or NO in the response
+              if (answer.includes('YES') && !answer.includes('NO')) {
+                finalAnswer = 'YES';
+              } else if (answer.includes('NO') && !answer.includes('YES')) {
+                finalAnswer = 'NO';
+              } else {
+                // If both or neither, take the last line
+                const lines = answer.split('\n').filter(line => line.trim());
+                if (lines.length > 0) {
+                  const lastLine = lines[lines.length - 1].trim();
+                  if (lastLine === 'YES' || lastLine === 'NO') {
+                    finalAnswer = lastLine;
+                  }
+                }
+              }
+            }
+            
+            console.log(`🔧 DEBUG: Extracted answer: "${finalAnswer}"`);
+            const isTopicChange = finalAnswer === 'YES';
+            
+            if (isTopicChange) {
+              // Find the exact timestamp closest to this minute mark
+              let closestTimestamp = `${minuteTimestamp}.000`;
+              for (const line of afterLines) {
+                const match = line.match(/^\[(\d{2}:\d{2}\.\d{3})/);
+                if (match) {
+                  closestTimestamp = match[1];
+                  break;
+                }
+              }
+              boundaries.push(closestTimestamp);
+              console.log(`✅ Topic change detected at ${closestTimestamp}`);
+            } else {
+              console.log(`➡️ No topic change at ${minuteTimestamp}`);
+            }
+          } else {
+            console.warn(`⚠️ Failed to get change detection response for ${minuteTimestamp}`);
+          }
+        } catch (error) {
+          console.error(`❌ Error in change detection for ${minuteTimestamp}:`, error);
+        }
       }
+
+      // STAGE 2: Create segments from detected boundaries
+      console.log('🔄 Stage 2: Creating segments from detected boundaries...');
+      console.log(`🎯 Found ${boundaries.length} topic boundaries:`, boundaries);
+      
+      const segments = createSegmentsFromBoundaries(transcript, boundaries);
+
+      console.log(`📈 Successfully created ${Object.keys(segments).length} segments`);
+      console.log('🏷️ Detected boundaries:', boundaries.join(', '));
+
+      return segments;
+
     } catch (error: any) {
-      console.error('❌ Error in segmentation:', error.message);
+      console.error('❌ Error in two-stage segmentation:', error.message);
       if (axios.isAxiosError(error)) {
         console.error('🔍 Ollima API Error:', {
           status: error.response?.status,

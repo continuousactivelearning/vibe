@@ -1,16 +1,18 @@
 export function preprocessTranscriptForAnalysis(transcript: string): string {
-  const lines = transcript.split('\n').filter(line => line.trim().includes('-->'));
+  const lines = transcript.split('\n').filter(line => line.trim());
   
   // Extract just the text content with timestamps for reference
   const cleanedContent: string[] = [];
   
   for (const line of lines) {
-    const timeMatch = line.match(/\[(\d{2}:\d{2}\.\d{3}) --> (\d{2}:\d{2}\.\d{3})\]\s*(.+)/);
+    // Match the format [MM:SS.mmm --> MM:SS.mmm] text content
+    const timeMatch = line.match(/^\[(\d{2}:\d{2}\.\d{3})\s+-->\s+(\d{2}:\d{2}\.\d{3})\]\s*(.+)/);
     if (timeMatch) {
       const startTime = timeMatch[1];
+      const endTime = timeMatch[2];
       const text = timeMatch[3].trim();
       
-      // Add timestamp reference and clean text
+      // Add timestamp reference and clean text (using start time for reference)
       cleanedContent.push(`[${startTime}] ${text}`);
     }
   }
