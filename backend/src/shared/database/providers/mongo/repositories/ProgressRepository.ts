@@ -23,6 +23,15 @@ class ProgressRepository {
       await this.db.getCollection<IWatchTime>('watchTime');
   }
 
+  async getCompletedItems(userId: string, courseId: string, courseVersionId: string): Promise<String[]> {
+    const userProgress = await this.watchTimeCollection.find({
+      userId: new ObjectId(userId),
+      courseId: new ObjectId(courseId),
+      courseVersionId: new ObjectId(courseVersionId),
+    }).project({ itemId: 1, _id: 0 }).toArray();
+    return userProgress.map(item => item.itemId.toString()) as String[];
+  }
+
   async findProgress(
     userId: string | ObjectId,
     courseId: string,

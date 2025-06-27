@@ -1,4 +1,8 @@
 
+import { IAuthService } from '#root/modules/auth/interfaces/IAuthService.js';
+import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
+import { AUTH_TYPES } from '#root/modules/auth/types.js';
+import { Course, CourseVersionDataResponse } from '#root/modules/courses/classes/index.js';
 import { EnrollmentRole, IEnrollment, IProgress } from '#root/shared/interfaces/models.js';
 import {
   EnrolledUserResponse,
@@ -8,7 +12,9 @@ import {
   EnrollmentParams,
   EnrollmentBody,
   EnrollmentResponse,
+  EnrollmentDataResponse,
   EnrollmentNotFoundErrorResponse,
+  CourseVersionEnrollmentResponse,
 } from '#users/classes/validators/EnrollmentValidators.js';
 import { EnrollmentService } from '#users/services/EnrollmentService.js';
 import { USERS_TYPES } from '#users/types.js';
@@ -24,6 +30,7 @@ import {
   BadRequestError,
   NotFoundError,
   Body,
+  Req,
 } from 'routing-controllers';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 
@@ -36,6 +43,9 @@ export class EnrollmentController {
   constructor(
     @inject(USERS_TYPES.EnrollmentService)
     private readonly enrollmentService: EnrollmentService,
+
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: IAuthService,
   ) { }
 
   @OpenAPI({
@@ -111,7 +121,7 @@ export class EnrollmentController {
     summary: 'Get all enrollments for a user',
     description: 'Retrieves a paginated list of all course enrollments for a user.',
   })
-  @Get('/:userId/enrollments')
+  @Get('/enrollments')
   @HttpCode(200)
   @ResponseSchema(EnrollmentResponse, {
     description: 'Paginated list of user enrollments',
@@ -125,14 +135,14 @@ export class EnrollmentController {
     statusCode: 400,
   })
   async getUserEnrollments(
-    @Param('userId') userId: string,
+    @Req() request: any,
     @QueryParam('page') page = 1,
     @QueryParam('limit') limit = 10,
   ): Promise<EnrollmentResponse> {
     //convert page and limit to integers
     page = parseInt(page as unknown as string, 10);
     limit = parseInt(limit as unknown as string, 10);
-
+    const userId = await this.authService.getUserIdFromReq(request);
     if (page < 1 || limit < 1) {
       throw new BadRequestError('Page and limit must be positive integers.');
     }
@@ -182,8 +192,56 @@ export class EnrollmentController {
     );
     return new EnrolledUserResponse(
       enrollmentData.role,
-      enrollmentData.status,
+      enrollmentData.status,  
       enrollmentData.enrollmentDate,
     );
   }
+
+  @OpenAPI({
+    summary: 'Get all enrollments for a course version',
+    description: 'Retrieves a paginated list of all users enrolled in a specific course version.',
+  })
+  @Get('/enrollments/courses/:courseId/versions/:courseVersionId')
+  @HttpCode(200)
+  @ResponseSchema(CourseVersionEnrollmentResponse, {
+    description: 'Paginated list of enrollments for the course version',
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    description: 'No enrollments found for the course version',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid page or limit parameters',
+    statusCode: 400,
+  })
+  async getCourseVersionEnrollments(
+    @Param('courseId') courseId: string,
+    @Param('courseVersionId') courseVersionId: string,
+    @QueryParam('page') page = 1,
+    @QueryParam('limit') limit = 10,
+  ): Promise<CourseVersionEnrollmentResponse> {
+    // Convert page and limit to integers
+    page = parseInt(page as unknown as string, 10);
+    limit = parseInt(limit as unknown as string, 10);
+
+    if (page < 1 || limit < 1) {
+      throw new BadRequestError('Page and limit must be positive integers.');
+    }
+    const skip = (page - 1) * limit;
+
+    const enrollments = await this.enrollmentService.getCourseVersionEnrollments(
+      courseId,
+      courseVersionId,
+      skip,
+      limit,
+    );
+
+    if (!enrollments || enrollments.length === 0) {
+      throw new NotFoundError('No enrollments found for the given course version.');
+    }
+
+    return {
+      enrollments: enrollments
+  };
+}
 }

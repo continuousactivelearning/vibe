@@ -2,46 +2,20 @@ import React, { useRef, useEffect, useState, useCallback, JSX, use } from 'react
 import ReactDOM from 'react-dom';
 import { ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import GestureDetector from '../ai-components/GestureDetector';
-import BlurDetection from '../ai-components/BlurDetector';
-import SpeechDetector from '../ai-components/SpeechDetector';
-import FaceDetectors from '../ai-components/FaceDetectors';
-import FaceRecognitionOverlay from '../ai-components/FaceRecognitionOverlay';
-import { FaceRecognition, FaceRecognitionDebugInfo } from '../ai-components/FaceRecognitionComponent';
+import GestureDetector from './ai/GestureDetector';
+import BlurDetection from './ai/BlurDetector';
+import SpeechDetector from './ai/SpeechDetector';
+import FaceDetectors from './ai/FaceDetectors';
+import FaceRecognitionOverlay from './ai/FaceRecognitionOverlay';
+import { FaceRecognition, FaceRecognitionDebugInfo } from './ai/FaceRecognitionComponent';
 // import FaceRecognitionIntegrated from '../ai-components/FaceRecognitionIntegrated';
-import useCameraProcessor from '../ai-components/useCameraProcessor';
-import { useReportAnomaly } from '@/lib/api/hooks';
+import useCameraProcessor from './ai/useCameraProcessor';
+import { useReportAnomaly } from '@/hooks/hooks';
 
-import { useAuthStore } from '@/lib/store/auth-store';
-import { useCourseStore } from '@/lib/store/course-store';
+import { useAuthStore } from '@/store/auth-store';
+import { useCourseStore } from '@/store/course-store';
 
-// Proctoring settings interface based on the backend structure
-interface IDetectorSettings {
-  detectorName: string;
-  settings: {
-    enabled: boolean;
-  };
-}
-
-interface ProctoringSettings {
-  _id: string;
-  studentId: string;
-  versionId: string;
-  courseId: string;
-  settings: {
-    proctors: {
-      detectors: IDetectorSettings[];
-    };
-  };
-}
-
-interface FloatingVideoProps {
-  isVisible?: boolean;
-  onClose?: () => void;
-  onAnomalyDetected?: (hasAnomaly: boolean) => void;
-  setDoGesture: (value: boolean) => void;
-  settings?: ProctoringSettings;
-}
+import type { IDetectorSettings, StudentProctoringSettings, FloatingVideoProps } from '@/types/video.types';
 
 let flag = 0;
 function FloatingVideo({
@@ -62,6 +36,7 @@ function FloatingVideo({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isPoppedOut, setIsPoppedOut] = useState(true);
   const [anomaly, setAnomaly] = useState(false);
+  const [anomalyType, setAnomalyType] = useState("");
 
 
   // Original aspect ratio (maintain the initial component ratio)
@@ -96,13 +71,13 @@ function FloatingVideo({
 
   // Helper function to check if a specific proctoring component is enabled
   const isComponentEnabled = useCallback((componentName: string): boolean => {
-    if (!settings?.settings?.proctors?.detectors) return false;
+    if (!settings?.settings?.proctors?.detectors) return true;
     
     const detector = settings.settings.proctors.detectors.find(
       (detector) => detector.detectorName === componentName
     );
     
-    return detector?.settings?.enabled ?? false;
+    return detector?.settings?.enabled ?? true;
   }, [settings]);
 
   // Check which components are enabled
@@ -171,7 +146,6 @@ function FloatingVideo({
     if (anomaly) {
       reportAnomaly({
         body: {
-          userId: authStore.user?.userId || "",
           courseId: courseStore.currentCourse?.courseId || "",
           courseVersionId: courseStore.currentCourse?.versionId || "",
           moduleId: courseStore.currentCourse?.moduleId || "",
@@ -181,7 +155,7 @@ function FloatingVideo({
         }
       });
     }
-  }, [anomaly]);
+  }, [anomaly, anomalyType, courseStore.currentCourse?.courseId, courseStore.currentCourse?.itemId, courseStore.currentCourse?.moduleId, courseStore.currentCourse?.sectionId, courseStore.currentCourse?.versionId, reportAnomaly]);
 
   // Function to restart video stream
   const restartVideo = useCallback(async () => {
@@ -274,32 +248,13 @@ function FloatingVideo({
 
       // If there are any new penalty points, increment the cumulative score
       if (newPenaltyPoints > 0) {
+        setAnomaly(true);
         setPenaltyPoints((prevPoints) => prevPoints + newPenaltyPoints);
         setPenaltyType(newPenaltyType);
-
-        const anomalyType = newPenaltyType === "Focus" ? "focus": newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" :  "faceRecognition";
-        // here to add the hook
-
-        console.log({body: {
-            userId: authStore.user?.userId || "", 
-            courseId: courseStore.currentCourse?.courseId || "", 
-            courseVersionId: courseStore.currentCourse?.versionId || "",
-            moduleId: courseStore.currentCourse?.moduleId || "",
-            sectionId: courseStore.currentCourse?.sectionId || "",
-            itemId: courseStore.currentCourse?.itemId || "",
-            anomalyType: anomalyType
-        }});
-        reportAnomaly({
-          body: {
-            userId: authStore.user?.userId || "", 
-            courseId: courseStore.currentCourse?.courseId || "", 
-            courseVersionId: courseStore.currentCourse?.versionId || "",
-            moduleId: courseStore.currentCourse?.moduleId || "",
-            sectionId: courseStore.currentCourse?.sectionId || "",
-            itemId: courseStore.currentCourse?.itemId || "",
-            anomalyType: anomalyType
-        }})
-        console.log(data, error)
+        setAnomalyType(newPenaltyType === "Focus" ? "focus": newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" :  "faceRecognition");
+      }
+      else {
+        setAnomaly(false);
       }
     }, 1000); // Update every second
 
@@ -309,8 +264,7 @@ function FloatingVideo({
     facesCount, 
     isBlur, 
     isFocused, 
-    reportAnomaly, 
-    authStore.user?.userId, 
+    reportAnomaly,
     courseStore.currentCourse,
     isVoiceDetectionEnabled,
     isFaceCountDetectionEnabled,

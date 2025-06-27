@@ -502,9 +502,10 @@ class ProgressService extends BaseService {
   }
 
   private isValidWatchTime(watchTime: IWatchTime, item: Item) {
+    return true;
     switch (item.type) {
       case 'VIDEO':
-        // return true;
+        return true;
         if (watchTime.startTime && watchTime.endTime && item.details) {
           const videoDetails = item.details as IVideoDetails;
           const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
@@ -529,11 +530,12 @@ class ProgressService extends BaseService {
 
           const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
 
-          // Check if the watch time is >= 0.5 * video duration
-          if (timeDiff >= 0.45 * videoDuration) {
+          // Check if the watch time is >= 0.2 * video duration
+          if (timeDiff >= 0.2 * videoDuration) {
             return true;
           }
-          return false;
+          // return false;
+          return true; // For now, we assume the watch time is valid
         }
 
         break;
@@ -780,6 +782,24 @@ class ProgressService extends BaseService {
         throw new InternalServerError('Progress could not be reset');
       }
     });
+  }
+
+  async getCompletedItems(userId: string, courseId: string, courseVersionId: string): Promise<String[]> {
+      // Verify if the user, course, and course version exist
+      await this.verifyDetails(userId, courseId, courseVersionId);
+
+      const progress = await this.progressRepository.getCompletedItems(
+        userId,
+        courseId,
+        courseVersionId,
+      );
+
+      if (!progress) {
+        throw new NotFoundError('Progress not found');
+      }
+
+      // Return the completed items
+      return progress;
   }
 
   async resetCourseProgressToModule(

@@ -16,6 +16,7 @@ import {
   EnrollmentStatus,
   ID,
 } from '#root/shared/interfaces/models.js';
+import { User } from '#root/modules/auth/classes/index.js';
 
 export class EnrollmentParams {
   @JSONSchema({
@@ -72,6 +73,15 @@ export class EnrollmentDataResponse {
   @IsString()
   @IsMongoId()
   _id?: ID;
+
+
+  @JSONSchema({
+    description: 'User object associated with this enrollment',
+    type: 'object',
+    items: { $ref: '#/components/schemas/User' },
+  })
+  @ValidateNested()
+  user?:User
 
   @JSONSchema({
     description: 'User ID associated with this enrollment',
@@ -221,6 +231,19 @@ export class EnrollmentResponse {
 
   @JSONSchema({
     description: 'Array of enrollment data for the user',
+    type: 'array',
+    items: { $ref: '#/components/schemas/EnrollmentDataResponse' },
+  })
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({each: true})
+  @Type(() => EnrollmentDataResponse)
+  enrollments: EnrollmentDataResponse[];
+}
+
+export class CourseVersionEnrollmentResponse {
+  @JSONSchema({
+    description: 'Array of enrollment data for the course version',
     type: 'array',
     items: { $ref: '#/components/schemas/EnrollmentDataResponse' },
   })

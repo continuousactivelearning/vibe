@@ -22,9 +22,9 @@ import { markdown } from '@yoopta/exports';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Clock, Star, ChevronRight } from "lucide-react";
-import { useStartItem, useStopItem } from "@/lib/api/hooks";
-import { useAuthStore } from "@/lib/store/auth-store";
-import { useCourseStore } from "@/lib/store/course-store";
+import { useStartItem, useStopItem } from "@/hooks/hooks";
+import { useAuthStore } from "@/store/auth-store";
+import { useCourseStore } from "@/store/course-store";
 
 
 
@@ -43,19 +43,8 @@ const plugins = [
     TodoList,
     Code,
 ];
+import type { ArticleProps, ArticleRef } from "@/types/article.types";
 
-interface ArticleProps {
-    content: string;
-    estimatedReadTimeInMinutes?: string;
-    points?: string;
-    tags?: string[];
-    onNext?: () => void;
-    isProgressUpdating?: boolean;
-}
-
-export interface ArticleRef {
-    stopItem: () => void;
-}
 
 const Article = forwardRef<ArticleRef, ArticleProps>(({ content, estimatedReadTimeInMinutes, points, tags, onNext, isProgressUpdating }, ref) => {
     // ✅ Initialize Yoopta Editor
@@ -63,7 +52,6 @@ const Article = forwardRef<ArticleRef, ArticleProps>(({ content, estimatedReadTi
     const [value, setValue] = useState<YooptaContentValue>();
     
     // ✅ Get user and course data from stores
-    const userId = useAuthStore((state) => state.user?.userId);
     const { currentCourse, setWatchItemId } = useCourseStore();
     const startItem = useStartItem();
     const stopItem = useStopItem();
@@ -72,11 +60,10 @@ const Article = forwardRef<ArticleRef, ArticleProps>(({ content, estimatedReadTi
     const itemStartedRef = useRef(false);
 
     function handleSendStartItem() {
-        if (!userId || !currentCourse?.itemId) return;
+        if (!currentCourse?.itemId) return;
         startItem.mutate({
             params: {
                 path: {
-                    userId,
                     courseId: currentCourse.courseId,
                     courseVersionId: currentCourse.versionId ?? '',
                 },
@@ -92,11 +79,10 @@ const Article = forwardRef<ArticleRef, ArticleProps>(({ content, estimatedReadTi
     }
 
     function handleStopItem() {
-        if (!userId || !currentCourse?.itemId || !currentCourse.watchItemId || !itemStartedRef.current) return;
+        if (!currentCourse?.itemId || !currentCourse.watchItemId || !itemStartedRef.current) return;
         stopItem.mutate({
             params: {
                 path: {
-                    userId,
                     courseId: currentCourse.courseId,
                     courseVersionId: currentCourse.versionId ?? '',
                 },
