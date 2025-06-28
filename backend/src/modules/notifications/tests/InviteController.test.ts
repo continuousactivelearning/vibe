@@ -17,6 +17,7 @@ import { SignUpBody } from '#root/modules/auth/classes/validators/AuthValidators
 import { authContainerModule } from '#root/modules/auth/container.js';
 import { authModuleControllers } from '#root/modules/auth/index.js';
 import { usersModuleControllers } from '#root/modules/users/index.js';
+import { FirebaseAuthService } from '#root/modules/auth/services/FirebaseAuthService.js';
 
 const notificationsContainerModules: ContainerModule[] = [
   notificationsContainerModule,
@@ -141,6 +142,42 @@ describe('InviteController', () => {
       expect(res.status).toBe(200);
       expect(res.body.invites).toBeInstanceOf(Array);
     });
+
+    it('sends invite to two users, accepts invite for one and fetches all the invites for course version', async () => {
+      const email1 = faker.internet.email();
+      const email2 = faker.internet.email();
+      const inviteData = [
+        {
+          email: email1,
+          role:  'STUDENT',
+        },
+        {
+          email: email2,
+          role: 'INSTRUCTOR',
+        },
+      ]
+      const res = await request(app)
+      .post(`/notifications/invite/courses/${courseId}/versions/${version._id.toString()}`)
+      .send({inviteData});
+      expect(res.status).toBe(200);
+      expect(res.body.invites).toBeInstanceOf(Array);
+      const inviteId1 = res.body.invites[0].inviteId;
+      const acceptRes = await request(app).get(`/notifications/invite/${inviteId1}`);
+      expect(acceptRes.status).toBe(200);
+      const invitesRes = await request(app)
+        .get(`/notifications/invite/courses/${courseId}/versions/${version._id.toString()}`);
+      expect(invitesRes.status).toBe(200);
+      expect(invitesRes.body.invites).toBeInstanceOf(Array);
+      expect(invitesRes.body.invites.length).toBe(2);
+      invitesRes.body.invites.forEach((invite: any) => {
+        if (invite.email === email1) {
+          expect(invite.inviteStatus).toBe('ACCEPTED');
+          expect(invite.acceptedAt).toBeDefined();
+        } else if (invite.email === email2) {
+          expect(invite.inviteStatus).toBe('PENDING');
+        }
+      });
+    });
   });
 
   describe('GET /notifications/invite/:inviteId', () => {
@@ -151,10 +188,10 @@ describe('InviteController', () => {
       const inviteId = inviteResponse.body.invites[0].inviteId;
       const res = await request(app).get(`/notifications/invite/${inviteId}`);
       expect(res.status).toBe(200);
-      expect(res.body.message).toBe('Your invite acceptance has been acknowledged. Please sign up to access the course.');
+      expect(res.text).toContain('<h2>Your invite acceptance has been acknowledged. Please sign up to access the course.</h2>');
       // send again
       const resendRes = await request(app).get(`/notifications/invite/${inviteId}`);
-      expect(resendRes.body.message).toBe('You have already accepted this invite.');
+      expect(resendRes.text).toContain('<h2>You have already accepted this invite.</h2>');
       // now create a user
       const signUpBody: SignUpBody = {
         email: email,
@@ -187,14 +224,16 @@ describe('InviteController', () => {
       const inviteId = inviteResponse.body.invites[0].inviteId;
       const res = await request(app).get(`/notifications/invite/${inviteId}`);
       expect(res.status).toBe(200);
-      expect(res.body.message).toBe('You have been successfully enrolled in the course as INSTRUCTOR.');
+      expect(res.headers['content-type']).toContain('text/html');
+      expect(res.text).toContain('<h2>You have been successfully enrolled in the course as INSTRUCTOR.</h2>');
       // send again
       const resendRes = await request(app).get(`/notifications/invite/${inviteId}`);
-      expect(resendRes.body.message).toBe('You have already accepted this invite.');
+      expect(resendRes.text).toContain('<h2>You have already accepted this invite.</h2>');
       // check if user is enrolled
       const userId = signUpResponse.body.userId;
+      vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId)
       const getEnrollmentsResponse = await request(app).get(
-        `/users/${userId}/enrollments?page=1&limit=1`,
+        `/users/enrollments?page=1&limit=1`,
       );
       expect(getEnrollmentsResponse.status).toBe(200);
       expect(getEnrollmentsResponse.body.enrollments).toBeInstanceOf(Array);
@@ -229,7 +268,7 @@ describe('InviteController', () => {
       const res = await request(app).post(`/notifications/invite/cancel/${inviteId}`);
       expect(res.status).toBe(200);
       const res2 = await request(app).get(`/notifications/invite/${inviteId}`);
-      expect(res2.body.message).toBe('This invite has been cancelled.');
+      expect(res2.text).toContain('<h2>This invite has been cancelled.</h2>');
     });
 
     it('returns 400 when cancelling with invalid inviteId', async () => {
@@ -256,9 +295,9 @@ describe('InviteController', () => {
       const inviteId2 = inviteResponse2.body.invites[0].inviteId;
       const res = await request(app).get(`/notifications/invite/${inviteId1}`);
       expect(res.status).toBe(200);
-      expect(res.body.message).toBe('You have been successfully enrolled in the course as STUDENT.');
+      expect(res.text).toContain('<h2>You have been successfully enrolled in the course as STUDENT.</h2>');
       // send on inviteId2
       const resendRes = await request(app).get(`/notifications/invite/${inviteId2}`);
-      expect(resendRes.body.message).toBe('You are already enrolled in this course.');
+      expect(resendRes.text).toContain('<h2>You are already enrolled in this course.</h2>');
   });
 });

@@ -1,21 +1,22 @@
 import { IUser } from '#root/shared/interfaces/models.js';
 import {IsNotEmpty, IsString, IsEmail} from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
+import { ObjectId } from 'mongodb';
 
 /**
  * Validator for Firebase UID parameter in user lookup endpoints.
  *
  * @category Users/Validators
  */
-export class UserByFirebaseUIDParams {
+export class GetUserParams {
   @JSONSchema({
-    description: 'Firebase UID of the user to find',
+    description: 'User ID of the person',
     example: 'cKy6H2O04PgTh8O3DpUXjgJYUr53',
     type: 'string',
   })
   @IsString()
   @IsNotEmpty()
-  firebaseUID: string;
+  userId: string;
 }
 
 /**
@@ -23,7 +24,7 @@ export class UserByFirebaseUIDParams {
  *
  * @category Users/Validators
  */
-export class UserByFirebaseUIDResponse implements IUser {
+export class GetUserResponse implements IUser {
   @JSONSchema({
     description: 'Unique identifier for the user in the database',
     example: '60d5ec49b3f1c8e4a8f8b8c1',
@@ -32,7 +33,7 @@ export class UserByFirebaseUIDResponse implements IUser {
   })
   @IsString()
   @IsNotEmpty()
-  id: string;
+  _id?: string | ObjectId;
 
   @JSONSchema({
     description: 'Firebase UID of the user',
@@ -74,14 +75,31 @@ export class UserByFirebaseUIDResponse implements IUser {
 
   @JSONSchema({
     description: "User's roles",
-    example: ['student'],
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    example: 'admin',
+    type: 'string',
     readOnly: true,
   })
-  roles: string[];
+  roles: 'admin' | 'user';
+}
+
+export class EditUserBody{
+  @JSONSchema({
+    description: "User's first name",
+    example: 'John',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsString()
+  firstName: string;
+
+  @JSONSchema({
+    description: "User's last name",
+    example: 'Smith',
+    type: 'string',
+    readOnly: true,
+  })
+  @IsString()
+  lastName: string;
 }
 
 /**
@@ -101,7 +119,7 @@ export class UserNotFoundErrorResponse {
 }
 
 export const USER_VALIDATORS = [
-  UserByFirebaseUIDParams,
-  UserByFirebaseUIDResponse,
+  GetUserParams,
+  GetUserResponse,
   UserNotFoundErrorResponse
 ]

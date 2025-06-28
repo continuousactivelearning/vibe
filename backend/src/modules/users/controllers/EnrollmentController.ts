@@ -1,4 +1,4 @@
-
+import { AUTH_TYPES } from '#root/modules/auth/types.js';
 import { EnrollmentRole, IEnrollment, IProgress } from '#root/shared/interfaces/models.js';
 import {
   EnrolledUserResponse,
@@ -9,6 +9,7 @@ import {
   EnrollmentBody,
   EnrollmentResponse,
   EnrollmentNotFoundErrorResponse,
+  CourseVersionEnrollmentResponse,
 } from '#users/classes/validators/EnrollmentValidators.js';
 import { EnrollmentService } from '#users/services/EnrollmentService.js';
 import { USERS_TYPES } from '#users/types.js';
@@ -24,8 +25,12 @@ import {
   BadRequestError,
   NotFoundError,
   Body,
+  Authorized,
+  Req,
 } from 'routing-controllers';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
+import { EnrollmentActions } from '../abilities/enrollmentAbilities.js';
+import { IAuthService } from '#root/modules/auth/interfaces/IAuthService.js';
 
 @OpenAPI({
   tags: ['Enrollments'],
@@ -36,13 +41,17 @@ export class EnrollmentController {
   constructor(
     @inject(USERS_TYPES.EnrollmentService)
     private readonly enrollmentService: EnrollmentService,
+
+    @inject(AUTH_TYPES.AuthService)
+    private readonly authService: IAuthService,
   ) { }
 
   @OpenAPI({
     summary: 'Enroll a user in a course version',
     description: 'Enrolls a user in a specific course version with a given role.',
   })
-  @Post('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
+  @Post('/:userId/enrollments/courses/:courseId/versions/:versionId')
+  @Authorized({ action: EnrollmentActions.Create, subject: 'Enrollment' })
   @HttpCode(200)
   @ResponseSchema(EnrollUserResponse, {
     description: 'User enrolled successfully',
@@ -59,12 +68,12 @@ export class EnrollmentController {
     @Params() params: EnrollmentParams,
     @Body() body: EnrollmentBody,
   ): Promise<EnrollUserResponse> {
-    const { userId, courseId, courseVersionId } = params;
+    const { userId, courseId, versionId } = params;
     const { role } = body;
     const responseData = await this.enrollmentService.enrollUser(
       userId,
       courseId,
-      courseVersionId,
+      versionId,
       role,
     ) as { enrollment: IEnrollment; progress: IProgress; role: EnrollmentRole };
 
@@ -79,7 +88,8 @@ export class EnrollmentController {
     summary: 'Unenroll a user from a course version',
     description: 'Removes a user\'s enrollment and progress from a specific course version.',
   })
-  @Post('/:userId/enrollments/courses/:courseId/versions/:courseVersionId/unenroll')
+  @Authorized({ action: EnrollmentActions.Delete, subject: 'Enrollment' })
+  @Post('/:userId/enrollments/courses/:courseId/versions/:versionId/unenroll')
   @HttpCode(200)
   @ResponseSchema(EnrollUserResponse, {
     description: 'User unenrolled successfully',
@@ -92,12 +102,12 @@ export class EnrollmentController {
   async unenrollUser(
     @Params() params: EnrollmentParams,
   ): Promise<EnrollUserResponse> {
-    const { userId, courseId, courseVersionId } = params;
+    const { userId, courseId, versionId } = params;
 
     const responseData = await this.enrollmentService.unenrollUser(
       userId,
       courseId,
-      courseVersionId,
+      versionId,
     );
 
     return new EnrollUserResponse(
@@ -111,7 +121,8 @@ export class EnrollmentController {
     summary: 'Get all enrollments for a user',
     description: 'Retrieves a paginated list of all course enrollments for a user.',
   })
-  @Get('/:userId/enrollments')
+  @Authorized({ action: EnrollmentActions.View, subject: 'Enrollment' })
+  @Get('/enrollments')
   @HttpCode(200)
   @ResponseSchema(EnrollmentResponse, {
     description: 'Paginated list of user enrollments',
@@ -125,14 +136,14 @@ export class EnrollmentController {
     statusCode: 400,
   })
   async getUserEnrollments(
-    @Param('userId') userId: string,
+    @Req() request: any,
     @QueryParam('page') page = 1,
     @QueryParam('limit') limit = 10,
   ): Promise<EnrollmentResponse> {
     //convert page and limit to integers
     page = parseInt(page as unknown as string, 10);
     limit = parseInt(limit as unknown as string, 10);
-
+    const userId = await this.authService.getUserIdFromReq(request);
     if (page < 1 || limit < 1) {
       throw new BadRequestError('Page and limit must be positive integers.');
     }
@@ -162,7 +173,8 @@ export class EnrollmentController {
     summary: 'Get enrollment details for a user in a course version',
     description: 'Retrieves enrollment details, including role and status, for a user in a specific course version.',
   })
-  @Get('/:userId/enrollments/courses/:courseId/versions/:courseVersionId')
+  @Authorized({ action: EnrollmentActions.ViewAll, subject: 'Enrollment' })
+  @Get('/:userId/enrollments/courses/:courseId/versions/:versionId')
   @HttpCode(200)
   @ResponseSchema(EnrolledUserResponse, {
     description: 'Enrollment details for the user in the course version',
@@ -174,16 +186,65 @@ export class EnrollmentController {
   async getEnrollment(
     @Params() params: EnrollmentParams,
   ): Promise<EnrolledUserResponse> {
-    const { userId, courseId, courseVersionId } = params;
+    const { userId, courseId, versionId } = params;
     const enrollmentData = await this.enrollmentService.findEnrollment(
       userId,
       courseId,
-      courseVersionId,
+      versionId,
     );
     return new EnrolledUserResponse(
       enrollmentData.role,
-      enrollmentData.status,
+      enrollmentData.status,  
       enrollmentData.enrollmentDate,
     );
   }
+
+  @OpenAPI({
+    summary: 'Get all enrollments for a course version',
+    description: 'Retrieves a paginated list of all users enrolled in a specific course version.',
+  })
+  @Authorized({ action: EnrollmentActions.ViewAll, subject: 'Enrollment' })
+  @Get('/enrollments/courses/:courseId/versions/:versionId')
+  @HttpCode(200)
+  @ResponseSchema(CourseVersionEnrollmentResponse, {
+    description: 'Paginated list of enrollments for the course version',
+  })
+  @ResponseSchema(EnrollmentNotFoundErrorResponse, {
+    description: 'No enrollments found for the course version',
+    statusCode: 404,
+  })
+  @ResponseSchema(BadRequestError, {
+    description: 'Invalid page or limit parameters',
+    statusCode: 400,
+  })
+  async getCourseVersionEnrollments(
+    @Param('courseId') courseId: string,
+    @Param('versionId') versionId: string,
+    @QueryParam('page') page = 1,
+    @QueryParam('limit') limit = 10,
+  ): Promise<CourseVersionEnrollmentResponse> {
+    // Convert page and limit to integers
+    page = parseInt(page as unknown as string, 10);
+    limit = parseInt(limit as unknown as string, 10);
+
+    if (page < 1 || limit < 1) {
+      throw new BadRequestError('Page and limit must be positive integers.');
+    }
+    const skip = (page - 1) * limit;
+
+    const enrollments = await this.enrollmentService.getCourseVersionEnrollments(
+      courseId,
+      versionId,
+      skip,
+      limit,
+    );
+
+    if (!enrollments || enrollments.length === 0) {
+      throw new NotFoundError('No enrollments found for the given course version.');
+    }
+
+    return {
+      enrollments: enrollments
+  };
+}
 }

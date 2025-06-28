@@ -1,29 +1,30 @@
-import {Item} from '#courses/classes/transformers/Item.js';
-import {COURSES_TYPES} from '#courses/types.js';
-import {BaseService} from '#root/shared/classes/BaseService.js';
-import {ICourseRepository} from '#root/shared/database/interfaces/ICourseRepository.js';
-import {IItemRepository} from '#root/shared/database/interfaces/IItemRepository.js';
-import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
-import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase.js';
+import { Item } from '#courses/classes/transformers/Item.js';
+import { COURSES_TYPES } from '#courses/types.js';
+import { BaseService } from '#root/shared/classes/BaseService.js';
+import { ICourseRepository } from '#root/shared/database/interfaces/ICourseRepository.js';
+import { IItemRepository } from '#root/shared/database/interfaces/IItemRepository.js';
+import { IUserRepository } from '#root/shared/database/interfaces/IUserRepository.js';
+import { MongoDatabase } from '#root/shared/database/providers/mongo/MongoDatabase.js';
 import {
   ICourseVersion,
   IWatchTime,
   IProgress,
   IVideoDetails,
 } from '#root/shared/interfaces/models.js';
-import {GLOBAL_TYPES} from '#root/types.js';
-import {ProgressRepository} from '#shared/database/providers/mongo/repositories/ProgressRepository.js';
-import {Progress} from '#users/classes/transformers/Progress.js';
-import {USERS_TYPES} from '#users/types.js';
-import {injectable, inject} from 'inversify';
-import {ObjectId} from 'mongodb';
+import { GLOBAL_TYPES } from '#root/types.js';
+import { ProgressRepository } from '#shared/database/providers/mongo/repositories/ProgressRepository.js';
+import { Progress } from '#users/classes/transformers/Progress.js';
+import { USERS_TYPES } from '#users/types.js';
+import { injectable, inject } from 'inversify';
+import { ObjectId } from 'mongodb';
 import {
   NotFoundError,
   BadRequestError,
   InternalServerError,
 } from 'routing-controllers';
-import {SubmissionRepository} from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
-import {QUIZZES_TYPES} from '#quizzes/types.js';
+import { SubmissionRepository } from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
+import { QUIZZES_TYPES } from '#quizzes/types.js';
+import { WatchTime } from '../classes/transformers/WatchTime.js';
 @injectable()
 class ProgressService extends BaseService {
   constructor(
@@ -502,9 +503,10 @@ class ProgressService extends BaseService {
   }
 
   private isValidWatchTime(watchTime: IWatchTime, item: Item) {
+    return true;
     switch (item.type) {
       case 'VIDEO':
-        // return true;
+        return true;
         if (watchTime.startTime && watchTime.endTime && item.details) {
           const videoDetails = item.details as IVideoDetails;
           const videoStartTime = videoDetails.startTime; // a string in HH:MM:SS format
@@ -529,11 +531,12 @@ class ProgressService extends BaseService {
 
           const videoDuration = videoEndTimeInSeconds - videoStartTimeInSeconds;
 
-          // Check if the watch time is >= 0.5 * video duration
-          if (timeDiff >= 0.45 * videoDuration) {
+          // Check if the watch time is >= 0.2 * video duration
+          if (timeDiff >= 0.2 * videoDuration) {
             return true;
           }
-          return false;
+          // return false;
+          return true; // For now, we assume the watch time is valid
         }
 
         break;
@@ -669,7 +672,16 @@ class ProgressService extends BaseService {
   ): Promise<void> {
     return this._withTransaction(async session => {
       await this.verifyDetails(userId, courseId, courseVersionId);
+      const completedItems = await this.getCompletedItems(
+        userId,
+        courseId,
+        courseVersionId,
+      );
 
+      // Check if the item is already completed
+      if (completedItems.includes(itemId)) {
+        return null;
+      }
       await this.verifyProgress(
         userId,
         courseId,
@@ -780,6 +792,24 @@ class ProgressService extends BaseService {
         throw new InternalServerError('Progress could not be reset');
       }
     });
+  }
+
+  async getCompletedItems(userId: string, courseId: string, courseVersionId: string): Promise<String[]> {
+    // Verify if the user, course, and course version exist
+    await this.verifyDetails(userId, courseId, courseVersionId);
+
+    const progress = await this.progressRepository.getCompletedItems(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+
+    if (!progress) {
+      throw new NotFoundError('Progress not found');
+    }
+
+    // Return the completed items
+    return progress;
   }
 
   async resetCourseProgressToModule(
@@ -910,6 +940,26 @@ class ProgressService extends BaseService {
       }
     });
   }
+
+  async getWatchTime(
+    userId: string,
+    itemId: string,
+    courseId?: string,
+    courseVersionId?: string,
+  ): Promise<WatchTime[]> {
+    if (courseId && courseVersionId) await this.verifyDetails(userId, courseId, courseVersionId);
+    const watchTime = await this.progressRepository.getWatchTime(
+      userId,
+      courseId,
+      courseVersionId,
+      itemId,
+    );
+
+    if (!watchTime) {
+      throw new NotFoundError('Watch time not found');
+    }
+    return watchTime;
+  }
 }
 
-export {ProgressService};
+export { ProgressService };

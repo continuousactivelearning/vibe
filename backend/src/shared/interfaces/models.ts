@@ -7,7 +7,7 @@ export interface IUser {
   email: string;
   firstName: string;
   lastName: string;
-  roles: string[];
+  roles: 'admin' | 'user';
 }
 
 export type Versions = {
@@ -429,4 +429,16 @@ export interface IUserAnomaly {
   sectionId?: string | ObjectId;
   itemId?: string | ObjectId;
   anomalyType: string;
+}
+
+export interface AuthenticatedUserEnrollements {
+    courseId: string,
+    versionId: string,
+    role: "STUDENT" | "INSTRUCTOR" | "MANAGER" | "TA" | "STAFF",
+}
+
+export interface AuthenticatedUser {
+    userId: string,
+    globalRole: 'admin' | 'user',
+    enrollments: AuthenticatedUserEnrollements[],
 }

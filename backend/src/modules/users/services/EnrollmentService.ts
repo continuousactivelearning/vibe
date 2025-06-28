@@ -186,6 +186,66 @@ export class EnrollmentService extends BaseService {
     });
   }
 
+  async getAllEnrollments(userId: string) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const result = await this.enrollmentRepo.getAllEnrollments(
+        userId,
+        session
+      );
+      return result.map(enrollment => ({
+        ...enrollment,
+        _id: enrollment._id.toString(),
+        courseId: enrollment.courseId.toString(),
+        courseVersionId: enrollment.courseVersionId.toString(),
+      }));
+    });
+  }
+
+  async getCourseVersionEnrollments(
+    courseId: string,
+    courseVersionId: string,
+    skip: number,
+    limit: number,
+  ) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const courseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
+        throw new NotFoundError(
+          'Course version not found or does not belong to this course',
+        );
+      }
+
+      const result = await this.enrollmentRepo.getCourseVersionEnrollments(
+        courseId,
+        courseVersionId,
+        skip,
+        limit,
+      );
+      
+      // Create enriched enrollments with user data
+      const resultWithUsers = [];
+      for (var i = 0; i < result.length; i++) {
+        const user = await this.userRepo.findById(result[i].userId);
+        resultWithUsers.push({
+          ...result[i],
+          user: user,
+        });
+      }
+      
+      // find user for each enrollment
+      return resultWithUsers.map(enrollment => ({
+        ...enrollment,
+        _id: enrollment._id.toString(),
+        userId: enrollment.userId.toString(),
+        courseId: enrollment.courseId.toString(),
+        courseVersionId: enrollment.courseVersionId.toString(),
+      }));
+    });
+  }
+
   async countEnrollments(userId: string) {
     return this._withTransaction(async (session: ClientSession) => {
       const result = await this.enrollmentRepo.countEnrollments(userId);

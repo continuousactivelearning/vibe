@@ -1,11 +1,14 @@
-import {coursesModuleOptions, setupCoursesContainer} from '../index.js';
-import {useExpressServer, useContainer} from 'routing-controllers';
+import {coursesContainerModules, coursesModuleOptions, setupCoursesContainer} from '../index.js';
+import {useExpressServer, useContainer, RoutingControllersOptions} from 'routing-controllers';
 import Express from 'express';
 import request from 'supertest';
 import {ItemType} from '#shared/interfaces/models.js';
 import {faker} from '@faker-js/faker';
 import {CreateItemBody} from '../classes/validators/ItemValidators.js';
 import {describe, it, expect, beforeAll, beforeEach, vi} from 'vitest';
+import { currentUserChecker } from '#root/shared/functions/currentUserChecker.js';
+import { InversifyAdapter } from '#root/inversify-adapter.js';
+import { Container } from 'inversify';
 
 describe('Course Version Controller Integration Tests', () => {
   const App = Express();
@@ -13,8 +16,20 @@ describe('Course Version Controller Integration Tests', () => {
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
-    await setupCoursesContainer();
-    app = useExpressServer(App, coursesModuleOptions);
+    const container = new Container();
+    await container.load(...coursesContainerModules);
+    const inversifyAdapter = new InversifyAdapter(container);
+    useContainer(inversifyAdapter);
+    const options: RoutingControllersOptions = {
+          controllers: coursesModuleOptions.controllers,
+          middlewares: coursesModuleOptions.middlewares,
+          defaultErrorHandler: coursesModuleOptions.defaultErrorHandler,
+          authorizationChecker: async () => true, // Use a simple always-true checker for tests
+          currentUserChecker: currentUserChecker, // Use the spied function
+          validation: coursesModuleOptions.validation,
+        }
+        
+        app = useExpressServer(App, options);
   });
 
   beforeEach(() => {
@@ -222,6 +237,11 @@ describe('Course Version Controller Integration Tests', () => {
       description: 'Module description',
     };
 
+    const modulePayload2 = {
+      name: 'New Module 2',
+      description: 'Module description',
+    };
+
     const sectionPayload = {
       name: 'New Section',
       description: 'Section description',
@@ -268,7 +288,13 @@ describe('Course Version Controller Integration Tests', () => {
           .send(modulePayload)
           .expect(201);
 
+        const module2Response = await request(app)
+          .post(`/courses/versions/${versionId}/modules`)
+          .send(modulePayload2)
+          .expect(201);
+
         const moduleId = moduleResponse.body.version.modules[0].moduleId;
+        const module2Id = module2Response.body.version.modules[1].moduleId;
 
         const sectionResponse = await request(app)
           .post(`/courses/versions/${versionId}/modules/${moduleId}/sections`)
@@ -289,6 +315,12 @@ describe('Course Version Controller Integration Tests', () => {
           .delete(`/courses/${courseId}/versions/${versionId}`)
           .expect(200);
         expect(deleteVersion.body.deletedItem);
+
+        // Check if the version is deleted
+        const readResponse = await request(app)
+          .get(`/courses/versions/${versionId}`)
+          .expect(404);
+        expect(readResponse.body.message).toMatch('Course Version not found');
       }, 90000);
     });
     describe('Failure Scenario', () => {

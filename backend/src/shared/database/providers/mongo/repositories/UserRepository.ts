@@ -90,27 +90,13 @@ export class UserRepository implements IUserRepository {
   /**
    * Adds a role to a user.
    */
-  async addRole(firebaseUID: string, role: string): Promise<IUser | null> {
+  async makeAdmin(userId: string, session?:ClientSession): Promise<void> {
     await this.init();
-    const result = await this.usersCollection.findOneAndUpdate(
-      {firebaseUID},
-      {$addToSet: {roles: role}},
-      {returnDocument: 'after'},
+    await this.usersCollection.updateOne(
+      {_id: new ObjectId(userId)},
+      {$set: {roles: 'admin'}},
+      {session},
     );
-    return instanceToPlain(new User(result)) as IUser;
-  }
-
-  /**
-   * Removes a role from a user.
-   */
-  async removeRole(firebaseUID: string, role: string): Promise<IUser | null> {
-    await this.init();
-    const result = await this.usersCollection.findOneAndUpdate(
-      {firebaseUID},
-      {$pull: {roles: role}},
-      {returnDocument: 'after'},
-    );
-    return instanceToPlain(new User(result)) as IUser;
   }
 
   /**
@@ -127,5 +113,18 @@ export class UserRepository implements IUserRepository {
       {returnDocument: 'after'},
     );
     return instanceToPlain(new User(result)) as IUser;
+  }
+
+  async edit(
+    userId: string,
+    userData: Partial<IUser>,
+    session?: ClientSession,
+  ): Promise<void> {
+    await this.init();
+    await this.usersCollection.updateOne(
+      {_id: new ObjectId(userId)},
+      {$set: userData},
+      {session},
+    );
   }
 }

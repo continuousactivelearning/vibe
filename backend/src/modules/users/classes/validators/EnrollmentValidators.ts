@@ -46,13 +46,13 @@ export class EnrollmentParams {
   @IsMongoId()
   @IsString()
   @IsNotEmpty()
-  courseVersionId: string;
+  versionId: string;
 }
 
 export class EnrollmentBody {
   @JSONSchema({
     description: 'Role of the user',
-    example: 'instructor',
+    example: 'INSTRUCTOR',
     type: 'string',
     enum: ['INSTRUCTOR', 'STUDENT'],
   })
@@ -108,9 +108,9 @@ export class EnrollmentDataResponse {
 
   @JSONSchema({
     description: 'Role of the user',
-    example: 'instructor',
+    example: 'INSTRUCTOR',
     type: 'string',
-    enum: ['instructor', 'student'],
+    enum: ['INSTRUCTOR', 'STUDENT'],
   })
   @IsNotEmpty()
   @IsString()
@@ -163,9 +163,9 @@ export class EnrollUserResponseData {
 export class EnrolledUserResponseData {
   @JSONSchema({
     description: 'Role of the user in the course',
-    example: 'instructor',
+    example: 'INSTRUCTOR',
     type: 'string',
-    enum: ['instructor', 'student'],
+    enum: ['INSTRUCTOR', 'STUDENT'],
   })
   @IsNotEmpty()
   role: EnrollmentRole;
@@ -221,6 +221,19 @@ export class EnrollmentResponse {
 
   @JSONSchema({
     description: 'Array of enrollment data for the user',
+    type: 'array',
+    items: { $ref: '#/components/schemas/EnrollmentDataResponse' },
+  })
+  @IsNotEmpty()
+  @IsArray()
+  @ValidateNested({each: true})
+  @Type(() => EnrollmentDataResponse)
+  enrollments: EnrollmentDataResponse[];
+}
+
+export class CourseVersionEnrollmentResponse {
+  @JSONSchema({
+    description: 'Array of enrollment data for the course version',
     type: 'array',
     items: { $ref: '#/components/schemas/EnrollmentDataResponse' },
   })
