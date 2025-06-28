@@ -1,17 +1,17 @@
 import axios, { AxiosError } from 'axios';
 import { injectable } from 'inversify';
-import { HttpError, InternalServerError } from 'routing-controllers';
-import { preprocessTranscriptForAnalysis } from '../utils/transcriptPreprocessor.js';
-import { questionSchemas } from '../schemas/index.js';
+import { HttpError } from 'routing-controllers';
+import { llmConfig } from '#root/config/llm.js';
 import { extractJSONFromMarkdown } from '../utils/extractJSONFromMarkdown.js';
-import { 
-  createTimeBasedWindows, 
-  createTokenBasedWindows, 
-  detectTopicBoundaries, 
-  createSegmentsFromBoundaries,
-  TranscriptWindow,
-  LabeledWindow 
-} from '../utils/windowSegmentation.js';
+import { questionSchemas } from '../schemas/index.js';
+import { secondsToTimestamp } from '../utils/timeUtils.js';
+
+// --- SEGBOT API Types ---
+interface Segment {
+  text: string;
+  start_time: number;
+  end_time: number;
+}
 
 // --- Type Definitions ---
 export interface GeneratedQuestion {
@@ -27,11 +27,19 @@ export interface GeneratedQuestion {
 
 @injectable()
 export class AIContentService {
-  private readonly ollimaApiBaseUrl = 'http://100.100.108.12:11434/api';
+  private readonly ollimaApiBaseUrl: string;
+  private readonly segbotApiBaseUrl: string;
+
+  constructor() {
+    // Configure Ollama API URL from config
+    this.ollimaApiBaseUrl = `http://${llmConfig.ollamaHost}:${llmConfig.ollamaPort}/api`;
+    // Configure SEGBOT API URL via environment variable
+    this.segbotApiBaseUrl = llmConfig.segbotApiBaseUrl;
+  }
 
   public async segmentTranscript(
     transcript: string,
-    model = 'deepseek-r1:70b'
+    model = llmConfig.ollamaModel
   ): Promise<Record<string, string>> {
     if (
       !transcript ||
@@ -44,166 +52,92 @@ export class AIContentService {
       );
     }
 
-    console.log('🔍 Starting change-detection transcript segmentation...');
+    console.log('🔍 Starting SEGBOT transcript segmentation...');
     console.log('📝 Transcript length:', transcript.length);
+    console.log('🔗 SEGBOT API URL:', this.segbotApiBaseUrl);
 
     try {
-      // STAGE 1: Change detection at minute intervals
-      console.log('🔄 Stage 1: Detecting topic changes at minute intervals...');
-      const boundaries: string[] = [];
-      
-      // Get the transcript duration and determine minute boundaries
-      const lines = transcript.split('\n').filter(line => line.trim());
-      const timestampRegex = /^\[(\d{2}):(\d{2})\.\d{3}\s+-->\s+(\d{2}):(\d{2})\.\d{3}\]/;
-      
-      // Find the last timestamp to determine total duration
-      let maxMinutes = 0;
-      for (const line of lines) {
-        const match = line.match(timestampRegex);
-        if (match) {
-          const endMinutes = parseInt(match[3]);
-          const endSeconds = parseInt(match[4]);
-          const totalMinutes = endMinutes + (endSeconds >= 30 ? 1 : 0);
-          maxMinutes = Math.max(maxMinutes, totalMinutes);
+      // Send raw transcript directly to SEGBOT API
+      // Let Python service handle preprocessing internally
+      const response = await axios.post<Segment[]>(
+        `${this.segbotApiBaseUrl}/segment`,
+        { transcript }, // Send raw transcript text
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          timeout: 30000, // 30 second timeout
         }
-      }
+      );
+
+      const segments = response.data;
+      console.log(`✅ SEGBOT API returned ${segments.length} segments`);
+
+      // Convert segments to the expected format using video timestamp keys
+      const segmentedTranscript: Record<string, string> = {};
       
-      console.log(`🔧 DEBUG: Video duration is ${maxMinutes} minutes - processing entire video`);
-      
-      // Check for topic changes at each minute boundary (01:00, 02:00, 03:00, etc.)
-      for (let minute = 1; minute <= maxMinutes; minute++) {
-        const minuteTimestamp = `${minute.toString().padStart(2, '0')}:00`;
-        console.log(`🔧 DEBUG: Checking topic change at ${minuteTimestamp} (${minute}/${maxMinutes})`);
+      segments.forEach((segment: Segment, index: number) => {
+        // Convert seconds to MM:SS.sss format (video timestamp format)
+        const startTimestamp = secondsToTimestamp(segment.start_time);
+        const endTimestamp = secondsToTimestamp(segment.end_time);
         
-        // Get content before and after this minute mark
-        const beforeLines: string[] = [];
-        const afterLines: string[] = [];
+        // Use start timestamp as the key (this matches your original format)
+        const timestampKey = startTimestamp;
         
-        for (const line of lines) {
-          const match = line.match(timestampRegex);
-          if (match) {
-            const startMinutes = parseInt(match[1]);
-            const startSeconds = parseInt(match[2]);
-            const lineTimeInSeconds = startMinutes * 60 + startSeconds;
-            const boundaryTimeInSeconds = minute * 60;
-            
-            // Include lines within 30 seconds before/after the minute mark
-            if (lineTimeInSeconds >= boundaryTimeInSeconds - 30 && lineTimeInSeconds < boundaryTimeInSeconds) {
-              beforeLines.push(line);
-            } else if (lineTimeInSeconds >= boundaryTimeInSeconds && lineTimeInSeconds < boundaryTimeInSeconds + 30) {
-              afterLines.push(line);
-            }
-          }
-        }
+        segmentedTranscript[timestampKey] = segment.text;
         
-        // Skip if we don't have content on both sides
-        if (beforeLines.length === 0 || afterLines.length === 0) {
-          console.log(`⏭️ Skipping ${minuteTimestamp} - insufficient content`);
-          continue;
-        }
-        
-        const beforeContent = beforeLines.join('\n');
-        const afterContent = afterLines.join('\n');
-        const cleanedBefore = preprocessTranscriptForAnalysis(beforeContent);
-        const cleanedAfter = preprocessTranscriptForAnalysis(afterContent);
-        
-        const changeDetectionPrompt = `Analyze this transcript content and determine if there is a significant topic change at the ${minuteTimestamp} minute mark.
+        console.log(`📑 Segment ${timestampKey}: [${segment.start_time}s - ${segment.end_time}s] Duration: ${(segment.end_time - segment.start_time).toFixed(2)}s (${segment.text.length} chars)`);
+      });
 
-BEFORE (content leading up to ${minuteTimestamp}):
-${cleanedBefore}
-
-AFTER (content starting from ${minuteTimestamp}):
-${cleanedAfter}
-
-Question: At the ${minuteTimestamp} mark, does a new technical topic begin that is clearly distinct from the previous segment??
-
-Respond with ONLY "YES" or "NO", nothing else.
-
-Answer:`;
-
-        try {
-          const response = await axios.post(`${this.ollimaApiBaseUrl}/generate`, {
-            model: model,
-            prompt: changeDetectionPrompt,
-            stream: false,
-            options: {
-              temperature: 0.0,
-            },
-          });
-
-          if (response.data && typeof response.data.response === 'string') {
-            let answer = response.data.response.trim().toUpperCase();
-            console.log(`🔧 DEBUG: Response for ${minuteTimestamp}:`, answer);
-            
-            // Extract YES/NO from response, handling <THINK> tags
-            let finalAnswer = '';
-            const thinkMatch = answer.match(/<THINK>[\s\S]*?<\/THINK>\s*(YES|NO)/);
-            if (thinkMatch) {
-              finalAnswer = thinkMatch[1];
-            } else {
-              // If no <THINK> tags, look for YES or NO in the response
-              if (answer.includes('YES') && !answer.includes('NO')) {
-                finalAnswer = 'YES';
-              } else if (answer.includes('NO') && !answer.includes('YES')) {
-                finalAnswer = 'NO';
-              } else {
-                // If both or neither, take the last line
-                const lines = answer.split('\n').filter(line => line.trim());
-                if (lines.length > 0) {
-                  const lastLine = lines[lines.length - 1].trim();
-                  if (lastLine === 'YES' || lastLine === 'NO') {
-                    finalAnswer = lastLine;
-                  }
-                }
-              }
-            }
-            
-            console.log(`🔧 DEBUG: Extracted answer: "${finalAnswer}"`);
-            const isTopicChange = finalAnswer === 'YES';
-            
-            if (isTopicChange) {
-              // Find the exact timestamp closest to this minute mark
-              let closestTimestamp = `${minuteTimestamp}.000`;
-              for (const line of afterLines) {
-                const match = line.match(/^\[(\d{2}:\d{2}\.\d{3})/);
-                if (match) {
-                  closestTimestamp = match[1];
-                  break;
-                }
-              }
-              boundaries.push(closestTimestamp);
-              console.log(`✅ Topic change detected at ${closestTimestamp}`);
-            } else {
-              console.log(`➡️ No topic change at ${minuteTimestamp}`);
-            }
-          } else {
-            console.warn(`⚠️ Failed to get change detection response for ${minuteTimestamp}`);
-          }
-        } catch (error) {
-          console.error(`❌ Error in change detection for ${minuteTimestamp}:`, error);
-        }
-      }
-
-      // STAGE 2: Create segments from detected boundaries
-      console.log('🔄 Stage 2: Creating segments from detected boundaries...');
-      console.log(`🎯 Found ${boundaries.length} topic boundaries:`, boundaries);
-      
-      const segments = createSegmentsFromBoundaries(transcript, boundaries);
-
-      console.log(`📈 Successfully created ${Object.keys(segments).length} segments`);
-      console.log('🏷️ Detected boundaries:', boundaries.join(', '));
-
-      return segments;
+      console.log(`✅ SEGBOT segmentation completed: ${Object.keys(segmentedTranscript).length} segments`);
+      return segmentedTranscript;
 
     } catch (error: any) {
-      console.error('❌ Error in two-stage segmentation:', error.message);
+      console.error('❌ Error in SEGBOT segmentation:', error.message);
+      
       if (axios.isAxiosError(error)) {
-        console.error('🔍 Ollima API Error:', {
-          status: error.response?.status,
-          data: error.response?.data,
-        });
+        const axiosError = error as AxiosError;
+        
+        if (axiosError.code === 'ECONNREFUSED') {
+          throw new HttpError(
+            503,
+            'SEGBOT API service is unavailable. Please ensure the Python segmentation service is running.'
+          );
+        }
+
+        if (axiosError.response) {
+          const status = axiosError.response.status;
+          const errorData = axiosError.response.data;
+          
+          console.error('🔍 SEGBOT API Error Details:', {
+            status,
+            data: errorData,
+          });
+
+          throw new HttpError(
+            status,
+            `SEGBOT API error: ${(errorData as any)?.detail || 'Unknown error'}`
+          );
+        }
       }
-      return {};
+
+      throw new HttpError(500, `Segmentation failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if SEGBOT API service is healthy
+   */
+  public async checkSegbotHealth(): Promise<boolean> {
+    try {
+      const response = await axios.get(`${this.segbotApiBaseUrl}/`, {
+        timeout: 5000,
+      });
+      
+      return response.status === 200;
+    } catch (error) {
+      console.error('❌ SEGBOT API health check failed:', error);
+      return false;
     }
   }
 
@@ -271,7 +205,7 @@ Each question should:
     globalQuestionSpecification: Array<Record<string, number>>;
     model?: string;
   }): Promise<GeneratedQuestion[]> {
-    const {segments, globalQuestionSpecification, model = 'deepseek-r1:70b'} = args;
+    const {segments, globalQuestionSpecification, model = llmConfig.ollamaModel || 'deepseek-r1:70b'} = args;
 
     if (
       !segments ||
@@ -318,21 +252,21 @@ Each question should:
         for (const [questionType, count] of Object.entries(questionSpecs)) {
           if (typeof count === 'number' && count > 0) {
             try {
-              // Build schema for structured output
-              let format: any;
-              const baseSchema = (questionSchemas as any)[questionType];
-              if (baseSchema) {
-                if (count === 1) {
-                  format = baseSchema;
-                } else {
-                  format = {
-                    type: 'array',
-                    items: baseSchema,
-                    minItems: count,
-                    maxItems: count,
-                  };
+                // Build schema for structured output
+                let format: any;
+                const baseSchema = (questionSchemas as any)[questionType];
+                if (baseSchema) {
+                  if (count === 1) {
+                    format = baseSchema;
+                  } else {
+                    format = {
+                      type: 'array',
+                      items: baseSchema,
+                      minItems: count,
+                      maxItems: count,
+                    };
+                  }
                 }
-              }
 
               const prompt = this.createQuestionPrompt(
                 questionType,
