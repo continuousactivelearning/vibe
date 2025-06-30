@@ -9,8 +9,16 @@ import {
   Delete,
   Params,
   HttpCode,
+  HttpError,
+  BadRequestError,
 } from 'routing-controllers';
 import {Service, Inject} from 'typedi';
+import {instanceToPlain, plainToInstance} from 'class-transformer';
+import {CourseRepository} from 'shared/database/providers/mongo/repositories/CourseRepository';
+import {ItemRepository} from 'shared/database/providers/mongo/repositories/ItemRepository';
+import {ItemsGroup, Item} from '../classes/transformers/Item';
+import {DeleteError} from 'shared/errors/errors';
+import {ItemService} from '../services/ItemService';
 import {
   CreateItemBody,
   UpdateItemBody,
@@ -22,7 +30,6 @@ import {
   DeleteItemParams,
   DeletedItemResponse,
 } from '../classes/validators/ItemValidators';
-import {ItemService} from '../services';
 import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
 import {
@@ -37,8 +44,26 @@ import {
 @Service()
 export class ItemController {
   constructor(
+    @Inject('CourseRepo') private readonly courseRepo: CourseRepository,
+    @Inject('ItemRepo') private readonly itemRepo: ItemRepository,
     @Inject('ItemService') private readonly itemService: ItemService,
-  ) {}
+  ) {
+    if (!this.courseRepo) {
+      throw new Error('CourseRepository is not properly injected');
+    }
+  }
+
+  /**
+   * Create a new item under a specific section of a module in a course version.
+   *
+   * @param params - Route parameters including versionId, moduleId, and sectionId.
+   * @param body - The item data to be created.
+   * @returns The updated itemsGroup and version.
+   *
+   * @throws HTTPError(500) on internal errors.
+   *
+   * @category Courses/Controllers
+   */
 
   @Authorized(['admin'])
   @Post('/versions/:versionId/modules/:moduleId/sections/:sectionId/items')
@@ -76,6 +101,17 @@ export class ItemController {
     );
   }
 
+  /**
+   * Retrieve all items from a section of a module in a course version.
+   *
+   * @param params - Route parameters including versionId, moduleId, and sectionId.
+   * @returns The list of items within the section.
+   *
+   * @throws HTTPError(500) on internal errors.
+   *
+   * @category Courses/Controllers
+   */
+
   @Authorized(['admin', 'instructor', 'student'])
   @Get('/versions/:versionId/modules/:moduleId/sections/:sectionId/items')
   @ResponseSchema(ItemDataResponse, {
@@ -95,9 +131,45 @@ export class ItemController {
       'Retrieves all items from the specified section of a module in a course version.',
   })
   async readAll(@Params() params: ReadAllItemsParams) {
+    try {
+      const {versionId, moduleId, sectionId} = params;
+      //Fetch Version
+      const version = await this.courseRepo.readVersion(versionId);
+
+      //Find Module
+      const module = version.modules.find(m => m.moduleId === moduleId);
+
+      //Find Section
+      const section = module.sections.find(s => s.sectionId === sectionId);
+
+      //Fetch Items
+      const itemsGroup = await this.itemRepo.readItemsGroup(
+        section.itemsGroupId.toString(),
+      );
+
+      return {
+        itemsGroup: itemsGroup,
+      };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpError(500, error.message);
+      }
+    }
     const {versionId, moduleId, sectionId} = params;
     return await this.itemService.readAllItems(versionId, moduleId, sectionId);
   }
+
+  /**
+   * Update an existing item in a section of a module in a course version.
+   *
+   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
+   * @param body - Fields to update, including name, description, type, and itemDetails.
+   * @returns The updated itemsGroup and version.
+   *
+   * @throws HTTPError(500) on internal errors.
+   *
+   * @category Courses/Controllers
+   */
 
   @Authorized(['admin'])
   @Put(
@@ -133,6 +205,14 @@ export class ItemController {
     );
   }
 
+  /**
+   * Delete an item from a section of a module in a course version.
+   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
+   * @return The updated itemsGroup and version.
+   * @throw HTTPError(500) on internal errors.
+   * @category Courses/Controllers
+   */
+
   @Authorized(['instructor', 'admin'])
   @Delete('/itemGroups/:itemsGroupId/items/:itemId')
   @ResponseSchema(DeletedItemResponse, {
@@ -151,10 +231,70 @@ export class ItemController {
     description: 'Deletes an item from a course section permanently.',
   })
   async delete(@Params() params: DeleteItemParams) {
+    try {
+      const {itemsGroupId, itemId} = params;
+
+      if (!itemsGroupId || !itemId) {
+        throw new DeleteError('Missing required parameters');
+      }
+
+      //Fetch ItemsGroup
+      const itemsGroup = await this.itemRepo.readItemsGroup(itemsGroupId);
+      if (!itemsGroup) {
+        throw new DeleteError('ItemsGroup not found');
+      }
+
+      const itemToDelete = itemsGroup.items.find(
+        i => i.itemId.toString() === itemId,
+      );
+
+      if (!itemToDelete) {
+        throw new DeleteError('Item not found');
+      }
+
+      const deletionStatus = await this.itemRepo.deleteItem(
+        itemsGroupId,
+        itemId,
+      );
+
+      if (!deletionStatus) {
+        throw new Error('Unable to delete item');
+      }
+
+      const updatedItemsGroup =
+        await this.itemRepo.readItemsGroup(itemsGroupId);
+
+      return {
+        deletedItem: instanceToPlain(itemToDelete),
+        updatedItemsGroup: instanceToPlain(updatedItemsGroup),
+      };
+    } catch (error) {
+      if (error.message === 'Item not found') {
+        throw new HttpError(404, error.message);
+      }
+      if (error.message === 'Missing required parameters') {
+        throw new BadRequestError(error.message);
+      }
+      if (error instanceof Error) {
+        throw new HttpError(500, error.message);
+      }
+    }
     const {itemsGroupId, itemId} = params;
     return await this.itemService.deleteItem(itemsGroupId, itemId);
   }
 
+  /**
+   * Move an item to a new position within a section by recalculating its order.
+   *
+   * @param params - Route parameters including versionId, moduleId, sectionId, and itemId.
+   * @param body - Movement instructions including `afterItemId` or `beforeItemId`.
+   * @returns The updated itemsGroup and version.
+   *
+   * @throws BadRequestError if both afterItemId and beforeItemId are missing.
+   * @throws HTTPError(500) on internal errors.
+   *
+   * @category Courses/Controllers
+   */
   @Authorized(['admin'])
   @Put(
     '/versions/:versionId/modules/:moduleId/sections/:sectionId/items/:itemId/move',

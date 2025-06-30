@@ -14,7 +14,11 @@ import {
 } from 'routing-controllers';
 import {Service, Inject} from 'typedi';
 import {CreateQuestionBody} from '../classes/validators/QuestionValidator';
+import {BadRequestErrorResponse} from 'shared/middleware/errorHandler';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
 import {QuestionFactory} from '../classes/transformers/Question';
+import {QuestionValidationService} from '../services/QuestionValidationService';
+import {StudentQuestionRenderingStrategy} from '../rendering/strategies/StudentQuestionRenderingStrategy';
 import {QuestionProcessor} from '../question-processing/QuestionProcessor';
 
 @JsonController('/questions')
