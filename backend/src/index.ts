@@ -8,21 +8,23 @@ import {generateOpenAPISpec} from './shared/functions/generateOpenApiSpec.js';
 import {apiReference} from '@scalar/express-api-reference';
 import {loadAppModules} from './bootstrap/loadModules.js';
 import {printStartupSummary} from './utils/logDetails.js';
-import type { CorsOptions } from 'cors';
-import { currentUserChecker } from './shared/functions/currentUserChecker.js';
+import type {CorsOptions} from 'cors';
+import {currentUserChecker} from './shared/functions/currentUserChecker.js';
 
 const app = express();
 
 app.use(loggingHandler);
 
-const {controllers, validators} = await loadAppModules(appConfig.module.toLowerCase());
+const {controllers, validators} = await loadAppModules(
+  appConfig.module.toLowerCase(),
+);
 
 const corsOptions: CorsOptions = {
   origin: appConfig.origins,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
-  optionsSuccessStatus: 204
+  optionsSuccessStatus: 204,
 };
 
 const moduleOptions: RoutingControllersOptions = {

@@ -8,7 +8,9 @@ import {
 import {GLOBAL_TYPES} from './types.js';
 import {dbConfig} from './config/db.js';
 import {CourseRepository} from '#shared/database/providers/mongo/repositories/CourseRepository.js';
-import { FirebaseAuthService } from './modules/auth/services/FirebaseAuthService.js';
+import {FirebaseAuthService} from './modules/auth/services/FirebaseAuthService.js';
+import {GamifyEngineRepository} from './shared/database/providers/mongo/repositories/GamifyEngineRepository.js';
+import {GamifyLayerRepository} from './shared/database/providers/mongo/repositories/GamifyLayerRepository.js';
 
 export const sharedContainerModule = new ContainerModule(options => {
   const uri = dbConfig.url;
@@ -29,6 +31,14 @@ export const sharedContainerModule = new ContainerModule(options => {
   options
     .bind(GLOBAL_TYPES.SettingsRepo)
     .to(SettingsRepository)
+    .inSingletonScope();
+  options
+    .bind(GLOBAL_TYPES.GamifyEngineRepo)
+    .to(GamifyEngineRepository)
+    .inSingletonScope();
+  options
+    .bind(GLOBAL_TYPES.GamifyLayerRepo)
+    .to(GamifyLayerRepository)
     .inSingletonScope();
 
   // Other

@@ -6,6 +6,8 @@ const TYPES = {
   UserRepo: Symbol.for('UserRepo'),
   CourseRepo: Symbol.for('CourseRepo'),
   SettingsRepo: Symbol.for('SettingsRepo'),
+  GamifyEngineRepo: Symbol.for('GamifyEngineRepo'),
+  GamifyLayerRepo: Symbol.for('GamifyLayerRepo'),
 
   //Constants
   uri: Symbol.for('dbURI'),

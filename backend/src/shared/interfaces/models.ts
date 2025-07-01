@@ -408,3 +408,98 @@ export interface IUserAnomaly {
   itemId?: string | ObjectId;
   anomalyType: string;
 }
+
+// Gamification interfaces
+
+// Currently only Number type is supported, but can be extended later.
+export enum GameMetricType {
+  NUMBER = 'Number',
+}
+
+// GameMetric interface
+export interface IGameMetric {
+  _id?: string | ObjectId | null;
+  name: string;
+  description?: string;
+  type: GameMetricType;
+  units: string;
+  defaultIncrementValue: number;
+}
+
+export type Trigger = 'metric'; // defining as a type so that it can be extended later e.g streaks.
+
+export interface IAchievementBase {
+  _id?: string | ObjectId | null;
+  name: string;
+  description: string;
+  trigger: Trigger;
+  badgeUrl: string; // URL to the badge image
+}
+
+export interface IMetricAchievement extends IAchievementBase {
+  trigger: 'metric';
+  metricId: string | ObjectId;
+  metricCount: number;
+  streakDays?: never; // Ensure streakDays is never used here
+}
+
+// UserMetric interface
+export interface IUserGameMetric {
+  _id?: string | ObjectId | null;
+  userId: string | ObjectId;
+  metricId: string | ObjectId;
+  value: number; // Current value of the metric
+  lastUpdated: Date; // Timestamp of the last update
+}
+
+// Achievement interface
+export interface IAchievement {
+  achievementId: string | ObjectId;
+  unlockedAt: Date; // Timestamp when the achievement was unlocked
+}
+
+// UserAchievement interface
+export interface IUserGameAchievement {
+  _id?: string | ObjectId | null;
+  userId: string | ObjectId;
+  achievements: IAchievement[];
+}
+
+// Metrics array interface
+
+export interface IMetrics {
+  metricId: string | ObjectId;
+  value?: number;
+}
+
+// Gamify Engine-trigger (Metric) interface
+export interface IMetricTrigger {
+  userId: string | ObjectId;
+  metrics: IMetrics[]; // Array of metrics with their values
+}
+
+// Event interface
+export interface IEvents {
+  _id?: string | ObjectId | null;
+  eventName: string; // Name of the event
+  eventDescription: string; // Description of the event
+  eventVersion: string; // Version of the event
+  eventPayload: Record<string, any>; // Payload of the event
+}
+
+// Rules interface
+export interface IRule {
+  _id?: string | ObjectId | null;
+  ruleName: string;
+  ruleDescription: string;
+  eventId: string | ObjectId;
+  metricId: string | ObjectId;
+  logic: Record<string, any>;
+  ruleVersion: number;
+}
+
+// response structure
+export interface IMetricTriggerResponse {
+  metricsUpdated: IMetrics[];
+  achievementsUnlocked: IAchievement[];
+}

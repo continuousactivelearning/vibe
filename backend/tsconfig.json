@@ -22,6 +22,7 @@
             "#users/*": ["./modules/users/*"],
             "#quizzes/*": ["./modules/quizzes/*"],
             "#settings/*": ["./modules/settings/*"],
+            "#gamification/*": ["./modules/gamification/*"] 
         },
         "types": ["node", "express"],
         "experimentalDecorators": true,
