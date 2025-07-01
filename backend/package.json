@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "postinstall": "node scripts/class-transformer-0.5.1.patch.js",
     "start": "tsc && node build/index.js",
     "dev": "concurrently \"pnpm run watch:compile\" \"pnpm run watch:build\"",
     "watch:compile": "tsc --watch",
@@ -33,6 +34,7 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
+    "@docusaurus/tsconfig": "3.7.0",
     "@faker-js/faker": "^9.7.0",
     "@jest/globals": "30.0.0-beta.3",
     "@scalar/express-api-reference": "^0.8.4",
@@ -85,6 +87,7 @@
     "@sentry/cli": "^2.43.0",
     "@sentry/node": "^9.27.0",
     "@sentry/profiling-node": "^9.27.0",
+    "@types/nodemailer": "^6.4.17",
     "axios": "^1.9.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -107,6 +110,7 @@
     "lexorank": "^1.0.5",
     "mathjs": "^14.5.2",
     "mongodb": "^6.17.0",
+    "nodemailer": "^7.0.3",
     "reflect-metadata": "^0.2.2",
     "routing-controllers": "^0.11.2",
     "routing-controllers-openapi": "github:adityabmv/routing-controllers-openapi",
