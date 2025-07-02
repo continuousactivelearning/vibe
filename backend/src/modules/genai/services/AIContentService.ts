@@ -31,8 +31,19 @@ export class AIContentService {
   private readonly segbotApiBaseUrl: string;
 
   constructor() {
-    // Configure Ollama API URL from config
-    this.ollimaApiBaseUrl = `http://${llmConfig.ollamaHost}:${llmConfig.ollamaPort}/api`;
+    // Configure Ollama API URL from config - handle cases where OLLAMA_HOST already includes the full URL
+    if (llmConfig.ollamaHost.startsWith('http')) {
+      // OLLAMA_HOST already includes protocol and full URL
+      this.ollimaApiBaseUrl = llmConfig.ollamaHost.endsWith('/api') 
+        ? llmConfig.ollamaHost 
+        : `${llmConfig.ollamaHost}/api`;
+    } else {
+      // OLLAMA_HOST is just hostname/IP
+      this.ollimaApiBaseUrl = `http://${llmConfig.ollamaHost}:${llmConfig.ollamaPort}/api`;
+    }
+    
+    console.log('🔗 Ollama API URL:', this.ollimaApiBaseUrl);
+    
     // Configure SEGBOT API URL via environment variable
     this.segbotApiBaseUrl = llmConfig.segbotApiBaseUrl;
   }

@@ -8,6 +8,7 @@ import {
 } from 'routing-controllers';
 import {injectable, inject} from 'inversify';
 import {Request, Response} from 'express';
+import axios from 'axios';
 
 import {VideoService} from './services/VideoService.js';
 import {AudioService} from './services/AudioService.js';
@@ -51,7 +52,6 @@ export default class GenAIVideoController {
     const tempPaths: string[] = [];
 
     try {
-      console.log('Received /generate/transcript request with body:', body);
       const {youtubeUrl, language} = body;
 
       if (!youtubeUrl) {
@@ -60,7 +60,7 @@ export default class GenAIVideoController {
         });
       }
 
-      let transcript = '';
+      let transcriptionResult: any = null;
 
       if (youtubeUrl) {
         // 1. Download video
@@ -71,21 +71,24 @@ export default class GenAIVideoController {
         const audioPath = await this.audioService.extractAudio(videoPath);
         tempPaths.push(audioPath);
 
-        // 3. Transcribe audio
-        transcript = await this.transcriptionService.transcribe(
-          audioPath,
-          language,
-        );
+        // 3. Transcribe audio using the new method that creates JSON files
+        transcriptionResult = await this.transcriptionService.transcribeAudio(audioPath, language);
+        
+        // Add JSON file to cleanup if it was created
+        if (transcriptionResult.jsonFilePath) {
+          tempPaths.push(transcriptionResult.jsonFilePath);
+        }
       }
 
-      // 4. Return transcript
+      // 4. Return transcript with JSON file information
       return res.json({
         message: 'Transcript generation completed successfully.',
         youtubeUrl: youtubeUrl || null,
-        generatedTranscript: transcript,
+        text: transcriptionResult.text, // Full transcript text
+        chunks: transcriptionResult.chunks, // Segments with timestamp arrays
+        jsonFilePath: transcriptionResult.jsonFilePath, // Path to saved JSON file
       });
     } catch (err: any) {
-      console.error('Error in GenAIVideoController.generateTranscript:', err);
       return res
         .status(err.status || 500)
         .json({message: err.message || 'Internal Server Error'});
@@ -98,11 +101,11 @@ export default class GenAIVideoController {
   @Post('/generate/transcript/segment')
   @HttpCode(200)
   async segmentTranscript(
-    @Body() body: {transcript: string; model?: string},
+    @Body() body: {transcript: string; model?: string; lam?: number},
     @Res() res: Response,
   ) {
     try {
-      const {transcript, model} = body;
+      const {transcript, lam = 3.0} = body;
 
       if (
         !transcript ||
@@ -114,16 +117,53 @@ export default class GenAIVideoController {
         });
       }
 
-      const segments = await this.aiContentService.segmentTranscript(
-        transcript,
-        model,
-      );
+      // Create a temporary JSON file with transcript chunks
+      // For backwards compatibility, we'll create chunks from the raw transcript
+      const tempJsonData = {
+        text: transcript,
+        chunks: transcript.split('.').map((sentence, index) => ({
+          text: sentence.trim(),
+          timestamp: [index * 5, (index + 1) * 5] // Mock timestamps
+        })).filter(chunk => chunk.text.length > 0)
+      };
 
-      return res.json({
-        message: 'Transcript segmentation completed successfully.',
-        segments,
-        segmentCount: segments.length,
-      });
+      const fs = require('fs');
+      const path = require('path');
+      const tempFilePath = path.join('/tmp', `transcript_${Date.now()}.json`);
+      
+      fs.writeFileSync(tempFilePath, JSON.stringify(tempJsonData));
+
+      try {
+        // Call the Fast_Api segmentation service
+        const segmentationResponse = await axios.post(
+          'http://127.0.0.1:8000/segment-transcript',
+          { 
+            file_path: tempFilePath,
+            lam: lam
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 60000,
+          }
+        );
+
+        const segments = segmentationResponse.data.segments || {};
+        
+        // Clean up temp file
+        fs.unlinkSync(tempFilePath);
+
+        return res.json({
+          message: 'Transcript segmentation completed successfully.',
+          segments,
+          segmentCount: Object.keys(segments).length,
+        });
+      } catch (segError) {
+        // Clean up temp file on error
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        throw segError;
+      }
     } catch (err: any) {
       console.error('Error in GenAIVideoController.segmentTranscript:', err);
       return res
@@ -173,7 +213,7 @@ export default class GenAIVideoController {
       versionId: string;
       moduleId: string;
       sectionId: string;
-      courseId: string; // Added courseId parameter
+      courseId: string;
       videoURL: string;
       numQues?: number;
       globalQuestionSpecification?: {
@@ -190,6 +230,7 @@ export default class GenAIVideoController {
         difficulty?: string[];
         tags?: string[];
       };
+      lam?: number; // Add lambda parameter for segmentation
     },
     @Res() res: Response,
   ) {
@@ -197,13 +238,14 @@ export default class GenAIVideoController {
       versionId,
       moduleId,
       sectionId,
-      courseId, // Extract courseId
+      courseId,
       videoURL,
       globalQuestionSpecification,
       videoItemBaseName,
       quizItemBaseName,
       questionBankOptions,
       numQues,
+      lam = 3.0, // Default lambda value
     } = body;
 
     if (!versionId || !moduleId || !sectionId || !videoURL || !courseId) {
@@ -219,12 +261,55 @@ export default class GenAIVideoController {
       tempPaths.push(videoPath);
       const audioPath = await this.audioService.extractAudio(videoPath);
       tempPaths.push(audioPath);
-      const transcript = await this.transcriptionService.transcribe(audioPath);
-
-      // 2. Segment Transcript
-      const segmentsMap = await this.aiContentService.segmentTranscript(transcript);
+      const transcriptionResult = await this.transcriptionService.transcribeAudio(audioPath);
       
-      console.log('Debug: Received segments from segmentTranscript:', Object.keys(segmentsMap));
+      // Add JSON file to cleanup if it was created
+      if (transcriptionResult.jsonFilePath) {
+        tempPaths.push(transcriptionResult.jsonFilePath);
+      }
+
+      // 2. Segment Transcript using Fast_Api service
+      let segmentsMap: Record<string, string> = {};
+      
+      if (transcriptionResult.jsonFilePath) {
+        console.log('🔍 Using Fast_Api segmentation service with JSON file...');
+        try {
+          const segmentationResponse = await axios.post(
+            'http://127.0.0.1:8000/segment-transcript',
+            { 
+              file_path: transcriptionResult.jsonFilePath,
+              lam: lam
+            },
+            {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 60000,
+            }
+          );
+          
+          segmentsMap = segmentationResponse.data.segments || {};
+          console.log(`✅ Fast_Api segmentation completed: ${Object.keys(segmentsMap).length} segments`);
+          
+        } catch (segmentationError: any) {
+          console.error('❌ Error in Fast_Api segmentation service:', segmentationError.message);
+          
+          // Fallback: create a single segment with the entire transcript
+          console.log('📝 Fallback: Using entire transcript as single segment');
+          const lastChunkEndTime = transcriptionResult.chunks && transcriptionResult.chunks.length > 0 
+            ? transcriptionResult.chunks[transcriptionResult.chunks.length - 1].timestamp[1]
+            : 0;
+          segmentsMap = {
+            [lastChunkEndTime.toString()]: transcriptionResult.text
+          };
+        }
+      } else {
+        // Fallback: create a single segment with the entire transcript
+        console.log('📝 No JSON file available, using entire transcript as single segment');
+        segmentsMap = {
+          '0': transcriptionResult.text
+        };
+      }
+      
+      console.log('Debug: Received segments from Fast_Api segmentation service:', Object.keys(segmentsMap));
 
       // 3. Generate Questions for all relevant segments
       const transformedGlobalQuestionSpec = [globalQuestionSpecification || {}];
@@ -451,7 +536,7 @@ export default class GenAIVideoController {
         message:
           'Video items, Quiz items, and Question banks for segments generated successfully from video.',
         videoURL,
-        transcriptPreview: transcript.substring(0, 200) + '...',
+        transcriptPreview: transcriptionResult.text.substring(0, 200) + '...',
         generatedItemsSummary: {
           totalSegmentsProcessed: sortedSegmentIds.length,
           totalVideoItemsCreated: createdVideoItemsInfo.length,

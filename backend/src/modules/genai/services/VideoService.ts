@@ -84,6 +84,39 @@ export class VideoService {
     }
   }
 
+  public async getPlaylistInfo(
+    playlistUrl: string,
+  ): Promise<{title: string; url: string}[]> {
+    try {
+      // This command gets metadata for each video in the playlist in JSON format.
+      const command = `yt-dlp --flat-playlist --dump-json "${playlistUrl}"`;
+      console.log('🎥 Fetching playlist info with command:', command);
+
+      const {stdout} = await execAsync(command, {
+        maxBuffer: 1024 * 1024 * 10, // 10MB buffer
+      });
+
+      // Each line of stdout is a JSON object for a video.
+      const videos = stdout
+        .split('\n')
+        .filter(line => line.trim() !== '')
+        .map(line => {
+          const entry = JSON.parse(line);
+          return {
+            title: entry.title,
+            url: `https://www.youtube.com/watch?v=${entry.id}`,
+          };
+        });
+
+      return videos;
+    } catch (error: any) {
+      console.error('Error fetching playlist info:', error);
+      throw new InternalServerError(
+        `Failed to fetch playlist info: ${error.message}`,
+      );
+    }
+  }
+
   private extractYouTubeVideoId(url: string): string | null {
     if (typeof url !== 'string' || url.trim() === '') {
       return null;

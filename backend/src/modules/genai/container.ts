@@ -1,5 +1,6 @@
 import { ContainerModule } from 'inversify';
 import GenAIVideoController from './GenAIVideoController.js';
+import GenAIPlaylistController from './GenAIPlaylistController.js';
 import { VideoService } from './services/VideoService.js';
 import { AudioService } from './services/AudioService.js';
 import { TranscriptionService } from './services/TranscriptionService.js';
@@ -10,6 +11,7 @@ import { GENAI_TYPES } from './types.js';
 export const genaiContainerModule = new ContainerModule(options => {
   // Controllers
   options.bind(GenAIVideoController).toSelf().inSingletonScope();
+  options.bind(GenAIPlaylistController).toSelf().inSingletonScope();
 
   options.bind(VideoService).toSelf().inSingletonScope();
   options.bind(AudioService).toSelf().inSingletonScope();
