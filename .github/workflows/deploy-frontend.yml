@@ -8,10 +8,11 @@ on:
       - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
+# Set permissions for the workflow
 permissions:
-  contents: read
-  packages: write
-  id-token: write
+  contents: write  # Required for creating tags
+  packages: write  # Required for pushing to Docker Hub
+  id-token: write  # Required for OIDC authentication
 
 env:
   NODE_VERSION: '20'
@@ -29,14 +30,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - id: versioning
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+      
+      - name: Versioning
+        id: versioning
         uses: mathieudutour/github-tag-action@v6.2
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           tag_prefix: "frontend-v"
           default_bump: "patch"
           fetch_all_tags: true
-          release_branches: "master,staging"
+          release_branches: "master,staging,test-cicd"
           create_annotated_tag: true
 
   build:
