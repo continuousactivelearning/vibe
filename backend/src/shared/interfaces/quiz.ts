@@ -1,11 +1,16 @@
-import {ObjectId} from 'mongodb';
+import { ObjectId } from 'mongodb';
+
+// ----------------------------------------
+// Core Question Types
+// ----------------------------------------
 
 type QuestionType =
   | 'SELECT_ONE_IN_LOT'
   | 'SELECT_MANY_IN_LOT'
   | 'ORDER_THE_LOTS'
   | 'NUMERIC_ANSWER_TYPE'
-  | 'DESCRIPTIVE';
+  | 'DESCRIPTIVE'
+  | 'MATCH_THE_LOTS'; // ✅ added
 
 interface IQuestionParameter {
   name: string;
@@ -24,13 +29,9 @@ interface IQuestion {
   points: number;
 }
 
-interface INATSolution {
-  decimalPrecision: number;
-  upperLimit: number;
-  lowerLimit: number;
-  value?: number;
-  expression?: string;
-}
+// ----------------------------------------
+// Shared Items
+// ----------------------------------------
 
 interface ILotItem {
   _id?: string | ObjectId;
@@ -43,9 +44,9 @@ interface ILotOrder {
   order: number;
 }
 
-interface IOTLSolution {
-  ordering: ILotOrder[];
-}
+// ----------------------------------------
+// Solutions
+// ----------------------------------------
 
 interface ISOLSolution {
   incorrectLotItems: ILotItem[];
@@ -57,9 +58,39 @@ interface ISMLSolution {
   correctLotItems: ILotItem[];
 }
 
+interface IOTLSolution {
+  ordering: ILotOrder[];
+}
+
+interface INATSolution {
+  decimalPrecision: number;
+  upperLimit: number;
+  lowerLimit: number;
+  value?: number;
+  expression?: string;
+}
+
 interface IDESSolution {
   solutionText: string;
 }
+
+// ✅ MATCH_THE_LOTS Solution
+interface IMatchItem {
+  text: string;
+  explaination: string;
+}
+
+interface IMatch {
+  match: IMatchItem[];
+}
+
+interface IMTLSolution {
+  matches: IMatch[];
+}
+
+// ----------------------------------------
+// Quiz Views (Without Hint)
+// ----------------------------------------
 
 type QuestionQuizView = Omit<IQuestion, 'hint'>;
 
@@ -75,25 +106,41 @@ interface IOTLQuizView extends QuestionQuizView {
   lot: ILotItem[];
 }
 
-type INATQuizView = QuestionQuizView;
+interface IMTLQuizView extends QuestionQuizView {
+  matches: IMatch[];
+}
 
+type INATQuizView = QuestionQuizView;
 type IDESQuizView = QuestionQuizView;
 
+// ----------------------------------------
+// Exports
+// ----------------------------------------
+
 export {
+  // Core
   IQuestion,
   IQuestionParameter,
+  QuestionType,
+  QuestionQuizView,
+
+  // Shared
+  ILotItem,
+  ILotOrder,
+
+  // Solutions
   ISOLSolution,
   ISMLSolution,
   IOTLSolution,
   INATSolution,
   IDESSolution,
-  ILotItem,
-  ILotOrder,
+  IMTLSolution,
+
+  // Views
   ISOLQuizView,
   ISMLQuizView,
   IOTLQuizView,
   INATQuizView,
   IDESQuizView,
-  QuestionType,
-  QuestionQuizView,
+  IMTLQuizView,
 };

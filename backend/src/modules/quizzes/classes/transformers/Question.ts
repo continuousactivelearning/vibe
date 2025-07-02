@@ -1,10 +1,11 @@
-import {ObjectId} from 'mongodb';
+import { ObjectId } from 'mongodb';
 import {
   ISOLSolution,
   ISMLSolution,
   IOTLSolution,
   INATSolution,
   IDESSolution,
+  IMTLSolution,
   ILotItem,
   ISOLQuizView,
   ISMLQuizView,
@@ -12,11 +13,22 @@ import {
   IOTLQuizView,
   INATQuizView,
   IDESQuizView,
+  IMTLQuizView,
   IQuestionParameter,
   IQuestion,
   QuestionType,
 } from 'shared/interfaces/quiz';
-import {CreateQuestionBody} from '../validators/QuestionValidator';
+
+interface QuestionBody {
+  question: IQuestion;
+  solution:
+    | ISOLSolution
+    | ISMLSolution
+    | IOTLSolution
+    | INATSolution
+    | IDESSolution
+    | IMTLSolution;
+}
 
 abstract class BaseQuestion implements IQuestion {
   _id?: string | ObjectId;
@@ -54,7 +66,7 @@ class SOLQuestion extends BaseQuestion implements ISOLSolution {
     return {
       ...this,
       lot: this.incorrectLotItems.concat(this.correctLotItem),
-    } as ISOLQuizView;
+    };
   }
 }
 
@@ -67,11 +79,12 @@ class SMLQuestion extends BaseQuestion implements ISMLSolution {
     this.incorrectLotItems = solution.incorrectLotItems;
     this.correctLotItems = solution.correctLotItems;
   }
+
   toQuizView(): ISMLQuizView {
     return {
       ...this,
       lot: this.incorrectLotItems.concat(this.correctLotItems),
-    } as ISMLQuizView;
+    };
   }
 }
 
@@ -82,11 +95,12 @@ class OTLQuestion extends BaseQuestion implements IOTLSolution {
     super(question);
     this.ordering = solution.ordering;
   }
+
   toQuizView(): IOTLQuizView {
     return {
       ...this,
-      lot: this.ordering.map(lotOrder => lotOrder.lotItem),
-    } as IOTLQuizView;
+      lot: this.ordering.map(o => o.lotItem),
+    };
   }
 }
 
@@ -107,173 +121,59 @@ class NATQuestion extends BaseQuestion implements INATSolution {
   }
 
   toQuizView(): INATQuizView {
-    return {
-      ...this,
-    } as INATQuizView;
+    return { ...this };
   }
 }
 
 class DESQuestion extends BaseQuestion implements IDESSolution {
   solutionText: string;
+
   constructor(question: IQuestion, solution: IDESSolution) {
     super(question);
     this.solutionText = solution.solutionText;
   }
+
   toQuizView(): IDESQuizView {
-    return {
-      ...this,
-    } as IDESQuizView;
+    return { ...this };
+  }
+}
+
+class MTLQuestion extends BaseQuestion implements IMTLSolution {
+  matches: { match: ILotItem[] }[];
+
+  constructor(question: IQuestion, solution: IMTLSolution) {
+    super(question);
+    this.matches = solution.matches;
+  }
+
+  toQuizView(): IMTLQuizView {
+    return { ...this };
   }
 }
 
 class QuestionFactory {
   static createQuestion(
-    body: CreateQuestionBody,
-  ): SOLQuestion | SMLQuestion | OTLQuestion | NATQuestion | DESQuestion {
-    switch (body.question.type) {
+    body: QuestionBody
+  ): SOLQuestion | SMLQuestion | OTLQuestion | NATQuestion | DESQuestion | MTLQuestion {
+    const { question, solution } = body;
+    switch (question.type) {
       case 'SELECT_ONE_IN_LOT':
-        return new SOLQuestion(body.question, body.solution as ISOLSolution);
+        return new SOLQuestion(question, solution as ISOLSolution);
       case 'SELECT_MANY_IN_LOT':
-        return new SMLQuestion(body.question, body.solution as ISMLSolution);
+        return new SMLQuestion(question, solution as ISMLSolution);
       case 'ORDER_THE_LOTS':
-        return new OTLQuestion(body.question, body.solution as IOTLSolution);
+        return new OTLQuestion(question, solution as IOTLSolution);
       case 'NUMERIC_ANSWER_TYPE':
-        return new NATQuestion(body.question, body.solution as INATSolution);
+        return new NATQuestion(question, solution as INATSolution);
       case 'DESCRIPTIVE':
-        return new DESQuestion(body.question, body.solution as IDESSolution);
+        return new DESQuestion(question, solution as IDESSolution);
+      case 'MATCH_THE_LOTS':
+        return new MTLQuestion(question, solution as IMTLSolution);
       default:
         throw new Error('Invalid question type');
     }
   }
 }
-
-const question: IQuestion = {
-  text: 'This is question',
-  isParameterized: true,
-  parameters: [
-    {
-      name: 'a',
-      possibleValues: ['20', '10'],
-      type: 'number',
-    },
-    {
-      name: 'b',
-      possibleValues: ['10', '12'],
-      type: 'number',
-    },
-  ],
-  points: 10,
-  type: 'SELECT_ONE_IN_LOT',
-  timeLimitSeconds: 60,
-  hint: 'This is easy',
-};
-
-const solSolution: ISOLSolution = {
-  incorrectLotItems: [
-    {
-      text: 'This is option 1',
-      explaination: '',
-    },
-    {
-      text: 'This is option 2',
-      explaination: 'sdad',
-    },
-  ],
-  correctLotItem: {
-    text: '',
-    explaination: '',
-  },
-};
-
-const smlSolution: ISMLSolution = {
-  incorrectLotItems: [
-    {
-      text: 'This is option 1',
-      explaination: '',
-    },
-    {
-      text: 'This is option 2',
-      explaination: 'sdad',
-    },
-  ],
-  correctLotItems: [
-    {
-      text: 'This is option 3',
-      explaination: '',
-    },
-    {
-      text: 'This is option 4',
-      explaination: 'sdad',
-    },
-  ],
-};
-
-const otlSolution: IOTLSolution = {
-  ordering: [
-    {
-      lotItem: {
-        text: 'item 1',
-        explaination: 'dahjkda',
-      },
-      order: 1,
-    },
-    {
-      lotItem: {
-        text: 'item 1',
-        explaination: 'dahjkda',
-      },
-      order: 2,
-    },
-  ],
-};
-
-const mtlSolution = {
-  matches: [
-    {
-      match: [
-        {
-          text: 'This is option 3',
-          explaination: '',
-        },
-        {
-          text: 'This is option 4',
-          explaination: 'sdad',
-        },
-      ],
-    },
-    {
-      match: [
-        {
-          text: 'This is option 3',
-          explaination: '',
-        },
-        {
-          text: 'This is option 4',
-          explaination: 'sdad',
-        },
-      ],
-    },
-    {
-      match: [
-        {
-          text: 'This is option 3',
-          explaination: '',
-        },
-        {
-          text: 'This is option 4',
-          explaination: 'sdad',
-        },
-      ],
-    },
-  ],
-};
-
-const natSolution: INATSolution = {
-  decimalPrecision: 1,
-  upperLimit: 1.045,
-  lowerLimit: 2.0,
-  expression: '',
-};
 
 export {
   BaseQuestion,
@@ -282,5 +182,6 @@ export {
   OTLQuestion,
   NATQuestion,
   DESQuestion,
+  MTLQuestion,
   QuestionFactory,
 };
