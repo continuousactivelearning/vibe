@@ -1,11 +1,11 @@
-﻿name: Backend CI/CD
+name: Frontend CI/CD
 
 on:
   push:
     branches: [master, staging, test-cicd]
     paths:
-      - 'backend/**'
-      - '.github/workflows/deploy-backend-all.yml'
+      - 'frontend/**'
+      - '.github/workflows/deploy-frontend.yml'
   workflow_dispatch:
 
 permissions:
@@ -14,10 +14,9 @@ permissions:
   id-token: write
 
 env:
-  NODE_VERSION: '22'
-  DOCKER_IMAGE: vibe-backend
+  NODE_VERSION: '20'
+  DOCKER_IMAGE: vibe-frontend
   GCP_REGION: asia-south2
-  GCP_SERVICE: vibe-backend
 
 jobs:
   versioning:
@@ -34,14 +33,14 @@ jobs:
         uses: mathieudutour/github-tag-action@v6.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag_prefix: "backend-v"
+          tag_prefix: "frontend-v"
           default_bump: "patch"
           fetch_all_tags: true
           release_branches: "master,staging"
           create_annotated_tag: true
 
   build:
-    name: Build and Push
+    name: Build Frontend
     needs: versioning
     runs-on: ubuntu-latest
     steps:
@@ -60,15 +59,13 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./backend/Dockerfile
+          file: ./frontend/Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          build-args: |
-            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
 
   deploy_staging:
     name: Deploy to Staging
@@ -81,14 +78,16 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Deploy to Firebase (staging)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          channelId: 'staging'
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          target: 'staging'
+      - name: Deploy to Cloud Run (staging)
+        run: |
+          gcloud run deploy vibe-frontend-staging \
+            --image=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=80 \
+            --set-env-vars=NODE_ENV=staging
 
   deploy_production:
     name: Deploy to Production
@@ -101,9 +100,13 @@ jobs:
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      - name: Deploy to Firebase (production)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+      - name: Deploy to Cloud Run (production)
+        run: |
+          gcloud run deploy vibe-frontend-production \
+            --image=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }} \
+            --region=${{ env.GCP_REGION }} \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --platform=managed \
+            --allow-unauthenticated \
+            --port=80 \
+            --set-env-vars=NODE_ENV=production
