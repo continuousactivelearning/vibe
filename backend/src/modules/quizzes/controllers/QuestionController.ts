@@ -3,27 +3,31 @@ import {
   JsonController,
   Authorized,
   Post,
-  Body,
-  Get,
   Put,
-  Delete,
+  Body,
   Params,
   HttpCode,
   OnUndefined,
   BadRequestError,
+  NotFoundError,
+  ConflictError,
 } from 'routing-controllers';
-import {Service, Inject} from 'typedi';
-import {CreateQuestionBody} from '../classes/validators/QuestionValidator';
-import {QuestionFactory} from '../classes/transformers/Question';
-import {QuestionProcessor} from '../question-processing/QuestionProcessor';
+import { Service, Inject } from 'typedi';
+import { CreateQuestionBody, UpdateQuestionBody } from '../classes/validators/QuestionValidator';
+import { QuestionFactory } from '../classes/transformers/Question';
+import { QuestionProcessor } from '../question-processing/QuestionProcessor';
+import { QuestionService } from '../services/QuestionService'; // ✅ Updated import
 
 @JsonController('/questions')
 @Service()
 export class QuestionController {
-  constructor() {}
+  constructor(
+    @Inject(() => QuestionService)
+    private readonly questionService: QuestionService // ✅ Now using QuestionService
+  ) {}
 
   @Authorized(['admin', 'instructor'])
-  @Post('/', {transformResponse: true})
+  @Post('/', { transformResponse: true })
   @HttpCode(201)
   @OnUndefined(201)
   async create(@Body() body: CreateQuestionBody) {
@@ -36,6 +40,45 @@ export class QuestionController {
       return renderedQuestion;
     } catch (error) {
       throw new BadRequestError((error as Error).message);
+    }
+  }
+
+  // ✅ Update Question in a Quiz using QuestionService
+  @Authorized(['admin'])
+  @Put('/quizzes/:quizId/questions/:questionId')
+  @HttpCode(200)
+  async updateQuestion(
+    @Params() params: { quizId: string; questionId: string },
+    @Body() body: UpdateQuestionBody
+  ) {
+    const { quizId, questionId } = params;
+
+    try {
+      // 1. Create and validate question
+      const question = QuestionFactory.createQuestion(body);
+      const processor = new QuestionProcessor(question);
+      processor.validate();
+
+      // 2. Call service to update the question in the quiz
+      const updated = await this.questionService.updateQuestionInQuiz(
+        quizId,
+        questionId,
+        question
+      );
+
+      if (!updated) {
+        throw new NotFoundError('Quiz or question not found.');
+      }
+
+      return { message: 'Question updated successfully in the quiz.' };
+    } catch (err: any) {
+      if (err.message.includes('Invalid') || err.message.includes('<QParam>')) {
+        throw new BadRequestError(err.message);
+      }
+      if (err.message.includes('conflict')) {
+        throw new ConflictError(err.message);
+      }
+      throw err;
     }
   }
 }

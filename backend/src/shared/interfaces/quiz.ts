@@ -1,11 +1,12 @@
-import {ObjectId} from 'mongodb';
+import { ObjectId } from 'mongodb';
 
 type QuestionType =
   | 'SELECT_ONE_IN_LOT'
   | 'SELECT_MANY_IN_LOT'
   | 'ORDER_THE_LOTS'
   | 'NUMERIC_ANSWER_TYPE'
-  | 'DESCRIPTIVE';
+  | 'DESCRIPTIVE'
+  | 'MATCH_THE_LOTS'; // ✅ added
 
 interface IQuestionParameter {
   name: string;
@@ -76,8 +77,26 @@ interface IOTLQuizView extends QuestionQuizView {
 }
 
 type INATQuizView = QuestionQuizView;
-
 type IDESQuizView = QuestionQuizView;
+
+// ✅ ✅ ✅ ADD BELOW FOR MTL SUPPORT
+
+interface IMatchItem {
+  text: string;
+  explaination: string;
+}
+
+interface IMatch {
+  match: IMatchItem[];
+}
+
+interface IMTLSolution {
+  matches: IMatch[];
+}
+
+interface IMTLQuizView extends QuestionQuizView {
+  matches: IMatch[];
+}
 
 export {
   IQuestion,
@@ -87,6 +106,7 @@ export {
   IOTLSolution,
   INATSolution,
   IDESSolution,
+  IMTLSolution,       // ✅ export it
   ILotItem,
   ILotOrder,
   ISOLQuizView,
@@ -94,6 +114,7 @@ export {
   IOTLQuizView,
   INATQuizView,
   IDESQuizView,
+  IMTLQuizView,       // ✅ export it
   QuestionType,
   QuestionQuizView,
 };

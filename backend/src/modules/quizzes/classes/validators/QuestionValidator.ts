@@ -163,14 +163,17 @@ class DESSolution implements IDESSolution {
   solutionText: string;
 }
 
+// (everything else remains unchanged above...)
+
 class CreateQuestionBody {
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => Question)
   question: IQuestion;
+
   @IsNotEmpty()
   @ValidateNested()
-  @Type(({object}) => {
+  @Type(({ object }) => {
     const question = object.question as Question;
     switch (question.type) {
       case 'SELECT_ONE_IN_LOT':
@@ -195,8 +198,48 @@ class CreateQuestionBody {
     | IDESSolution;
 }
 
+//
+// ✅ NEW: UpdateQuestionBody – identical to Create but for update use
+//
+class UpdateQuestionBody {
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(() => Question)
+  question: IQuestion;
+
+  @IsNotEmpty()
+  @ValidateNested()
+  @Type(({ object }) => {
+    const question = object.question as Question;
+    switch (question.type) {
+      case 'SELECT_ONE_IN_LOT':
+        return SOLSolution;
+      case 'SELECT_MANY_IN_LOT':
+        return SMLSolution;
+      case 'ORDER_THE_LOTS':
+        return OTLSolution;
+      case 'NUMERIC_ANSWER_TYPE':
+        return NATSoltion;
+      case 'DESCRIPTIVE':
+        return DESSolution;
+      default:
+        throw new Error('Invalid question type');
+    }
+  })
+  solution:
+    | ISOLSolution
+    | ISMLSolution
+    | IOTLSolution
+    | INATSolution
+    | IDESSolution;
+}
+
+//
+// ✅ Update your export block to include UpdateQuestionBody
+//
 export {
   CreateQuestionBody,
+  UpdateQuestionBody, // ✅ <— Add this here
   Question,
   SOLSolution,
   SMLSolution,
