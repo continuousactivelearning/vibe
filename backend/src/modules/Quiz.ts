@@ -13,23 +13,26 @@ export interface IQuiz extends Document {
   updatedAt?: Date;
 }
 
-// Define the schema for a Question
-const QuestionSchema: Schema = new Schema({
-  text: { type: String, required: true },
-  type: { type: String, required: true },
-  isParameterized: { type: Boolean, required: true },
-  parameters: { type: Array, default: [] },
-  hint: { type: String },
-  timeLimitSeconds: { type: Number, required: true },
-  points: { type: Number, required: true },
-}, { _id: false }); // Questions are embedded, not top-level documents
+// Define the schema for the embedded Question
+const QuestionSchema: Schema = new Schema(
+  {
+    text: { type: String, required: true },
+    type: { type: String, required: true },
+    isParameterized: { type: Boolean, required: true },
+    parameters: { type: Array, default: [] },
+    hint: { type: String },
+    timeLimitSeconds: { type: Number, required: true },
+    points: { type: Number, required: true },
+  },
+  { _id: true } // enable _id for questions (recommended for updates)
+);
 
 // Define the schema for the Quiz
 const QuizSchema: Schema = new Schema(
   {
     title: { type: String, required: true },
     description: { type: String },
-    courseId: { type: String }, // Optional, adjust if course is a ref
+    courseId: { type: String },
     createdBy: { type: String },
     questions: { type: [QuestionSchema], default: [] },
   },
@@ -38,7 +41,6 @@ const QuizSchema: Schema = new Schema(
   }
 );
 
-// Create the Quiz model
-const Quiz = mongoose.model<IQuiz>('Quiz', QuizSchema);
-
-export { Quiz };
+// Create and export the Quiz model
+const QuizModel = mongoose.model<IQuiz>('Quiz', QuizSchema);
+export default QuizModel;

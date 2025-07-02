@@ -1,5 +1,9 @@
 import { ObjectId } from 'mongodb';
 
+// ----------------------------------------
+// Core Question Types
+// ----------------------------------------
+
 type QuestionType =
   | 'SELECT_ONE_IN_LOT'
   | 'SELECT_MANY_IN_LOT'
@@ -25,13 +29,9 @@ interface IQuestion {
   points: number;
 }
 
-interface INATSolution {
-  decimalPrecision: number;
-  upperLimit: number;
-  lowerLimit: number;
-  value?: number;
-  expression?: string;
-}
+// ----------------------------------------
+// Shared Items
+// ----------------------------------------
 
 interface ILotItem {
   _id?: string | ObjectId;
@@ -44,9 +44,9 @@ interface ILotOrder {
   order: number;
 }
 
-interface IOTLSolution {
-  ordering: ILotOrder[];
-}
+// ----------------------------------------
+// Solutions
+// ----------------------------------------
 
 interface ISOLSolution {
   incorrectLotItems: ILotItem[];
@@ -58,9 +58,39 @@ interface ISMLSolution {
   correctLotItems: ILotItem[];
 }
 
+interface IOTLSolution {
+  ordering: ILotOrder[];
+}
+
+interface INATSolution {
+  decimalPrecision: number;
+  upperLimit: number;
+  lowerLimit: number;
+  value?: number;
+  expression?: string;
+}
+
 interface IDESSolution {
   solutionText: string;
 }
+
+// ✅ MATCH_THE_LOTS Solution
+interface IMatchItem {
+  text: string;
+  explaination: string;
+}
+
+interface IMatch {
+  match: IMatchItem[];
+}
+
+interface IMTLSolution {
+  matches: IMatch[];
+}
+
+// ----------------------------------------
+// Quiz Views (Without Hint)
+// ----------------------------------------
 
 type QuestionQuizView = Omit<IQuestion, 'hint'>;
 
@@ -76,45 +106,41 @@ interface IOTLQuizView extends QuestionQuizView {
   lot: ILotItem[];
 }
 
-type INATQuizView = QuestionQuizView;
-type IDESQuizView = QuestionQuizView;
-
-// ✅ ✅ ✅ ADD BELOW FOR MTL SUPPORT
-
-interface IMatchItem {
-  text: string;
-  explaination: string;
-}
-
-interface IMatch {
-  match: IMatchItem[];
-}
-
-interface IMTLSolution {
-  matches: IMatch[];
-}
-
 interface IMTLQuizView extends QuestionQuizView {
   matches: IMatch[];
 }
 
+type INATQuizView = QuestionQuizView;
+type IDESQuizView = QuestionQuizView;
+
+// ----------------------------------------
+// Exports
+// ----------------------------------------
+
 export {
+  // Core
   IQuestion,
   IQuestionParameter,
+  QuestionType,
+  QuestionQuizView,
+
+  // Shared
+  ILotItem,
+  ILotOrder,
+
+  // Solutions
   ISOLSolution,
   ISMLSolution,
   IOTLSolution,
   INATSolution,
   IDESSolution,
-  IMTLSolution,       // ✅ export it
-  ILotItem,
-  ILotOrder,
+  IMTLSolution,
+
+  // Views
   ISOLQuizView,
   ISMLQuizView,
   IOTLQuizView,
   INATQuizView,
   IDESQuizView,
-  IMTLQuizView,       // ✅ export it
-  QuestionType,
-  QuestionQuizView,
+  IMTLQuizView,
 };
