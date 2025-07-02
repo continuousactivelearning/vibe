@@ -10,20 +10,30 @@ import {
   OnUndefined,
   BadRequestError,
   NotFoundError,
-  ConflictError,
+  HttpError,
 } from 'routing-controllers';
 import { Service, Inject } from 'typedi';
-import { CreateQuestionBody, UpdateQuestionBody } from '../classes/validators/QuestionValidator';
+import {
+  CreateQuestionBody,
+  UpdateQuestionBody,
+} from '../classes/validators/QuestionValidator';
 import { QuestionFactory } from '../classes/transformers/Question';
 import { QuestionProcessor } from '../question-processing/QuestionProcessor';
-import { QuestionService } from '../services/QuestionService'; // ✅ Updated import
+import { QuestionService } from '../services/QuestionService';
+
+// ✅ Custom ConflictError class (since routing-controllers doesn't export one)
+class ConflictError extends HttpError {
+  constructor(message: string) {
+    super(409, message);
+  }
+}
 
 @JsonController('/questions')
 @Service()
 export class QuestionController {
   constructor(
     @Inject(() => QuestionService)
-    private readonly questionService: QuestionService // ✅ Now using QuestionService
+    private readonly questionService: QuestionService
   ) {}
 
   @Authorized(['admin', 'instructor'])
@@ -43,7 +53,6 @@ export class QuestionController {
     }
   }
 
-  // ✅ Update Question in a Quiz using QuestionService
   @Authorized(['admin'])
   @Put('/quizzes/:quizId/questions/:questionId')
   @HttpCode(200)
@@ -54,12 +63,11 @@ export class QuestionController {
     const { quizId, questionId } = params;
 
     try {
-      // 1. Create and validate question
       const question = QuestionFactory.createQuestion(body);
+
       const processor = new QuestionProcessor(question);
       processor.validate();
 
-      // 2. Call service to update the question in the quiz
       const updated = await this.questionService.updateQuestionInQuiz(
         quizId,
         questionId,
@@ -72,7 +80,10 @@ export class QuestionController {
 
       return { message: 'Question updated successfully in the quiz.' };
     } catch (err: any) {
-      if (err.message.includes('Invalid') || err.message.includes('<QParam>')) {
+      if (
+        err.message.includes('Invalid') ||
+        err.message.includes('<QParam>')
+      ) {
         throw new BadRequestError(err.message);
       }
       if (err.message.includes('conflict')) {
