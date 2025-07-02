@@ -21,7 +21,7 @@ import { QuestionFactory } from '../classes/transformers/Question';
 import { QuestionProcessor } from '../question-processing/QuestionProcessor';
 import { QuestionService } from '../services/QuestionService';
 
-// ✅ Custom ConflictError class (since routing-controllers doesn't export one)
+// ✅ Custom ConflictError (since routing-controllers doesn't export it)
 class ConflictError extends HttpError {
   constructor(message: string) {
     super(409, message);
@@ -41,15 +41,15 @@ export class QuestionController {
   @HttpCode(201)
   @OnUndefined(201)
   async create(@Body() body: CreateQuestionBody) {
-    const question = QuestionFactory.createQuestion(body);
     try {
-      const questionProcessor = new QuestionProcessor(question);
-      questionProcessor.validate();
+      const question = QuestionFactory.createQuestion(body);
+      const processor = new QuestionProcessor(question);
+      processor.validate();
 
-      const renderedQuestion = questionProcessor.render();
-      return renderedQuestion;
-    } catch (error) {
-      throw new BadRequestError((error as Error).message);
+      const rendered = processor.render();
+      return rendered;
+    } catch (err: any) {
+      throw new BadRequestError(err.message);
     }
   }
 
@@ -64,7 +64,6 @@ export class QuestionController {
 
     try {
       const question = QuestionFactory.createQuestion(body);
-
       const processor = new QuestionProcessor(question);
       processor.validate();
 
@@ -80,14 +79,12 @@ export class QuestionController {
 
       return { message: 'Question updated successfully in the quiz.' };
     } catch (err: any) {
-      if (
-        err.message.includes('Invalid') ||
-        err.message.includes('<QParam>')
-      ) {
-        throw new BadRequestError(err.message);
+      const msg = err.message || '';
+      if (msg.includes('Invalid') || msg.includes('<QParam>')) {
+        throw new BadRequestError(msg);
       }
-      if (err.message.includes('conflict')) {
-        throw new ConflictError(err.message);
+      if (msg.includes('conflict')) {
+        throw new ConflictError(msg);
       }
       throw err;
     }
