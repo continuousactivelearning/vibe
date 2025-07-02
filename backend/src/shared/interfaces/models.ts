@@ -322,8 +322,8 @@ export interface IBlogDetails {
   estimatedReadTimeInMinutes: number;
 }
 
-export type EnrollmentRole = 'instructor' | 'student' | 'manager' | 'ta';
-export type EnrollmentStatus = 'active' | 'inactive';
+export type EnrollmentRole = 'INSTRUCTOR' | 'STUDENT' | 'MANAGER' | 'TA' | 'STAFF';
+export type EnrollmentStatus = 'ACTIVE' | 'INACTIVE';
 // New interfaces for user enrollment and progress tracking
 export interface IEnrollment {
   _id?: string | ObjectId | null;
@@ -356,12 +356,12 @@ export interface IWatchTime {
   endTime?: Date;
 }
 
-export enum actionType {
+export enum InviteActionType {
   SIGNUP = 'SIGNUP',
   ENROLL = 'ENROLL',
   NOTIFY = 'NOTIFY',
 }
-export enum statusType {
+export enum InviteStatusType {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
   EXPIRED = 'EXPIRED',
@@ -373,8 +373,8 @@ export interface IInvite {
   courseId: String | ObjectId;
   courseVersionId: string | ObjectId;
   token: String;
-  action: actionType;
-  status: statusType;
+  action: InviteActionType;
+  status: InviteStatusType;
   createdAt: Date;
   expiresAt: Date;
 }
