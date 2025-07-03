@@ -23,7 +23,7 @@ jobs:
     name: Versioning
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.tag_version.outputs.new_version }}
+      new_version: ${{ steps.tag_version.outputs.new_version || steps.fallback_version.outputs.new_version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,6 +38,7 @@ jobs:
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
@@ -47,6 +48,13 @@ jobs:
           tag_prefix: ''
           fetch_all_tags: true
           create_annotated_tag: true
+          dry_run: false
+      
+      # Fallback to use current date as version if tag creation fails
+      - name: Set fallback version if tagging failed
+        if: steps.tag_version.outcome == 'failure'
+        id: fallback_version
+        run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
   build:
     name: Build and Push

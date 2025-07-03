@@ -1,5 +1,8 @@
 FROM node:20-alpine AS builder
 
+# Install git and other build dependencies
+RUN apk add --no-cache git python3 make g++ bash
+
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@8.10.0 --activate
 
