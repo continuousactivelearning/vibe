@@ -9,9 +9,11 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml tsconfig.json ./
+COPY package.json tsconfig.json ./
 
-RUN pnpm install --frozen-lockfile
+COPY pnpm-lock.yaml* ./
+
+RUN pnpm install
 
 COPY . .
 
@@ -38,9 +40,11 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json ./
 
-RUN pnpm install --frozen-lockfile --prod
+COPY pnpm-lock.yaml* ./
+
+RUN pnpm install --prod
 
 COPY --from=builder /app/build ./build
 

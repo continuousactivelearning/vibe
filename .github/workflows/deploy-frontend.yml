@@ -47,11 +47,30 @@ jobs:
           create_annotated_tag: true
 
   build:
-    name: Build Frontend
+    name: Build and Push
     needs: versioning
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Verify frontend directory structure
+        run: |
+          ls -la frontend/
+          echo "Checking package.json"
+          cat frontend/package.json | head -n 10
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

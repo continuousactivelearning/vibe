@@ -53,6 +53,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Setup Node.js for potential pre-build steps
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # Setup pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      # Create empty pnpm-lock.yaml if it doesn't exist
+      - name: Create lock file if needed
+        run: |
+          if [ ! -f "backend/pnpm-lock.yaml" ]; then
+            echo "Creating empty pnpm-lock.yaml file"
+            touch backend/pnpm-lock.yaml
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
