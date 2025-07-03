@@ -59,6 +59,9 @@ FROM node:22-alpine AS production
 # Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
+# Install git and other build dependencies
+RUN apk add --no-cache git bash
+
 WORKDIR /app
 
 # Copy package files
