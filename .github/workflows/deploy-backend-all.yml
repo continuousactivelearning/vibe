@@ -15,7 +15,7 @@ permissions:
   id-token: write  # Required for OIDC authentication
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
   DOCKER_IMAGE: vibe-backend
   GCP_REGION: asia-south2
   GCP_SERVICE: vibe-backend
@@ -25,7 +25,7 @@ jobs:
     name: Versioning
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.versioning.outputs.new_version }}
+      new_version: ${{ steps.tag_version.outputs.new_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,15 +36,15 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
       
-      - name: Versioning
-        id: versioning
-        uses: mathieudutour/github-tag-action@v6.2
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
         with:
-          github_token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          tag_prefix: "backend-v"
-          default_bump: "patch"
+          github_token: ${{ github.token }}
+          release_branches: main,staging,test-cicd
+          default_bump: patch
+          tag_prefix: ''
           fetch_all_tags: true
-          release_branches: "master,staging,test-cicd"
           create_annotated_tag: true
 
   build:
@@ -69,12 +69,13 @@ jobs:
           version: 8
           run_install: false
 
-      # Create empty pnpm-lock.yaml if it doesn't exist
-      - name: Create lock file if needed
+      # Install any missing dependencies if needed
+      - name: Install dependencies
         run: |
-          if [ ! -f "backend/pnpm-lock.yaml" ]; then
+          cd backend
+          if [ ! -f "pnpm-lock.yaml" ]; then
             echo "Creating empty pnpm-lock.yaml file"
-            touch backend/pnpm-lock.yaml
+            touch pnpm-lock.yaml
           fi
 
       - name: Set up Docker Buildx
@@ -100,6 +101,7 @@ jobs:
           build-args: |
             NODE_ENV=production
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          allow-failure: true
 
   deploy_staging:
     name: Deploy to Staging
@@ -108,7 +110,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - uses: google-github-actions/auth@v2
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 

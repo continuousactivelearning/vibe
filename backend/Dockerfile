@@ -1,19 +1,15 @@
 # ========================================
 # Build stage
 # ========================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 RUN apk add --no-cache git python3 make g++ bash
-
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 WORKDIR /app
 
-COPY package.json tsconfig.json ./
-
-COPY pnpm-lock.yaml* ./
-
-RUN pnpm install --no-frozen-lockfile
+COPY package.json .
+RUN pnpm install
 
 COPY . .
 RUN pnpm tsc || echo "TypeScript compilation had errors but continuing build"
@@ -29,9 +25,9 @@ RUN if [ -n "$SENTRY_AUTH_TOKEN" ]; then \
 # ========================================
 # Production stage
 # ========================================
-FROM node:20-alpine
+FROM node:22-alpine
 
-RUN apk add --no-cache dumb-init bash \
+RUN apk add --no-cache dumb-init \
     && corepack enable \
     && corepack prepare pnpm@10.4.1 --activate
 
@@ -39,17 +35,13 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
 WORKDIR /app
 
-COPY package.json ./
-
-COPY pnpm-lock.yaml* ./
-
-RUN pnpm install --prod --no-frozen-lockfile
+COPY package.json .
+RUN NODE_ENV=production pnpm install --prod
 
 COPY --from=builder /app/build ./build
 
 COPY --chown=appuser:appgroup .env* ./
 
-ENV NODE_ENV=production
 ENV PORT=4001
 USER appuser
 
