@@ -71,14 +71,14 @@ RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 # Create empty lock file if it doesn't exist
 RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
-# Install production dependencies only with --no-frozen-lockfile
 RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy built files from build stage
-COPY --from=build /app/dist ./dist/
+COPY --from=build /app/dist/ ./dist/
+
 # Copy public directory if it exists
 RUN mkdir -p ./public/
-COPY --from=build /app/public/ ./public/ 2>/dev/null || true
+COPY --from=build /app/public ./public/
 
 # Create a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup

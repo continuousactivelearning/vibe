@@ -38,8 +38,10 @@ jobs:
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v6.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
         with:
-          github_token: ${{ github.token }}
+          github_token: ${{ env.GITHUB_TOKEN }}
           release_branches: main,staging,test-cicd
           default_bump: patch
           tag_prefix: ''
@@ -67,9 +69,11 @@ jobs:
           run_install: false
 
       - name: Install date-fns dependency
+        env:
+          NODE_VERSION: ${{ env.NODE_VERSION }}
         run: |
           cd frontend
-          pnpm add -D date-fns
+          pnpm add -D date-fns typescript@5.8.3
           echo "// Fix TypeScript errors" > src/fix-ts-errors.ts
           echo "export const setImageSrcs = null;" >> src/fix-ts-errors.ts
           echo "export const modelReady = null;" >> src/fix-ts-errors.ts
@@ -84,19 +88,24 @@ jobs:
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
@@ -107,12 +116,13 @@ jobs:
       - name: Create GitHub Release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+          NEW_VERSION: ${{ needs.versioning.outputs.new_version }}
         with:
-          tag_name: v${{ needs.versioning.outputs.new_version }}
-          release_name: Release v${{ needs.versioning.outputs.new_version }}
+          tag_name: v${{ env.NEW_VERSION }}
+          release_name: Release v${{ env.NEW_VERSION }}
           body: |
-            Release v${{ needs.versioning.outputs.new_version }}
+            Release v${{ env.NEW_VERSION }}
 
   deploy_staging:
     name: Deploy to Staging
@@ -123,16 +133,21 @@ jobs:
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ env.GCP_SA_KEY }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         with:
           service: vibe-frontend-staging
           region: ${{ env.GCP_REGION }}
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          image: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
 
   deploy_production:
     name: Deploy to Production
@@ -142,15 +157,20 @@ jobs:
     environment: production
     steps:
       - uses: google-github-actions/auth@v2
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          credentials_json: ${{ env.GCP_SA_KEY }}
 
       - name: Deploy to Cloud Run (production)
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           gcloud run deploy vibe-frontend-production \
-            --image=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }} \
+            --image=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }} \
             --region=${{ env.GCP_REGION }} \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --project=${{ env.GCP_PROJECT_ID }} \
             --platform=managed \
             --allow-unauthenticated \
             --port=80 \
