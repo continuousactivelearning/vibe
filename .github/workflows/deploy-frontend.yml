@@ -193,7 +193,7 @@ jobs:
                 }]
               }
             }
-            EOF
+            'EOF'
           fi
 
       - name: Deploy to Firebase
