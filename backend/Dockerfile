@@ -20,7 +20,7 @@ WORKDIR /app
 
 COPY package.json ./
 COPY scripts ./scripts
-RUN npm install --production
+RUN npm install
 
 COPY --from=builder /app/build ./build
 
