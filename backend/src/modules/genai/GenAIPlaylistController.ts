@@ -358,8 +358,18 @@ export default class GenAIPlaylistController {
           const createdQuestionIds: string[] = [];
           for (const questionData of questionsForSegment) {
             try {
+              // Validate and truncate hint if it's too long
+              let hint = questionData.question.hint;
+              const MAX_HINT_LENGTH = 150; // Maximum hint length in characters
+              
+              if (hint && typeof hint === 'string' && hint.length > MAX_HINT_LENGTH) {
+                // Truncate hint and add ellipsis
+                hint = hint.substring(0, MAX_HINT_LENGTH - 3) + '...';
+                console.log(`Hint truncated for question in segment ${currentSegmentId}: Original length ${questionData.question.hint.length}, truncated to ${hint.length}`);
+              }
+
               const questionnew = QuestionFactory.createQuestion({
-                question: questionData.question,
+                question: { ...questionData.question, hint }, // Use the validated/truncated hint
                 solution: questionData.solution
               });
 

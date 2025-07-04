@@ -158,56 +158,79 @@ export class AIContentService {
     count: number,
     transcriptContent: string,
   ): string {
-    const basePrompt = `Based on the following transcript content, generate ${count} educational question(s) of type ${questionType}.
+    const basePrompt = `Based on the following educational content, generate ${count} educational question(s) of type ${questionType}.
 
-Transcript content:
+content:
 ${transcriptContent}
 
 Each question should:
-- Be based on the transcript content
-- Have appropriate difficulty level
+- Focus on conceptual understanding and analysis rather than memorizing specific numbers or statistics
+- Test comprehension of key ideas, principles, and relationships discussed in the content
+- Encourage critical thinking and application of concepts
+- Avoid questions that require memorizing exact numerical values, dates, or statistics mentioned in the transcript
+- Be based on the transcript content but emphasize understanding over recall
+- Have appropriate difficulty level for analytical thinking
 - Set isParameterized to false unless the question uses variables
 
 `;
 
     const typeSpecificInstructions: Record<string, string> = {
       SOL: `Create SELECT_ONE_IN_LOT questions (single correct answer multiple choice):
-- Clear question text
-- 3-4 incorrect options with explanations
-- 1 correct option with explanation
+- Focus on understanding concepts, principles, or cause-and-effect relationships
+- Avoid questions about specific numbers, percentages, or statistical data
+- Clear question text that tests comprehension of ideas
+- 3-4 incorrect options with explanations that address common misconceptions
+- 1 correct option with explanation that reinforces the concept
+- Include a hint that points to the key concept or principle being tested
 - Set timeLimitSeconds to 60 and points to 5`,
 
       SML: `Create SELECT_MANY_IN_LOT questions (multiple correct answers):
-- Clear question text
+- Test understanding of multiple related concepts or characteristics
+- Focus on identifying key principles, factors, or elements discussed
+- Avoid numerical data or statistical information
+- Clear question text about conceptual relationships
 - 2-3 incorrect options with explanations
-- 2-3 correct options with explanations
+- 2-3 correct options with explanations that reinforce understanding
+- Include a hint that mentions the number of correct answers or key criteria
 - Set timeLimitSeconds to 90 and points to 8`,
 
       OTL: `Create ORDER_THE_LOTS questions (ordering/sequencing):
-- Clear question text asking to order items
-- 3-5 items that need to be ordered correctly
-- Each item should have text and explanation
+- Focus on logical sequences, processes, or hierarchical relationships
+- Test understanding of how concepts build upon each other
+- Avoid chronological ordering based on specific dates or times
+- Clear question text asking to order concepts, steps, or principles
+- 3-5 items that need to be ordered based on logical flow or importance
+- Each item should represent a concept with explanation of its position
 - Order should be numbered starting from 1
+- Include a hint about the ordering logic or key principle to consider
 - Set timeLimitSeconds to 120 and points to 10`,
 
       NAT: `Create NUMERIC_ANSWER_TYPE questions (numerical answers):
-- Clear question text requiring a numerical answer
+- Focus on conceptual calculations or estimations rather than exact figures from the transcript
+- Ask for ratios, proportions, or relative comparisons that require understanding
+- Avoid questions asking for specific numbers mentioned in the content
+- Test ability to apply concepts to derive approximate or relative numerical answers
+- Questions should require reasoning and application rather than recall
 - Appropriate decimal precision (0-3)
-- Realistic upper and lower limits for the answer
-- Either a specific value or expression for the solution
+- Realistic ranges that test conceptual understanding
+- Include a hint about the mathematical relationship or concept to apply
 - Set timeLimitSeconds to 90 and points to 6`,
 
       DES: `Create DESCRIPTIVE questions (text-based answers):
-- Clear question text requiring explanation or description
-- Detailed solution text that demonstrates the expected answer
-- Questions that test understanding of concepts from the transcript
+- Focus on explaining concepts, analyzing relationships, or evaluating ideas
+- Test deep understanding through explanation and reasoning
+- Avoid questions asking to repeat specific facts or figures
+- Ask for analysis of why concepts work, how they relate, or what they imply
+- Questions that require synthesis and application of multiple ideas
+- Detailed solution text that demonstrates analytical thinking
+- Include a hint that suggests the key aspects or framework to consider
 - Set timeLimitSeconds to 300 and points to 15`,
     };
 
     return (
       basePrompt +
       (typeSpecificInstructions[questionType] ||
-        `Generate question of type ${questionType}.`)
+        `Generate question of type ${questionType} focusing on conceptual understanding.`)
     );
   }
 

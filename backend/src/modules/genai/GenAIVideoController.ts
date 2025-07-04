@@ -245,7 +245,7 @@ export default class GenAIVideoController {
       quizItemBaseName,
       questionBankOptions,
       numQues,
-      lam = 3.0, // Default lambda value
+      lam = 3.3, // Default lambda value
     } = body;
 
     if (!versionId || !moduleId || !sectionId || !videoURL || !courseId) {
@@ -436,13 +436,23 @@ export default class GenAIVideoController {
           const createdQuestionIds: string[] = [];
           for (const questionData of questionsForSegment) {
             try {
+              // Validate and truncate hint if it's too long
+              let hint = questionData.question.hint;
+              const MAX_HINT_LENGTH = 80; // Maximum hint length in characters
+              
+              if (hint && typeof hint === 'string' && hint.length > MAX_HINT_LENGTH) {
+                // Truncate hint and add ellipsis
+                hint = hint.substring(0, MAX_HINT_LENGTH - 3) + '...';
+                console.log(`Hint truncated for question in segment ${currentSegmentId}: Original length ${questionData.question.hint.length}, truncated to ${hint.length}`);
+              }
+
               // Prepare the question data object for creation
               const questionPayload = {
                 text: questionData.question.text,
                 type: questionData.question.type, 
                 isParameterized: questionData.question.isParameterized,
                 parameters: questionData.question.parameters || [],
-                hint: questionData.question.hint,
+                hint: hint, // Use the validated/truncated hint
                 timeLimitSeconds: questionData.question.timeLimitSeconds,
                 points: questionData.question.points,
                 solution: questionData.solution, 
@@ -479,7 +489,7 @@ export default class GenAIVideoController {
             type: ItemType.QUIZ,
             quizDetails: {
               passThreshold: 0.7,
-              maxAttempts: 3,
+              maxAttempts: 1000,
               quizType: 'NO_DEADLINE',
               approximateTimeToComplete: '00:05:00',
               allowPartialGrading: true,
