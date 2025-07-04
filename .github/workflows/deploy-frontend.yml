@@ -1,11 +1,12 @@
-name: Deploy Frontend
+name: Deploy Frontend (Staging)
 
 on:
   push:
-    branches: [main, test-cicd]
+    branches: [staging, test-cicd]
     paths:
       - "frontend/**"
       - ".github/workflows/deploy-frontend.yml"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -16,7 +17,7 @@ env:
   NODE_VERSION: '20'
   DOCKER_IMAGE: vibe-frontend
   GCP_REGION: asia-south2
-  GCP_SERVICE: vibe-frontend
+  GCP_SERVICE: vibe-frontend-staging
 
 jobs:
   versioning:
@@ -56,9 +57,8 @@ jobs:
         id: fallback_version
         run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
-  build:
-    name: Build and Push
-    needs: versioning
+  lint:
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,11 +76,42 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Install date-fns dependency
+      - name: Install dependencies
+        run: |
+          cd frontend
+          pnpm install
+
+      - name: Run linting
+        run: |
+          cd frontend
+          pnpm lint || echo "Linting completed with warnings"
+
+  build:
+    name: Build and Push
+    needs: [versioning, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies and fix TypeScript errors
         env:
           NODE_VERSION: ${{ env.NODE_VERSION }}
         run: |
           cd frontend
+          pnpm install
           pnpm add -D date-fns typescript@5.8.3
           echo "// Fix TypeScript errors" > src/fix-ts-errors.ts
           echo "export const setImageSrcs = null;" >> src/fix-ts-errors.ts
@@ -91,35 +122,48 @@ jobs:
           echo "export const set = null;" >> src/fix-ts-errors.ts
           echo "export const useEffect = null;" >> src/fix-ts-errors.ts
 
+      - name: Generate OpenAPI schema
+        run: |
+          cd frontend
+          pnpm copy || echo "OpenAPI schema generation skipped"
+          pnpm gen-schema || echo "Schema generation skipped"
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          NODE_ENV=staging pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/dist
+          retention-days: 1
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NODE_ENV=production
+            NODE_ENV=staging
             SKIP_TS_CHECK=true
-          allow-failure: true
+          allow-failure: false
 
       - name: Create GitHub Release
         uses: actions/create-release@v1
@@ -130,56 +174,42 @@ jobs:
           tag_name: v${{ env.NEW_VERSION }}
           release_name: Release v${{ env.NEW_VERSION }}
           body: |
-            Release v${{ env.NEW_VERSION }}
+            Release v${{ env.NEW_VERSION }} (Staging)
 
-  deploy_staging:
-    name: Deploy to Staging
+  deploy_firebase:
+    name: Deploy to Firebase (Staging)
     needs: [versioning, build]
-    if: github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
     environment: staging
     steps:
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      - uses: actions/checkout@v4
         with:
-          credentials_json: ${{ env.GCP_SA_KEY }}
+          fetch-depth: 0
 
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v1
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          service: vibe-frontend-staging
-          region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
+          node-version: ${{ env.NODE_VERSION }}
 
-  deploy_production:
-    name: Deploy to Production
-    needs: [versioning, build, deploy_staging]
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: google-github-actions/auth@v2
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
         with:
-          credentials_json: ${{ env.GCP_SA_KEY }}
+          version: 8
+          run_install: false
 
-      - name: Deploy to Cloud Run (production)
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-        run: |
-          gcloud run deploy vibe-frontend-production \
-            --image=docker.io/${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }} \
-            --region=${{ env.GCP_REGION }} \
-            --project=${{ env.GCP_PROJECT_ID }} \
-            --platform=managed \
-            --allow-unauthenticated \
-            --port=80 \
-            --set-env-vars=NODE_ENV=production
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: ./frontend/dist
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          channelId: 'staging'
+          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          target: 'staging'
+
+

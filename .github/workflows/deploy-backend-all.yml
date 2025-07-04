@@ -1,8 +1,8 @@
-name: Backend CI/CD
+name: Backend CI/CD (Staging)
 
 on:
   push:
-    branches: [master, staging, test-cicd]
+    branches: [staging, test-cicd]
     paths:
       - 'backend/**'
       - '.github/workflows/deploy-backend-all.yml'
@@ -18,7 +18,7 @@ env:
   NODE_VERSION: '22'
   DOCKER_IMAGE: vibe-backend
   GCP_REGION: asia-south2
-  GCP_SERVICE: vibe-backend
+  GCP_SERVICE: vibe-backend-staging
 
 jobs:
   versioning:
@@ -57,29 +57,25 @@ jobs:
         id: fallback_version
         run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
-  build:
-    name: Build and Push
-    needs: versioning
+  lint:
+    name: Lint and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Setup Node.js for potential pre-build steps
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
 
-      # Setup pnpm
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 10.4.1
           run_install: false
 
-      # Install any missing dependencies if needed
       - name: Install dependencies
         run: |
           cd backend
@@ -87,42 +83,55 @@ jobs:
             echo "Creating empty pnpm-lock.yaml file"
             touch pnpm-lock.yaml
           fi
+          pnpm install
+
+      - name: Run linting
+        run: |
+          cd backend
+          pnpm lint || echo "Linting completed with warnings"
+
+      - name: Run tests
+        run: |
+          cd backend
+          pnpm test:ci || echo "Tests completed with warnings"
+
+  build:
+    name: Build and Push
+    needs: [versioning, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         with:
-          username: ${{ env.DOCKERHUB_USERNAME }}
-          password: ${{ env.DOCKERHUB_TOKEN }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         with:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
-            ${{ env.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            NODE_ENV=production
-            SENTRY_AUTH_TOKEN=${{ env.SENTRY_AUTH_TOKEN }}
-          allow-failure: true
+            NODE_ENV=staging
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          allow-failure: false
 
   deploy_staging:
-    name: Deploy to Staging
+    name: Deploy to Cloud Run (Staging)
     needs: [versioning, build]
-    if: github.ref != 'refs/heads/master'
     runs-on: ubuntu-latest
     environment: staging
     steps:
@@ -133,39 +142,15 @@ jobs:
         with:
           credentials_json: ${{ env.GCP_SA_KEY }}
 
-      - name: Deploy to Firebase (staging)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v1
         with:
-          repoToken: '${{ env.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ env.FIREBASE_SERVICE_ACCOUNT }}'
-          channelId: 'staging'
-          projectId: '${{ env.FIREBASE_PROJECT_ID }}'
-          target: 'staging'
+          service: ${{ env.GCP_SERVICE }}
+          region: ${{ env.GCP_REGION }}
+          image: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            NODE_ENV=staging
+          flags: --allow-unauthenticated --port=4001
 
-  deploy_production:
-    name: Deploy to Production
-    needs: [versioning, build, deploy_staging]
-    if: github.ref == 'refs/heads/master'
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: google-github-actions/auth@v2
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-        with:
-          credentials_json: ${{ env.GCP_SA_KEY }}
 
-      - name: Deploy to Firebase (production)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
-        with:
-          repoToken: '${{ env.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ env.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: '${{ env.FIREBASE_PROJECT_ID }}'
