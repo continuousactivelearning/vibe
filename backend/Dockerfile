@@ -24,9 +24,10 @@ RUN npm install --production
 
 COPY --from=builder /app/build ./build
 
-EXPOSE 4001
+ENV PORT=4001
+EXPOSE ${PORT}
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:4001/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:${PORT}/health || exit 1
 
 CMD ["dumb-init", "node", "build/index.js"]
