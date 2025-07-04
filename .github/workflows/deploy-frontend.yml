@@ -178,7 +178,7 @@ jobs:
           name: frontend-build
           path: ./frontend/dist
           
-      # Using the firebase.json file from the repository that has the staging target configured
+      # Using the firebase.json file from the repository
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -187,5 +187,4 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: 'staging'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
-          target: 'staging'
           entryPoint: './frontend'
