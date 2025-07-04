@@ -69,6 +69,8 @@ RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
 RUN npm install -g rimraf
 
+COPY scripts ./scripts
+
 RUN pnpm install --no-frozen-lockfile
 
 RUN pnpm prune --prod
