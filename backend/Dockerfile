@@ -22,7 +22,6 @@ COPY package.json ./
 RUN npm install --production
 
 COPY --from=builder /app/build ./build
-COPY --from=builder /app/public ./public
 
 EXPOSE 4001
 
