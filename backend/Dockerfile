@@ -36,12 +36,12 @@ WORKDIR /app
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
+COPY scripts ./scripts
+
 RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
 # Install dependencies with --no-frozen-lockfile to allow installation without lock file
 RUN pnpm install --no-frozen-lockfile
-
-COPY scripts ./scripts
 
 COPY . .
 
