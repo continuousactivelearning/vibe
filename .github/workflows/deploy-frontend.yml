@@ -177,6 +177,20 @@ jobs:
         with:
           name: frontend-build
           path: ./frontend/dist
+          
+      - name: Create Firebase config file
+        run: |
+          cd frontend
+          echo '{
+            "hosting": {
+              "public": "dist",
+              "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+              "rewrites": [{
+                "source": "**",
+                "destination": "/index.html"
+              }]
+            }
+          }' > firebase.json
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0

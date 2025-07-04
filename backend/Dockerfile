@@ -19,6 +19,7 @@ RUN apk add --no-cache dumb-init git
 WORKDIR /app
 
 COPY package.json ./
+COPY scripts ./scripts
 RUN npm install --production
 
 COPY --from=builder /app/build ./build
