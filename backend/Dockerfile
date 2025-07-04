@@ -27,19 +27,15 @@ RUN if [ -n "$SENTRY_AUTH_TOKEN" ]; then \
 # ========================================
 FROM node:22-alpine AS build
 
-# Install build dependencies
 RUN apk add --no-cache git python3 make g++ bash
 
-# Install pnpm with correct version
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 WORKDIR /app
 
-# Copy package files for better caching
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-# Create empty lock file if it doesn't exist
 RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
 # Install dependencies with --no-frozen-lockfile to allow installation without lock file
@@ -56,34 +52,31 @@ RUN pnpm tsc || echo "TypeScript build failed but continuing"
 # ========================================
 FROM node:22-alpine AS production
 
-# Install dumb-init for proper signal handling
 RUN apk add --no-cache dumb-init
 
-# Install git and other build dependencies
 RUN apk add --no-cache git bash
 
 WORKDIR /app
 
-# Copy package files
 COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
-# Install pnpm
 RUN corepack enable && corepack prepare pnpm@10.4.1 --activate
 
 # Create empty lock file if it doesn't exist
 RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
-RUN pnpm install --prod --no-frozen-lockfile
+RUN npm install -g rimraf
 
-# Copy built files from build stage
+RUN pnpm install --no-frozen-lockfile
+
+RUN pnpm prune --prod
+
 COPY --from=build /app/dist/ ./dist/
 
-# Copy public directory if it exists
 RUN mkdir -p ./public/
 COPY --from=build /app/public ./public/
 
-# Create a non-root user
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN chown -R appuser:appgroup /app
 USER appuser

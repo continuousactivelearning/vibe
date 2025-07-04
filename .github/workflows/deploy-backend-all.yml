@@ -127,13 +127,14 @@ jobs:
           build-args: |
             NODE_ENV=staging
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-          allow-failure: false
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            DB_URL=${{ secrets.DB_URL }}
 
   deploy_staging:
     name: Deploy to Cloud Run (Staging)
     needs: [versioning, build]
     runs-on: ubuntu-latest
-    environment: staging
     steps:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -143,14 +144,16 @@ jobs:
           credentials_json: ${{ env.GCP_SA_KEY }}
 
       - name: Deploy to Cloud Run
+        id: deploy
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ${{ env.GCP_SERVICE }}
           region: ${{ env.GCP_REGION }}
-          image: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=staging
+            DB_URL=${{ secrets.DB_URL }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
           flags: --allow-unauthenticated --port=4001
-
-
