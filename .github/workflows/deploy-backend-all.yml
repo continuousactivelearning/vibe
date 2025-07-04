@@ -136,14 +136,7 @@ jobs:
     needs: [versioning, build]
     runs-on: ubuntu-latest
     steps:
-      - name: Extract Firebase credentials from service account
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > service-account.json
-          echo "FIREBASE_CLIENT_EMAIL=$(jq -r '.client_email' service-account.json)" >> $GITHUB_ENV
-          echo "FIREBASE_PRIVATE_KEY=$(jq -r '.private_key' service-account.json)" >> $GITHUB_ENV
-          echo "FIREBASE_PROJECT_ID=$(jq -r '.project_id' service-account.json)" >> $GITHUB_ENV
-          rm service-account.json
-      
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         env:
@@ -165,8 +158,8 @@ jobs:
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
-            FIREBASE_CLIENT_EMAIL=${{ env.FIREBASE_CLIENT_EMAIL }}
-            FIREBASE_PRIVATE_KEY=${{ env.FIREBASE_PRIVATE_KEY }}
-            FIREBASE_PROJECT_ID=${{ env.FIREBASE_PROJECT_ID }}
-            FIREBASE_API_KEY=${{ secrets.FIREBASE_PROJECT_ID }}  # Using project ID as API key fallback
+            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+            FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
           flags: --allow-unauthenticated --port=4001
