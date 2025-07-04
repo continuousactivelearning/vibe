@@ -200,3 +200,4 @@ jobs:
           channelId: 'staging'
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
           target: 'staging'
+          entryPoint: './frontend'
