@@ -41,7 +41,8 @@ RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 # Install dependencies with --no-frozen-lockfile to allow installation without lock file
 RUN pnpm install --no-frozen-lockfile
 
-# Copy source code
+COPY scripts ./scripts
+
 COPY . .
 
 # Build TypeScript
