@@ -13,12 +13,12 @@ COPY package.json ./
 COPY pnpm-lock.yaml* ./
 
 # Install all dependencies (including devDependencies)
-RUN pnpm install --force
+RUN pnpm --filter frontend install --force
 
 # Copy source code
 COPY . .
 
-RUN pnpm build
+RUN pnpm --filter frontend exec vite build
 
 FROM nginx:stable-alpine
 

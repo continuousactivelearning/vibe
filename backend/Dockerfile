@@ -41,12 +41,12 @@ COPY scripts ./scripts
 RUN if [ ! -f "pnpm-lock.yaml" ]; then touch pnpm-lock.yaml; fi
 
 # Install dependencies with --no-frozen-lockfile to allow installation without lock file
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm --filter backend install --no-frozen-lockfile
 
 COPY . .
 
 # Build TypeScript
-RUN pnpm tsc || echo "TypeScript build failed but continuing"
+RUN pnpm --filter backend tsc || echo "TypeScript build failed but continuing"
 
 # ========================================
 # Production stage
@@ -71,7 +71,7 @@ RUN npm install -g rimraf
 
 COPY scripts ./scripts
 
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm --filter backend install --no-frozen-lockfile
 
 RUN pnpm prune --prod
 
