@@ -1,4 +1,4 @@
-name: Backend CI/CD (Staging)
+name: Backend CI/CD (Staging & Optional Production)
 
 on:
   push:
@@ -7,6 +7,15 @@ on:
       - 'backend/**'
       - '.github/workflows/deploy-backend-all.yml'
   workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: "Also deploy to production?"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
   contents: write
@@ -49,7 +58,7 @@ jobs:
           fetch_all_tags: true
           create_annotated_tag: true
           dry_run: false
-      
+
       - name: Set fallback version if tagging failed
         if: steps.tag_version.outcome == 'failure'
         id: fallback_version
@@ -78,7 +87,6 @@ jobs:
         run: |
           cd backend
           if [ ! -f "pnpm-lock.yaml" ]; then
-            echo "Creating empty pnpm-lock.yaml file"
             touch pnpm-lock.yaml
           fi
           pnpm install
@@ -140,7 +148,6 @@ jobs:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
       - name: Deploy to Cloud Run
-        id: deploy
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ${{ env.GCP_SERVICE }}
@@ -149,6 +156,39 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=staging
+            DB_URL=${{ secrets.DB_URL }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            SENTRY_ORG=${{ secrets.SENTRY_ORG }}
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+            FIREBASE_CLIENT_EMAIL=${{ secrets.FIREBASE_CLIENT_EMAIL }}
+            FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
+            FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
+            FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          flags: --allow-unauthenticated
+
+  deploy_production:
+    name: Deploy to Cloud Run (Production)
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_production == 'true'
+    needs: [versioning, build]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://your-production-url.run.app # TODO: ask aditya for production url (optional)
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Deploy to Cloud Run (Production)
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: vibe-backend-production
+          region: ${{ env.GCP_REGION }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            NODE_ENV=production
             DB_URL=${{ secrets.DB_URL }}
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
