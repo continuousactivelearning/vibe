@@ -24,8 +24,6 @@ RUN npm install
 
 COPY --from=builder /app/build ./build
 
-ENV PORT=4001
-EXPOSE ${PORT}
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:${PORT}/health || exit 1
