@@ -14,7 +14,7 @@ RUN pnpm tsc || echo "TypeScript compilation had errors but continuing build"
 
 FROM node:22-alpine
 
-RUN apk add --no-cache dumb-init git
+RUN apk add --no-cache dumb-init git wget
 
 WORKDIR /app
 
@@ -24,6 +24,9 @@ RUN npm install
 
 COPY --from=builder /app/build ./build
 
+COPY --from=builder /app/src/modules ./src/modules
+
+ENV PORT=8080
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:${PORT}/health || exit 1
