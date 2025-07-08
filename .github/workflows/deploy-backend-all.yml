@@ -159,6 +159,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=staging
+            APP_URL=${{ secrets.APP_URL }}
             DB_URL=${{ secrets.DB_URL }}
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
@@ -193,6 +194,7 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=production
+            APP_URL=${{ secrets.APP_URL }}
             DB_URL=${{ secrets.DB_URL }}
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SENTRY_ORG=${{ secrets.SENTRY_ORG }}
