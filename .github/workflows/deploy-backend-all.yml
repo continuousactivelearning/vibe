@@ -167,6 +167,7 @@ jobs:
             FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+            APP_ORIGINS=${{ secrets.APP_ORIGINS }}
           flags: --allow-unauthenticated
 
   deploy_production:
@@ -200,4 +201,5 @@ jobs:
             FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }}
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+            APP_ORIGINS=${{ secrets.APP_ORIGINS }}
           flags: --allow-unauthenticated
