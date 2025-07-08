@@ -163,6 +163,9 @@ jobs:
     name: Deploy to Firebase (Staging)
     needs: [build, versioning]
     runs-on: ubuntu-latest
+    environment:
+      name: staging
+      # url: https://your-staging-url.firebaseapp.com # TODO: (optional)
     steps:
       - uses: actions/checkout@v4
         with:
