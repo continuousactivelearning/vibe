@@ -8,7 +8,7 @@ const getAuthToken = (): string | null => {
 };
 
 const fetchClient = createFetchClient<paths>({
-  baseUrl: "http://localhost:4001/api"
+  baseUrl: import.meta.env.VITE_API_BASE_URL || "http://localhost:4001/api"
 });
 
 // Add middleware to automatically include Authorization header
