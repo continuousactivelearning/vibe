@@ -11,7 +11,7 @@ import {
   HttpCode,
 } from 'routing-controllers';
 
-import {EventService, RuleService} from '#gamification/services/index.js';
+import {eventService, ruleService} from '#gamification/services/index.js';
 import {
   Events,
   EventsBody,
@@ -26,16 +26,22 @@ import {
 import {GAMIFICATION_TYPES} from '../types.js';
 import {instanceToPlain} from 'class-transformer';
 import {EventTrigger} from '../classes/transformers/EventTrigger.js';
+import {OpenAPI} from 'routing-controllers-openapi';
 
+@OpenAPI({
+  tags: ['GamifyLayer'],
+})
 @injectable()
-@JsonController('/gamification')
+@JsonController('/gamification', {
+  transformResponse: true,
+})
 export class GamifyLayerController {
   constructor(
     @inject(GAMIFICATION_TYPES.EventService)
-    private readonly eventService: EventService,
+    private readonly eventService: eventService,
 
     @inject(GAMIFICATION_TYPES.RuleService)
-    private readonly ruleService: RuleService,
+    private readonly ruleService: ruleService,
   ) {}
 
   @Authorized(['admin', 'instructor'])
@@ -48,7 +54,7 @@ export class GamifyLayerController {
     const createdEvent = await this.eventService.createEvent(eventInstance);
 
     // Return the created event
-    return instanceToPlain(createdEvent) as Events;
+    return createdEvent;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -62,7 +68,7 @@ export class GamifyLayerController {
     const createdRule = await this.ruleService.createRule(ruleInstance);
 
     // Return the created rule
-    return instanceToPlain(createdRule) as RuleBody;
+    return createdRule;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -71,7 +77,7 @@ export class GamifyLayerController {
     // Convert string ID to ObjectId
     const rules = await this.ruleService.readRules(params.eventId);
     // Return plain object array if rules exist, otherwise null
-    return rules ? rules.map(rule => instanceToPlain(rule) as Rule) : null;
+    return rules;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -84,7 +90,7 @@ export class GamifyLayerController {
     const rule = await this.ruleService.readRule(ruleId);
 
     // Return plain object
-    return instanceToPlain(rule) as Rule;
+    return rule;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -122,6 +128,6 @@ export class GamifyLayerController {
     const response = await this.eventService.eventTrigger(eventTrigger);
 
     // Return the response from the service
-    return instanceToPlain(response) as MetricTriggerResponse;
+    return response;
   }
 }

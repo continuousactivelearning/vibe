@@ -13,12 +13,12 @@ import jsonLogic from 'json-logic-js';
 import {ObjectId} from 'mongodb';
 
 /**
- * RuleService - handles business logic for gamification rules
+ * ruleService - handles business logic for gamification rules
  * Manages CRUD operations for rules that define game mechanics
  */
 
 @injectable()
-export class RuleService extends BaseService {
+export class ruleService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.Database)
     private readonly mongoDatabase: MongoDatabase,

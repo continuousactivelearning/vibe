@@ -8,8 +8,6 @@ import {
 } from '#root/shared/index.js';
 import {MetricTrigger, MetricTriggerResponse} from '../classes/index.js';
 import {plainToInstance} from 'class-transformer';
-import {IMetricTrigger, IUserGameMetric} from '#root/shared/index.js';
-import {Document} from 'mongodb';
 import {BadRequestError, NotFoundError} from 'routing-controllers';
 
 /**
@@ -17,7 +15,7 @@ import {BadRequestError, NotFoundError} from 'routing-controllers';
  * Processes metric updates and determines which achievements to unlock
  */
 @injectable()
-export class MetricTriggerService extends BaseService {
+export class metricTriggerService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.GamifyEngineRepo)
     private readonly gamifyEngineRepo: IGamifyEngineRepository,

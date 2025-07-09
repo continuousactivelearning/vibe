@@ -12,11 +12,11 @@ import {ObjectId} from 'mongodb';
 import {NotFoundError} from 'routing-controllers';
 
 /**
- * UserGameMetricsService - handles business logic for user game metrics
+ * userGameMetricsService - handles business logic for user game metrics
  * Manages user progress tracking on individual metrics
  */
 @injectable()
-export class UserGameMetricsService extends BaseService {
+export class userGameMetricsService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.GamifyEngineRepo)
     private readonly gamifyEngineRepo: IGamifyEngineRepository,

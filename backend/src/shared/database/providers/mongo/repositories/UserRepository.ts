@@ -55,9 +55,9 @@ export class UserRepository implements IUserRepository {
     session?: ClientSession,
   ): Promise<IUser | null> {
     await this.init();
-    
+
     const user = await this.usersCollection.findOne({email}, {session});
-    return user; 
+    return user;
   }
 
   /**

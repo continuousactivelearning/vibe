@@ -12,11 +12,11 @@ import {
 } from 'routing-controllers';
 
 import {
-  MetricService,
-  AchievementService,
-  UserGameAchievementsService,
-  UserGameMetricsService,
-  MetricTriggerService,
+  metricService,
+  achievementService,
+  userGameAchievementsService,
+  userGameMetricsService,
+  metricTriggerService,
 } from '#gamification/services/index.js';
 import {
   GameMetric,
@@ -44,25 +44,31 @@ import {
 
 import {GAMIFICATION_TYPES} from '../types.js';
 import {instanceToPlain, plainToInstance} from 'class-transformer';
+import {OpenAPI} from 'routing-controllers-openapi';
 
+@OpenAPI({
+  tags: ['GamifyEngine'],
+})
 @injectable()
-@JsonController('/gamification/engine')
+@JsonController('/gamification/engine', {
+  transformResponse: true,
+})
 export class GamifyEngineController {
   constructor(
     @inject(GAMIFICATION_TYPES.MetricService)
-    private readonly MetricService: MetricService,
+    private readonly MetricService: metricService,
 
     @inject(GAMIFICATION_TYPES.AchievementService)
-    private readonly AchievementService: AchievementService,
+    private readonly AchievementService: achievementService,
 
     @inject(GAMIFICATION_TYPES.UserGameAchievementsService)
-    private readonly UserGameAchievementsService: UserGameAchievementsService,
+    private readonly UserGameAchievementsService: userGameAchievementsService,
 
     @inject(GAMIFICATION_TYPES.UserGameMetricsService)
-    private readonly UserGameMetricsService: UserGameMetricsService,
+    private readonly UserGameMetricsService: userGameMetricsService,
 
     @inject(GAMIFICATION_TYPES.MetricTriggerService)
-    private readonly MetricTriggerService: MetricTriggerService,
+    private readonly MetricTriggerService: metricTriggerService,
   ) {}
 
   @Authorized(['admin', 'instructor'])
@@ -89,7 +95,7 @@ export class GamifyEngineController {
     // It expects the ID to be passed as a parameter.
     const metric = await this.MetricService.getGameMetricById(params.metricId);
 
-    return instanceToPlain(metric) as GameMetric;
+    return metric;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -146,7 +152,7 @@ export class GamifyEngineController {
       achievement,
     );
 
-    return instanceToPlain(createdAchievement) as MetricAchievement;
+    return createdAchievement;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -161,7 +167,7 @@ export class GamifyEngineController {
       params.achievementId,
     );
 
-    return instanceToPlain(achievement) as MetricAchievement;
+    return achievement;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -170,7 +176,7 @@ export class GamifyEngineController {
   async getAchievements(): Promise<MetricAchievement[]> {
     // This method retrieves all achievements.
     const achievements = await this.AchievementService.getAchievements();
-    return instanceToPlain(achievements) as MetricAchievement[];
+    return achievements;
   }
 
   @Authorized(['admin', 'instructor'])
@@ -226,7 +232,7 @@ export class GamifyEngineController {
         userGameAchievement,
       );
 
-    return instanceToPlain(createdAchievement) as UserGameAchievement;
+    return createdAchievement;
   }
 
   @Authorized(['admin', 'instructor', 'student'])
@@ -244,7 +250,7 @@ export class GamifyEngineController {
     const userAchievements =
       await this.UserGameAchievementsService.readUserGameAchievements(userId);
 
-    return instanceToPlain(userAchievements) as UserGameAchievement;
+    return userAchievements;
   }
 
   @Authorized(['admin', 'instructor', 'student'])
@@ -298,7 +304,7 @@ export class GamifyEngineController {
     const createdMetric =
       await this.UserGameMetricsService.createUserGameMetric(userGameMetric);
 
-    return instanceToPlain(createdMetric) as UserGameMetric;
+    return createdMetric;
   }
 
   @Authorized(['admin', 'instructor', 'student'])
@@ -310,7 +316,7 @@ export class GamifyEngineController {
     const metrics = await this.UserGameMetricsService.readUserGameMetrics(
       params.userId,
     );
-    return instanceToPlain(metrics) as UserGameMetric[];
+    return metrics;
   }
 
   @Authorized(['admin', 'instructor', 'student'])
@@ -350,6 +356,6 @@ export class GamifyEngineController {
       metricTrigger,
     );
 
-    return instanceToPlain(metricTriggerResult) as MetricTriggerResponse;
+    return metricTriggerResult;
   }
 }

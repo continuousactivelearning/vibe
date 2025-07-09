@@ -8,21 +8,20 @@ import {
 import {GLOBAL_TYPES} from '#root/types.js';
 import {Events, MetricTriggerResponse} from '#gamification/classes/index.js';
 import {plainToInstance} from 'class-transformer';
-import {ObjectId} from 'mongodb';
 import jsonLogic from 'json-logic-js';
 import {GAMIFICATION_TYPES} from '../types.js';
-import {MetricTriggerService} from './MetricTriggerService.js';
+import {metricTriggerService} from './MetricTriggerService.js';
 import {EventTrigger} from '../classes/transformers/EventTrigger.js';
 
 @injectable()
-export class EventService extends BaseService {
+export class eventService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.Database)
     private readonly mongodatabase: MongoDatabase,
     @inject(GLOBAL_TYPES.GamifyLayerRepo)
     private readonly gamifyLayerRepo: IGamifyLayerRepository,
     @inject(GAMIFICATION_TYPES.MetricTriggerService)
-    private readonly metricTriggerService: MetricTriggerService,
+    private readonly metricTriggerService: metricTriggerService,
   ) {
     super(mongodatabase);
   }

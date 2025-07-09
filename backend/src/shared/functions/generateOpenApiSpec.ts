@@ -1,18 +1,15 @@
-import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
+import {validationMetadatasToSchemas} from 'class-validator-jsonschema';
 import {
   getMetadataArgsStorage,
   RoutingControllersOptions,
 } from 'routing-controllers';
-import {
-  getMetadataStorage,
-  MetadataStorage
-} from 'class-validator';
-import { routingControllersToSpec } from 'routing-controllers-openapi';
+import {getMetadataStorage, MetadataStorage} from 'class-validator';
+import {routingControllersToSpec} from 'routing-controllers-openapi';
 
-import { appConfig } from '../../config/app.js'; // adjust path as needed
-import { metadata } from 'reflect-metadata/no-conflict';
-import { ValidationMetadata } from 'class-validator/types/metadata/ValidationMetadata.js';
-import {defaultMetadataStorage} from 'class-transformer'
+import {appConfig} from '../../config/app.js'; // adjust path as needed
+import {metadata} from 'reflect-metadata/no-conflict';
+import {ValidationMetadata} from 'class-validator/types/metadata/ValidationMetadata.js';
+// import {defaultMetadataStorage} from 'class-transformer';
 
 const getOpenApiServers = () => {
   const servers = [];
@@ -91,8 +88,10 @@ function getSchemasForValidators(validators: Function[]) {
   const validatorSet = new Set(validators);
   let storage: MetadataStorage = getMetadataStorage();
 
-  const filteredValidationMetadatas: Map<Function, ValidationMetadata[]> = new Map();
-  const originalValidationMetadatas = (storage as unknown as any).validationMetadatas as Map<Function, ValidationMetadata[]>;
+  const filteredValidationMetadatas: Map<Function, ValidationMetadata[]> =
+    new Map();
+  const originalValidationMetadatas = (storage as unknown as any)
+    .validationMetadatas as Map<Function, ValidationMetadata[]>;
 
   for (const [key, value] of originalValidationMetadatas) {
     // Filter validation metadata based on the provided validators
@@ -116,12 +115,10 @@ function getSchemasForValidators(validators: Function[]) {
   return schemas;
 }
 
-
 export function generateOpenAPISpec(
   routingControllersOptions: RoutingControllersOptions,
   validators: Function[] = [],
 ) {
-
   // Get metadata storage
   const storage = getMetadataArgsStorage();
 
@@ -134,7 +131,7 @@ export function generateOpenAPISpec(
     // If no specific validators are provided, use all class-validator schemas
     schemas = validationMetadatasToSchemas({
       refPointerPrefix: '#/components/schemas/',
-      classTransformerMetadataStorage: defaultMetadataStorage
+      // classTransformerMetadataStorage: defaultMetadataStorage,
     });
   } else {
     // If specific validators are provided, filter schemas based on them
@@ -225,48 +222,52 @@ export function generateOpenAPISpec(
     //     },
     //   ],
     //   // Use Scalar's preferred grouping approach
-      tags:[
-        {
-          name: 'Courses',
-          description: 'Operations related to courses management',
-        }
-      ],
-      'x-tagGroups': [
-        {
-          name: 'Authentication',
-          tags: ['Authentication'],
-        },
-        {
-          name: 'Course Management',
-          tags: [
-            'Courses',
-            'Course Versions',
-            'Course Modules',
-            'Course Sections',
-            'Course Items',
-          ],
-        },
-        {
-          name: 'Quizzes',
-          tags: ['Quiz', 'Questions', 'Quiz Attempts', 'Question Banks'],
-        },
-        {
-          name: 'Notifications',
-          tags: ['Invites'],
-        },
-        {
-          name: 'Users',
-          tags: ['Enrollments','Progress','Users']
-        },
-        {
-          name: 'Settings',
-          tags: ['Course Settings', 'User Settings'],
-        },
-        {
-          name: 'Data Models',
-          tags: ['Models'],
-        },
-      ],
+    tags: [
+      {
+        name: 'Courses',
+        description: 'Operations related to courses management',
+      },
+    ],
+    'x-tagGroups': [
+      {
+        name: 'Authentication',
+        tags: ['Authentication'],
+      },
+      {
+        name: 'Course Management',
+        tags: [
+          'Courses',
+          'Course Versions',
+          'Course Modules',
+          'Course Sections',
+          'Course Items',
+        ],
+      },
+      {
+        name: 'Quizzes',
+        tags: ['Quiz', 'Questions', 'Quiz Attempts', 'Question Banks'],
+      },
+      {
+        name: 'Notifications',
+        tags: ['Invites'],
+      },
+      {
+        name: 'Users',
+        tags: ['Enrollments', 'Progress', 'Users'],
+      },
+      {
+        name: 'Settings',
+        tags: ['Course Settings', 'User Settings'],
+      },
+      {
+        name: 'Gamification',
+        tags: ['GamifyEngine', 'GamifyLayer'],
+      },
+      {
+        name: 'Data Models',
+        tags: ['Models'],
+      },
+    ],
     components: {
       schemas,
       securitySchemes: {

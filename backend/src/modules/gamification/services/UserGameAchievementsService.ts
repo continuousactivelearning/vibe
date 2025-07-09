@@ -13,11 +13,11 @@ import {ObjectId} from 'mongodb';
 import {NotFoundError} from 'routing-controllers';
 
 /**
- * UserGameAchievementsService - handles business logic for user achievements
+ * userGameAchievementsService - handles business logic for user achievements
  * Manages user achievement collections and their unlocked status
  */
 @injectable()
-export class UserGameAchievementsService extends BaseService {
+export class userGameAchievementsService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.GamifyEngineRepo)
     private readonly gamifyEngineRepo: IGamifyEngineRepository,

@@ -288,7 +288,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
     session?: ClientSession,
   ): Promise<IUserGameMetric | null> {
     await this.init();
-
+    // We need to use get-create pattern here to ensure that we do lazy loading of the user metric.
     const userMetric = await this.userMetricCollection.findOne(
       {userId: userId, metricId: gameMetricId},
       {session},
@@ -328,6 +328,25 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
 
     const result = await this.userMetricCollection.deleteOne(
       {userId: userId, metricId: gameMetricId},
+      {session},
+    );
+
+    if (result.acknowledged) {
+      return result;
+    }
+  }
+
+  // Delete a user's game metric by its ID
+  async deleteUserGameMetricById(
+    metricId: ObjectId,
+    session?: ClientSession,
+  ): Promise<DeleteResult | null> {
+    await this.init();
+
+    const result = await this.userMetricCollection.deleteMany(
+      {
+        metricId: metricId,
+      },
       {session},
     );
 
@@ -488,7 +507,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
             metricId: metric.metricId,
           },
           update: {$inc: {value: metric.value}},
-          upsert: false,
+          upsert: true, // Create if it doesn't exist
         },
       };
     });

@@ -15,7 +15,7 @@ import {plainToInstance} from 'class-transformer';
  * Manages CRUD operations for trackable metrics in the gamification system
  */
 @injectable()
-export class MetricService extends BaseService {
+export class metricService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.GamifyEngineRepo)
     private readonly gamifyEngineRepo: IGamifyEngineRepository,
@@ -120,6 +120,16 @@ export class MetricService extends BaseService {
 
       if (deleteResult.deletedCount === 0) {
         throw new NotFoundError(`Game metric with ID ${id} not found`);
+      }
+
+      // Cascade delete user game metrics.
+      const cascadeDeleteResult =
+        await this.gamifyEngineRepo.deleteUserGameMetricById(metricId, session);
+
+      if (!cascadeDeleteResult) {
+        throw new InternalServerError(
+          `Failed to cascade delete user game metrics for metric ID ${id}`,
+        );
       }
 
       return deleteResult.acknowledged && deleteResult.deletedCount > 0;

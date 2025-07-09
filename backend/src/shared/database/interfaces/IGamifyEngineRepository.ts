@@ -110,6 +110,11 @@ export interface IGamifyEngineRepository {
     session?: ClientSession,
   ): Promise<DeleteResult | null>;
 
+  deleteUserGameMetricById(
+    metricId: string | ObjectId,
+    session?: ClientSession,
+  ): Promise<DeleteResult | null>;
+
   // Create a user achievement (when a user unlocks an achievement)
   createUserGameAchievement(
     userGameAchievement: IUserGameAchievement,

@@ -15,7 +15,7 @@ import {ObjectId} from 'mongodb';
  * Manages CRUD operations for achievements that users can unlock
  */
 @injectable()
-export class AchievementService extends BaseService {
+export class achievementService extends BaseService {
   constructor(
     @inject(GLOBAL_TYPES.GamifyEngineRepo)
     private readonly gamifyEngineRepo: IGamifyEngineRepository,
