@@ -30,7 +30,7 @@ import {BaseQuestion, QuestionFactory} from '../quizzes/classes/transformers/Que
 import {ItemType} from '#shared/interfaces/models.js';
 
 @injectable()
-@JsonController('/genai-playlist')
+@JsonController('/genai')
 export default class GenAIPlaylistController {
   constructor(
     private videoService: VideoService,

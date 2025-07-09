@@ -167,8 +167,8 @@ Each question should:
 - Focus on conceptual understanding and analysis rather than memorizing specific numbers or statistics
 - Test comprehension of key ideas, principles, and relationships discussed in the content
 - Encourage critical thinking and application of concepts
-- Avoid questions that require memorizing exact numerical values, dates, or statistics mentioned in the transcript
-- Be based on the transcript content but emphasize understanding over recall
+- Avoid questions that require memorizing exact numerical values, dates, or statistics mentioned in the content
+- Be based on the content but emphasize understanding over recall
 - Have appropriate difficulty level for analytical thinking
 - Set isParameterized to false unless the question uses variables
 
@@ -206,7 +206,7 @@ Each question should:
 - Set timeLimitSeconds to 120 and points to 10`,
 
       NAT: `Create NUMERIC_ANSWER_TYPE questions (numerical answers):
-- Focus on conceptual calculations or estimations rather than exact figures from the transcript
+- Focus on conceptual calculations or estimations rather than exact figures from the content
 - Ask for ratios, proportions, or relative comparisons that require understanding
 - Avoid questions asking for specific numbers mentioned in the content
 - Test ability to apply concepts to derive approximate or relative numerical answers
