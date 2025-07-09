@@ -578,7 +578,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
         }
         return prev - 1;
       });
-    }, 100);
+    }, 1000);
 
     return () => clearInterval(timer);
   }, [quizStarted, quizCompleted, doGesture, timeLeft]); // Added timeLeft back as dependency
