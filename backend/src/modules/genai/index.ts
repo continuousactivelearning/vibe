@@ -6,6 +6,7 @@ import {RoutingControllersOptions, useContainer} from 'routing-controllers';
 import {HttpErrorHandler} from '#shared/index.js';
 import {genaiContainerModule} from './container.js';
 import GenAIVideoController from './GenAIVideoController.js';
+import GenAIPlaylistController from './GenAIPlaylistController.js';
 
 
 export const genaiContainerModules: ContainerModule[] = [
@@ -14,7 +15,8 @@ export const genaiContainerModules: ContainerModule[] = [
 ];
 
 export const genaiModuleControllers: Function[] = [
-  GenAIVideoController
+  GenAIVideoController,
+  GenAIPlaylistController
 ];
 
 export async function setupGenaiContainer(): Promise<void> {
@@ -35,3 +37,4 @@ export const genaiModuleOptions: RoutingControllersOptions = {
 };
 
 export * from './GenAIVideoController.js';
+export * from './GenAIPlaylistController.js';

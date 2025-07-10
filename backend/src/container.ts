@@ -9,6 +9,7 @@ import {GLOBAL_TYPES} from './types.js';
 import {dbConfig} from './config/db.js';
 import {CourseRepository} from '#shared/database/providers/mongo/repositories/CourseRepository.js';
 import { FirebaseAuthService } from './modules/auth/services/FirebaseAuthService.js';
+import { AIContentService } from './modules/genai/services/AIContentService.js';
 
 export const sharedContainerModule = new ContainerModule(options => {
   const uri = dbConfig.url;
@@ -29,6 +30,12 @@ export const sharedContainerModule = new ContainerModule(options => {
   options
     .bind(GLOBAL_TYPES.SettingsRepo)
     .to(SettingsRepository)
+    .inSingletonScope();
+
+  // AI Content Services
+  options
+    .bind(GLOBAL_TYPES.AIContentService)
+    .to(AIContentService)
     .inSingletonScope();
 
   // Other

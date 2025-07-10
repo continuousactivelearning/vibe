@@ -9,11 +9,11 @@ const TYPES = {
   CourseRepo: Symbol.for('CourseRepo'),
   InviteRepo: Symbol.for('InviteRepo'),
   EnrollmentRepo: Symbol.for('EnrollmentRepo'),
+  SettingsRepo: Symbol.for('SettingsRepo'),
 
   //Services
   MailService: Symbol.for('MailService'),
-  
-  SettingsRepo: Symbol.for('SettingsRepo'),
+  AIContentService: Symbol.for('AIContentService'),
 
   //Constants
   uri: Symbol.for('dbURI'),

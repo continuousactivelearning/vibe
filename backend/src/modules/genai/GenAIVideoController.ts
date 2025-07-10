@@ -8,6 +8,7 @@ import {
 } from 'routing-controllers';
 import {injectable, inject} from 'inversify';
 import {Request, Response} from 'express';
+import axios from 'axios';
 
 import {VideoService} from './services/VideoService.js';
 import {AudioService} from './services/AudioService.js';
@@ -21,7 +22,7 @@ import {QuestionBankService} from '../quizzes/services/QuestionBankService.js';
 import {QuestionService} from '../quizzes/services/QuestionService.js';
 import {QuizService} from '../quizzes/services/QuizService.js';
 import {QuestionBank} from '../quizzes/classes/transformers/QuestionBank.js';
-import {BaseQuestion} from '../quizzes/classes/transformers/Question.js';
+import {BaseQuestion, QuestionFactory} from '../quizzes/classes/transformers/Question.js';
 import {CreateItemBody} from '../courses/classes/validators/ItemValidators.js';
 import {ItemType} from '#shared/interfaces/models.js';
 
@@ -45,13 +46,13 @@ export default class GenAIVideoController {
   @Post('/generate/transcript')
   @HttpCode(200)
   async generateTranscript(
-    @Body() body: {youtubeUrl: string},
+    @Body() body: {youtubeUrl: string; language?: string},
     @Res() res: Response,
   ) {
     const tempPaths: string[] = [];
 
     try {
-      const {youtubeUrl} = body;
+      const {youtubeUrl, language} = body;
 
       if (!youtubeUrl) {
         return res.status(400).json({
@@ -59,7 +60,7 @@ export default class GenAIVideoController {
         });
       }
 
-      let transcript = '';
+      let transcriptionResult: any = null;
 
       if (youtubeUrl) {
         // 1. Download video
@@ -70,18 +71,24 @@ export default class GenAIVideoController {
         const audioPath = await this.audioService.extractAudio(videoPath);
         tempPaths.push(audioPath);
 
-        // 3. Transcribe audio
-        transcript = await this.transcriptionService.transcribe(audioPath);
+        // 3. Transcribe audio using the new method that creates JSON files
+        transcriptionResult = await this.transcriptionService.transcribeAudio(audioPath, language);
+        
+        // Add JSON file to cleanup if it was created
+        if (transcriptionResult.jsonFilePath) {
+          tempPaths.push(transcriptionResult.jsonFilePath);
+        }
       }
 
-      // 4. Return transcript
+      // 4. Return transcript with JSON file information
       return res.json({
         message: 'Transcript generation completed successfully.',
         youtubeUrl: youtubeUrl || null,
-        generatedTranscript: transcript,
+        text: transcriptionResult.text, // Full transcript text
+        chunks: transcriptionResult.chunks, // Segments with timestamp arrays
+        jsonFilePath: transcriptionResult.jsonFilePath, // Path to saved JSON file
       });
     } catch (err: any) {
-      console.error('Error in GenAIVideoController.generateTranscript:', err);
       return res
         .status(err.status || 500)
         .json({message: err.message || 'Internal Server Error'});
@@ -94,11 +101,11 @@ export default class GenAIVideoController {
   @Post('/generate/transcript/segment')
   @HttpCode(200)
   async segmentTranscript(
-    @Body() body: {transcript: string; model?: string},
+    @Body() body: {transcript: string; model?: string; lam?: number},
     @Res() res: Response,
   ) {
     try {
-      const {transcript, model} = body;
+      const {transcript, lam = 3.0} = body;
 
       if (
         !transcript ||
@@ -110,16 +117,53 @@ export default class GenAIVideoController {
         });
       }
 
-      const segments = await this.aiContentService.segmentTranscript(
-        transcript,
-        model,
-      );
+      // Create a temporary JSON file with transcript chunks
+      // For backwards compatibility, we'll create chunks from the raw transcript
+      const tempJsonData = {
+        text: transcript,
+        chunks: transcript.split('.').map((sentence, index) => ({
+          text: sentence.trim(),
+          timestamp: [index * 5, (index + 1) * 5] // Mock timestamps
+        })).filter(chunk => chunk.text.length > 0)
+      };
 
-      return res.json({
-        message: 'Transcript segmentation completed successfully.',
-        segments,
-        segmentCount: segments.length,
-      });
+      const fs = require('fs');
+      const path = require('path');
+      const tempFilePath = path.join('/tmp', `transcript_${Date.now()}.json`);
+      
+      fs.writeFileSync(tempFilePath, JSON.stringify(tempJsonData));
+
+      try {
+        // Call the Fast_Api segmentation service
+        const segmentationResponse = await axios.post(
+          'http://127.0.0.1:8000/segment-transcript',
+          { 
+            file_path: tempFilePath,
+            lam: lam
+          },
+          {
+            headers: { 'Content-Type': 'application/json' },
+            timeout: 60000,
+          }
+        );
+
+        const segments = segmentationResponse.data.segments || {};
+        
+        // Clean up temp file
+        fs.unlinkSync(tempFilePath);
+
+        return res.json({
+          message: 'Transcript segmentation completed successfully.',
+          segments,
+          segmentCount: Object.keys(segments).length,
+        });
+      } catch (segError) {
+        // Clean up temp file on error
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+        throw segError;
+      }
     } catch (err: any) {
       console.error('Error in GenAIVideoController.segmentTranscript:', err);
       return res
@@ -169,8 +213,9 @@ export default class GenAIVideoController {
       versionId: string;
       moduleId: string;
       sectionId: string;
-      courseId: string; // Added courseId parameter
+      courseId: string;
       videoURL: string;
+      numQues?: number;
       globalQuestionSpecification?: {
         SOL?: number;
         SML?: number;
@@ -185,6 +230,7 @@ export default class GenAIVideoController {
         difficulty?: string[];
         tags?: string[];
       };
+      lam?: number; // Add lambda parameter for segmentation
     },
     @Res() res: Response,
   ) {
@@ -192,12 +238,14 @@ export default class GenAIVideoController {
       versionId,
       moduleId,
       sectionId,
-      courseId, // Extract courseId
+      courseId,
       videoURL,
       globalQuestionSpecification,
       videoItemBaseName,
       quizItemBaseName,
       questionBankOptions,
+      numQues,
+      lam = 3.05, // Default lambda value
     } = body;
 
     if (!versionId || !moduleId || !sectionId || !videoURL || !courseId) {
@@ -213,21 +261,55 @@ export default class GenAIVideoController {
       tempPaths.push(videoPath);
       const audioPath = await this.audioService.extractAudio(videoPath);
       tempPaths.push(audioPath);
-      const transcript = await this.transcriptionService.transcribe(audioPath);
+      const transcriptionResult = await this.transcriptionService.transcribeAudio(audioPath);
+      
+      // Add JSON file to cleanup if it was created
+      if (transcriptionResult.jsonFilePath) {
+        tempPaths.push(transcriptionResult.jsonFilePath);
+      }
 
-      // 2. Segment Transcript
-      const rawSegments =
-        await this.aiContentService.segmentTranscript(transcript);
-      const segmentsMap: Record<string, string> = Array.isArray(rawSegments)
-        ? rawSegments.reduce((obj, seg, i) => {
-            const key =
-              typeof seg === 'object' && seg.endTime
-                ? seg.endTime
-                : `segment_id_${i + 1}`;
-            const text = typeof seg === 'object' && seg.text ? seg.text : seg;
-            return {...obj, [key]: text as string};
-          }, {})
-        : (rawSegments as Record<string, string>) || {};
+      // 2. Segment Transcript using Fast_Api service
+      let segmentsMap: Record<string, string> = {};
+      
+      if (transcriptionResult.jsonFilePath) {
+        console.log('🔍 Using Fast_Api segmentation service with JSON file...');
+        try {
+          const segmentationResponse = await axios.post(
+            'http://127.0.0.1:8000/segment-transcript',
+            { 
+              file_path: transcriptionResult.jsonFilePath,
+              lam: lam
+            },
+            {
+              headers: { 'Content-Type': 'application/json' },
+              timeout: 60000,
+            }
+          );
+          
+          segmentsMap = segmentationResponse.data.segments || {};
+          console.log(`✅ Fast_Api segmentation completed: ${Object.keys(segmentsMap).length} segments`);
+          
+        } catch (segmentationError: any) {
+          console.error('❌ Error in Fast_Api segmentation service:', segmentationError.message);
+          
+          // Fallback: create a single segment with the entire transcript
+          console.log('📝 Fallback: Using entire transcript as single segment');
+          const lastChunkEndTime = transcriptionResult.chunks && transcriptionResult.chunks.length > 0 
+            ? transcriptionResult.chunks[transcriptionResult.chunks.length - 1].timestamp[1]
+            : 0;
+          segmentsMap = {
+            [lastChunkEndTime.toString()]: transcriptionResult.text
+          };
+        }
+      } else {
+        // Fallback: create a single segment with the entire transcript
+        console.log('📝 No JSON file available, using entire transcript as single segment');
+        segmentsMap = {
+          '0': transcriptionResult.text
+        };
+      }
+      
+      console.log('Debug: Received segments from Fast_Api segmentation service:', Object.keys(segmentsMap));
 
       // 3. Generate Questions for all relevant segments
       const transformedGlobalQuestionSpec = [globalQuestionSpecification || {}];
@@ -242,11 +324,17 @@ export default class GenAIVideoController {
       if (Array.isArray(allQuestionsData)) {
         for (const question of allQuestionsData) {
           const segId = (question as any).segmentId;
-          if (segId && segmentsMap[segId]) {
-            if (!questionsGroupedBySegment[segId]) {
-              questionsGroupedBySegment[segId] = [];
+          // Handle numeric segmentId matching with floating point precision
+          const segIdStr = segId?.toString();
+          const segIdKey = Object.keys(segmentsMap).find(key => 
+            Math.abs(parseFloat(key) - parseFloat(segIdStr)) < 0.001 || key === segIdStr
+          );
+          
+          if (segIdKey && segmentsMap[segIdKey]) {
+            if (!questionsGroupedBySegment[segIdKey]) {
+              questionsGroupedBySegment[segIdKey] = [];
             }
-            questionsGroupedBySegment[segId].push(question);
+            questionsGroupedBySegment[segIdKey].push(question);
           } else {
             console.warn(
               `Question found without a valid segmentId ("${segId}") or segmentId not in segmentsMap.`,
@@ -279,8 +367,18 @@ export default class GenAIVideoController {
         questionIds: string[];
       }> = [];
 
+      // Helper function to convert time strings (like "5:15" or "1:02:30") to seconds for correct sorting
+      const timeToSeconds = (timeStr: string): number => {
+        const parts = timeStr.split(':').map(Number).reverse(); // [ss, mm, hh]
+        let seconds = 0;
+        if (parts[0]) seconds += parts[0]; // seconds
+        if (parts[1]) seconds += parts[1] * 60; // minutes
+        if (parts[2]) seconds += parts[2] * 3600; // hours
+        return seconds;
+      };
+
       const sortedSegmentIds = Object.keys(segmentsMap).sort((a, b) =>
-        a.localeCompare(b),
+        timeToSeconds(a) - timeToSeconds(b)
       );
       let previousSegmentEndTime = '0:00:00';
 
@@ -294,13 +392,11 @@ export default class GenAIVideoController {
           : 'No content';
 
         // Create Video Item for the segment
-        const videoSegName = videoItemBaseName
-          ? `${videoItemBaseName} - Segment (${segmentStartTime} - ${currentSegmentEndTime})`
-          : `Video Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
+        const videoSegName = videoItemBaseName;
 
         const videoItemBody: CreateItemBody = {
           name: videoSegName,
-          description: `Video content for segment: ${segmentStartTime} - ${currentSegmentEndTime}. ${segmentTextPreview}`,
+          description: `Video content`,
           type: ItemType.VIDEO,
           videoDetails: {
             URL: videoURL,
@@ -309,13 +405,13 @@ export default class GenAIVideoController {
             points: 10,
           },
         };
-        const createdVideoItem = await this.itemService.createItem(
+                const createdVideoItem = await this.itemService.createItem(
           versionId,
           moduleId,
           sectionId,
           videoItemBody,
         );
-        createdVideoItemsInfo.push({
+                createdVideoItemsInfo.push({
           id: createdVideoItem.createdItem?._id?.toString(),
           name: videoSegName,
           segmentId: currentSegmentId,
@@ -327,7 +423,7 @@ export default class GenAIVideoController {
         // Create Question Bank and Questions for the segment
         const questionsForSegment = questionsGroupedBySegment[currentSegmentId] || [];
         if (questionsForSegment.length > 0) {
-          // Create Question Bank for this segment
+                    // Create Question Bank for this segment
           const questionBankName = `Question Bank - Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
           const questionBank = new QuestionBank({
             title: questionBankName,
@@ -344,20 +440,31 @@ export default class GenAIVideoController {
           const createdQuestionIds: string[] = [];
           for (const questionData of questionsForSegment) {
             try {
+              // Validate and truncate hint if it's too long
+              let hint = questionData.question.hint;
+              const MAX_HINT_LENGTH = 80; // Maximum hint length in characters
+              
+              if (hint && typeof hint === 'string' && hint.length > MAX_HINT_LENGTH) {
+                // Truncate hint and add ellipsis
+                hint = hint.substring(0, MAX_HINT_LENGTH - 3) + '...';
+                console.log(`Hint truncated for question in segment ${currentSegmentId}: Original length ${questionData.question.hint.length}, truncated to ${hint.length}`);
+              }
+
               // Prepare the question data object for creation
               const questionPayload = {
                 text: questionData.question.text,
                 type: questionData.question.type, 
                 isParameterized: questionData.question.isParameterized,
                 parameters: questionData.question.parameters || [],
-                hint: questionData.question.hint,
+                hint: hint, // Use the validated/truncated hint
                 timeLimitSeconds: questionData.question.timeLimitSeconds,
                 points: questionData.question.points,
                 solution: questionData.solution, 
                 tags: [`segment_${currentSegmentId}`, 'ai_generated', questionData.question.type.toLowerCase()],
               };
+              const questionnew=QuestionFactory.createQuestion({question: questionData.question,solution: questionData.solution});
 
-              const questionId = await this.questionService.create(questionPayload);
+              const questionId = await this.questionService.create(questionnew);
               createdQuestionIds.push(questionId);
 
               // Add question to the question bank
@@ -375,10 +482,8 @@ export default class GenAIVideoController {
             questionIds: createdQuestionIds,
           });
 
-          // Create Quiz Item for the segment
-          const quizSegName = quizItemBaseName
-            ? `${quizItemBaseName} - Segment Quiz (${segmentStartTime} - ${currentSegmentEndTime})`
-            : `Quiz for Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
+          // Create Quiz Item (this will be added immediately after the video item)
+          const quizSegName = quizItemBaseName;
 
           const quizItemBody: CreateItemBody = {
             name: quizSegName,
@@ -386,7 +491,7 @@ export default class GenAIVideoController {
             type: ItemType.QUIZ,
             quizDetails: {
               passThreshold: 0.7,
-              maxAttempts: 3,
+              maxAttempts: 1000,
               quizType: 'NO_DEADLINE',
               approximateTimeToComplete: '00:05:00',
               allowPartialGrading: true,
@@ -399,6 +504,7 @@ export default class GenAIVideoController {
               deadline: undefined,
             },
           };
+          
           const createdQuizItem = await this.itemService.createItem(
             versionId,
             moduleId,
@@ -412,7 +518,10 @@ export default class GenAIVideoController {
             try {
               await this.quizService.addQuestionBank(quizId, {
                 bankId: questionBankId,
-                count: questionBankOptions?.count ?? createdQuestionIds.length,
+                count:
+                  numQues ??
+                  questionBankOptions?.count ??
+                  createdQuestionIds.length,
                 difficulty: questionBankOptions?.difficulty,
                 tags: questionBankOptions?.tags,
               });
@@ -433,13 +542,13 @@ export default class GenAIVideoController {
         }
         
         previousSegmentEndTime = currentSegmentEndTime;
-      }
+              }
 
       return res.json({
         message:
           'Video items, Quiz items, and Question banks for segments generated successfully from video.',
         videoURL,
-        transcriptPreview: transcript.substring(0, 200) + '...',
+        transcriptPreview: transcriptionResult.text.substring(0, 200) + '...',
         generatedItemsSummary: {
           totalSegmentsProcessed: sortedSegmentIds.length,
           totalVideoItemsCreated: createdVideoItemsInfo.length,
