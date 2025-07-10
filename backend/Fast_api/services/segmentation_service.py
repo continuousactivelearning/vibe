@@ -5,7 +5,7 @@ from sentence_transformers import SentenceTransformer
 from hdbscan import HDBSCAN
 from typing import List, Dict, Sequence
 
-def segment_transcript(file_path: str, lam: float = 1.0, num_runs: int = 5) -> Dict[str, str]:
+def segment_transcript(file_path: str, lam: float = 1.0, num_runs: int = 25) -> Dict[str, str]:
     """
     Main function to segment transcript and return segments dictionary
     
@@ -229,6 +229,41 @@ def segment_transcript(file_path: str, lam: float = 1.0, num_runs: int = 5) -> D
     
     # Get relevant chunk indices where segments start
     segment_start_indices = np.where(consensus)[0]
+    
+    
+    # Add intermediate segments to reduce large gaps
+    def add_intermediate_segments(segment_indices, chunks, max_gap_seconds=300):
+        """Add intermediate segments if gaps are too large (>5 minutes)"""
+        new_indices = list(segment_indices)
+        
+        for i in range(len(segment_indices) - 1):
+            start_idx = segment_indices[i]
+            end_idx = segment_indices[i + 1]
+            
+            # Get time range for this gap
+            start_time = chunks[start_idx]['timestamp'][1] if start_idx < len(chunks) else 0
+            end_time = chunks[end_idx]['timestamp'][0] if end_idx < len(chunks) else start_time
+            gap_duration = end_time - start_time
+            
+            # If gap is too large, add intermediate segments
+            if gap_duration > max_gap_seconds:
+                num_splits = int(gap_duration / max_gap_seconds)
+                chunk_gap = end_idx - start_idx
+                
+                for split_num in range(1, num_splits + 1):
+                    # Calculate intermediate index proportionally
+                    intermediate_idx = start_idx + int((chunk_gap * split_num) / (num_splits + 1))
+                    
+                    # Make sure it's not too close to existing boundaries
+                    if (intermediate_idx not in new_indices and 
+                        intermediate_idx > start_idx + 3 and 
+                        intermediate_idx < end_idx - 3):
+                        new_indices.append(intermediate_idx)
+        
+        return np.sort(np.array(new_indices))
+    
+    # Apply intermediate segment addition
+    segment_start_indices = add_intermediate_segments(segment_start_indices, chunks, max_gap_seconds=350)
     
     # Create segments dictionary
     segments = {}

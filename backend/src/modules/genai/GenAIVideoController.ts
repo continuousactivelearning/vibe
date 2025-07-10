@@ -245,7 +245,7 @@ export default class GenAIVideoController {
       quizItemBaseName,
       questionBankOptions,
       numQues,
-      lam = 3.3, // Default lambda value
+      lam = 3.05, // Default lambda value
     } = body;
 
     if (!versionId || !moduleId || !sectionId || !videoURL || !courseId) {
@@ -324,11 +324,17 @@ export default class GenAIVideoController {
       if (Array.isArray(allQuestionsData)) {
         for (const question of allQuestionsData) {
           const segId = (question as any).segmentId;
-          if (segId && segmentsMap[segId]) {
-            if (!questionsGroupedBySegment[segId]) {
-              questionsGroupedBySegment[segId] = [];
+          // Handle numeric segmentId matching with floating point precision
+          const segIdStr = segId?.toString();
+          const segIdKey = Object.keys(segmentsMap).find(key => 
+            Math.abs(parseFloat(key) - parseFloat(segIdStr)) < 0.001 || key === segIdStr
+          );
+          
+          if (segIdKey && segmentsMap[segIdKey]) {
+            if (!questionsGroupedBySegment[segIdKey]) {
+              questionsGroupedBySegment[segIdKey] = [];
             }
-            questionsGroupedBySegment[segId].push(question);
+            questionsGroupedBySegment[segIdKey].push(question);
           } else {
             console.warn(
               `Question found without a valid segmentId ("${segId}") or segmentId not in segmentsMap.`,
@@ -386,13 +392,11 @@ export default class GenAIVideoController {
           : 'No content';
 
         // Create Video Item for the segment
-        const videoSegName = videoItemBaseName
-          ? `${videoItemBaseName} - Segment (${segmentStartTime} - ${currentSegmentEndTime})`
-          : `Video Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
+        const videoSegName = videoItemBaseName;
 
         const videoItemBody: CreateItemBody = {
           name: videoSegName,
-          description: `Video content for segment: ${segmentStartTime} - ${currentSegmentEndTime}. ${segmentTextPreview}`,
+          description: `Video content`,
           type: ItemType.VIDEO,
           videoDetails: {
             URL: videoURL,
@@ -479,9 +483,7 @@ export default class GenAIVideoController {
           });
 
           // Create Quiz Item (this will be added immediately after the video item)
-          const quizSegName = quizItemBaseName
-            ? `${quizItemBaseName} - Segment Quiz (${segmentStartTime} - ${currentSegmentEndTime})`
-            : `Quiz for Segment (${segmentStartTime} - ${currentSegmentEndTime})`;
+          const quizSegName = quizItemBaseName;
 
           const quizItemBody: CreateItemBody = {
             name: quizSegName,
