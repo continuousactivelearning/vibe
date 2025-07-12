@@ -18,6 +18,7 @@ import {describe, it, beforeAll, afterAll, expect, vi} from 'vitest';
 import {FirebaseAuthService} from '#root/modules/auth/services/FirebaseAuthService.js';
 import {faker} from '@faker-js/faker';
 import {coursesContainerModule} from '#root/modules/courses/container.js';
+import {notificationsContainerModule} from '#root/modules/notifications/container.js';
 
 describe('GamificationEngineController', () => {
   const appInstance = Express();
@@ -34,6 +35,7 @@ describe('GamificationEngineController', () => {
       usersContainerModule,
       authContainerModule,
       coursesContainerModule,
+      notificationsContainerModule,
     );
 
     const inversifyAdapter = new InversifyAdapter(container);

@@ -86,13 +86,46 @@ export class userGameMetricsService extends BaseService {
   readUserGameMetrics(userId: string): Promise<UserGameMetric[]> {
     return this._withTransaction(async session => {
       const userObjectId = new ObjectId(userId);
+      // we should use get-create pattern here, if the metric does not exist, we should create it in lazy fashion.
 
       const metrics = await this.gamifyEngineRepo.readAllUserGameMetric(
         userObjectId,
         session,
       );
-      if (!metrics || metrics.length === 0) {
-        throw new NotFoundError(`No metrics found for user ${userId}`);
+
+      const allMetrics = await this.gamifyEngineRepo.readAllGameMetrics(
+        session,
+      );
+
+      if (!allMetrics || allMetrics.length === 0) {
+        throw new NotFoundError('No game metrics found in the system');
+      }
+
+      // If no metrics found for the user, lazy create default metrics.
+      if (allMetrics.length != metrics.length || metrics.length === 0) {
+        const userGameMetrics = allMetrics.map(metric => {
+          return {
+            userId: userObjectId,
+            metricId: metric._id,
+            value: 0,
+            lastUpdated: new Date(),
+          };
+        });
+
+        console.log(userGameMetrics);
+
+        // Bulk create user game metrics
+        const createdMetrics =
+          await this.gamifyEngineRepo.createUserGameMetrics(
+            userGameMetrics,
+            session,
+          );
+
+        if (!createdMetrics || createdMetrics.length === 0) {
+          throw new Error('Failed to create user game metrics');
+        }
+
+        return plainToInstance(UserGameMetric, createdMetrics);
       }
 
       return plainToInstance(UserGameMetric, metrics);

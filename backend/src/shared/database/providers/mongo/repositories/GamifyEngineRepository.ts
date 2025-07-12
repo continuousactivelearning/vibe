@@ -57,6 +57,14 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
         await this.db.getCollection<UserGameAchievement>(
           'userGameAchievements',
         );
+
+      this.userMetricCollection.createIndex(
+        {
+          userId: 1,
+          metricId: 1,
+        },
+        {unique: true},
+      );
       this.initialized = true;
     }
   }
@@ -262,6 +270,40 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       );
 
       return createdUserMetric;
+    }
+  }
+
+  async createUserGameMetrics(
+    userGameMetrics: IUserGameMetric[],
+    session?: ClientSession,
+  ): Promise<IUserGameMetric[] | null> {
+    await this.init();
+
+    const bulkOps = userGameMetrics.map(metric => ({
+      updateOne: {
+        filter: {
+          userId: metric.userId,
+          metricId: metric.metricId,
+        },
+        update: {
+          $setOnInsert: metric,
+        },
+        upsert: true,
+      },
+    }));
+
+    const result = await this.userMetricCollection.bulkWrite(bulkOps, {
+      session,
+    });
+
+    const upsertedIds = Object.values(result.upsertedIds);
+
+    if (upsertedIds.length > 0) {
+      const createdMetrics = await this.userMetricCollection
+        .find({_id: {$in: upsertedIds}}, {session})
+        .toArray();
+
+      return createdMetrics;
     }
   }
 

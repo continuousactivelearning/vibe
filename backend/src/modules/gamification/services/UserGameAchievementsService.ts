@@ -164,8 +164,6 @@ export class userGameAchievementsService extends BaseService {
       const userObjectId = new ObjectId(userId);
       const achievementObjectId = new ObjectId(achievementId);
 
-      // TODO: Consider implementing cascade deletion for better data management
-
       const deleteResult =
         await this.gamifyEngineRepo.deleteUserGameAchievement(
           userObjectId,
