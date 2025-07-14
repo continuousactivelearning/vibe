@@ -11,9 +11,10 @@ import {plainToInstance} from 'class-transformer';
 import {NotFoundError} from 'routing-controllers';
 import jsonLogic from 'json-logic-js';
 import {ObjectId} from 'mongodb';
+import {ClientSession} from 'mongodb';
 
 /**
- * ruleService - handles business logic for gamification rules
+ * RuleService - handles business logic for gamification rules
  * Manages CRUD operations for rules that define game mechanics
  */
 
@@ -142,5 +143,22 @@ export class ruleService extends BaseService {
       }
       return true;
     });
+  }
+
+  async deleteRulesByEventId(eventId: string): Promise<boolean> {
+  return this._withTransaction(async session => {
+    const objectId = new ObjectId(eventId);
+    const deleteResult = await this.gamifyLayerRepo.deleteRulesByEventId(
+      objectId,
+      session,
+    );
+
+    if (!deleteResult) {
+      throw new NotFoundError(
+        `Error deleting rules for event ID ${eventId}`,
+      );
+    }
+    return deleteResult.deletedCount > 0;
+  });
   }
 }

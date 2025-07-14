@@ -4,3 +4,4 @@ export * from './ProgressRepository.js';
 export * from './InviteRepository.js'
 export * from './CourseRepository.js';
 export * from './SettingsRepository.js';
+export * from './WeightsRepository.js';

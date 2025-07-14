@@ -4,6 +4,7 @@ import {
   UserRepository,
   HttpErrorHandler,
   SettingsRepository,
+  InviteRepository,
 } from '#shared/index.js';
 import {GLOBAL_TYPES} from './types.js';
 import {dbConfig} from './config/db.js';

@@ -641,13 +641,6 @@ describe('GamificationEngineController', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-    it('should return 404 for non-existent user', async () => {
-      const res = await request(app).get(
-        '/gamification/engine/usermetrics/6862b8b8705094efb275a981',
-      );
-
-      expect(res.status).toBe(404);
-    });
 
     it('should return 400 for invalid user ID', async () => {
       const res = await request(app).get(

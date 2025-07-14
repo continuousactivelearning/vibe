@@ -26,10 +26,26 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
 
   private initialized = false;
 
+  
+
   private async init() {
     if (!this.initialized) {
       this.eventsCollection = await this.db.getCollection<Events>('events');
       this.rulesCollection = await this.db.getCollection<Rule>('rules');
+
+      // Create indexes for better performance
+      try {
+        // rules: index for retrieving rules based on event
+        await this.rulesCollection.createIndex(
+          { eventId: 1 },
+          { name: 'eventId_rules', background: true }
+        );
+
+        console.log('GamifyLayerRepository indexes created successfully');
+      } catch (error) {
+        console.error('Error creating indexes in GamifyLayerRepository:', error);
+      }
+
       this.initialized = true;
     }
   }
@@ -51,9 +67,18 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
       return createdEvent;
     }
   }
-  readEvents(session?: ClientSession): Promise<IEvents[] | null> {
-    throw new Error('Method not implemented.');
-  }
+  // readEvents(session?: ClientSession): Promise<IEvents[] | null> {
+  //   throw new Error('Method not implemented.');
+  // }
+  async readEvents(session?: ClientSession): Promise<IEvents[] | null> {
+    await this.init();
+
+    const events = await this.eventsCollection
+      .find({}, { session })
+      .toArray();
+
+    return events.length > 0 ? events : null;
+}
   async readEvent(
     eventId: ObjectId,
     session?: ClientSession,
@@ -70,19 +95,38 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
     }
     return event;
   }
-  updateEvent(
+
+  async updateEvent(
     eventId: ObjectId,
     event: Partial<IEvents>,
     session?: ClientSession,
-  ): Promise<UpdateResult | null> {
-    throw new Error('Method not implemented.');
-  }
-  deleteEvent(
-    evenetId: ObjectId,
+): Promise<UpdateResult | null> {
+    await this.init();
+
+    const result = await this.eventsCollection.updateOne(
+      { _id: eventId },
+      { $set: event },
+      { session },
+    );
+
+    return result;
+}
+
+
+  async deleteEvent(
+    eventId: ObjectId,
     session?: ClientSession,
   ): Promise<DeleteResult | null> {
-    throw new Error('Method not implemented.');
-  }
+      await this.init();
+
+      const result = await this.eventsCollection.deleteOne(
+        { _id: eventId },
+        { session },
+      );
+
+      return result;
+}
+
   async createRule(
     rule: IRule,
     session?: ClientSession,
@@ -100,12 +144,6 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
       return createdRule;
     }
   }
-  // readRules(
-  //   eventId: ObjectId,
-  //   session?: ClientSession,
-  // ): Promise<IRule[] | null> {
-  //   throw new Error('Method not implemented.');
-  // }
 
   async readRules(
     eventId: ObjectId,
@@ -119,9 +157,6 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
 
     return rules.length > 0 ? rules : null;
   }
-  // readRule(ruleId: ObjectId, session?: ClientSession): Promise<IRule | null> {
-  //   throw new Error('Method not implemented.');
-  // }
 
   async readRule(
     ruleId: ObjectId,
@@ -134,13 +169,6 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
     return rule;
   }
 
-  // updateRule(
-  //   ruleId: ObjectId,
-  //   rule: Partial<IRule>,
-  //   session?: ClientSession,
-  // ): Promise<UpdateResult | null> {
-  //   throw new Error('Method not implemented.');
-  // }
   async updateRule(
     ruleId: ObjectId,
     rule: IRule,
@@ -156,12 +184,6 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
 
     return result;
   }
-  // deleteRule(
-  //   ruleId: ObjectId,
-  //   session?: ClientSession,
-  // ): Promise<DeleteResult | null> {
-  //   throw new Error('Method not implemented.');
-  // }
 
   async deleteRule(
     ruleId: ObjectId,
@@ -176,4 +198,18 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
 
     return result;
   }
+
+  async deleteRulesByEventId(
+    eventId: ObjectId,
+    session?: ClientSession,
+  ): Promise<DeleteResult | null> {
+    await this.init();
+
+    const result = await this.rulesCollection.deleteMany(
+      { eventId },
+      { session },
+    );
+
+    return result;
+}
 }

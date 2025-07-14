@@ -104,6 +104,57 @@ export class EventsBody implements IEvents {
   eventPayload: Record<string, EventPayloadType>;
 }
 
+export class UpdateEventsBody implements IEvents {
+  @JSONSchema({
+    title: 'Event Name',
+    description: 'Name of the event',
+    example: 'User Signup',
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  eventName: string;
+
+  @JSONSchema({
+    title: 'Event Description',
+    description: 'Description of the event',
+    example: 'Triggered when a user signs up',
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  eventDescription: string;
+
+  @JSONSchema({
+    title: 'Event Version',
+    description: 'Version of the event schema',
+    example: '1.0.0',
+    type: 'string',
+  })
+  @IsNotEmpty()
+  @IsString()
+  eventVersion: string;
+
+  @JSONSchema({
+    title: 'Event Payload',
+    description: 'Event payload information with dynamic types',
+    type: 'object',
+    example: {
+      performance: 'int',
+      timetaken: 'int',
+    },
+  })
+  @IsObject()
+  @IsNotEmpty()
+  @IsRecordOfEventPayload(EventPayloadType)
+  eventPayload: Record<string, EventPayloadType>;
+}
+
+export class ReadEventParams {
+  @IsString()
+  eventId: string;
+}
+
 export class RuleBody implements IRule {
   @JSONSchema({
     title: 'Rule Name',
@@ -260,7 +311,7 @@ export class EventTriggerBody {
     type: 'string',
   })
   @IsMongoId()
-  userId: string | ObjectId;
+  userId: string;
 
   @JSONSchema({
     title: 'Event ID',
@@ -269,7 +320,7 @@ export class EventTriggerBody {
     type: 'string',
   })
   @IsMongoId()
-  eventId: string | ObjectId;
+  eventId: string ;
 
   @JSONSchema({
     title: 'Event Payload',
@@ -283,3 +334,5 @@ export class EventTriggerBody {
   @IsObject()
   eventPayload: Record<string, any>;
 }
+
+
