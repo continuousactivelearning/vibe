@@ -196,8 +196,6 @@ export default function AuthPage() {
   };
 
   const handleEmailLogin = async () => {
-    if (!validateForm()) return;
-
     try {
       setLoading(true);
       setFormErrors({});
@@ -232,7 +230,7 @@ export default function AuthPage() {
 
   // New function for handling signup
   const handleEmailSignup = async () => {
-    if (!validateForm()) return;
+    // if (!validateForm()) return;
 
     if (!passwordsMatch) {
       setFormErrors({
@@ -565,7 +563,7 @@ export default function AuthPage() {
 
                     {/* Login Button */}
                     <Button
-                      className="w-full h-11 font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200"
+                      className="w-full h-11 font-medium bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
                       onClick={handleEmailLogin}
                       disabled={loading}
                     >

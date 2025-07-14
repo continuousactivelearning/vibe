@@ -14,7 +14,7 @@ import { useCourseStore } from "@/store/course-store";
 import MathRenderer from "./math-renderer";
 import { bufferToHex } from '@/utils/helpers';
 import type { QuizQuestion, QuizProps, QuizRef, questionBankRef, QuestionRenderView, SubmitQuizResponse } from "@/types/quiz.types";
-import { preprocessMathContent } from '@/utils/utils';
+import { preprocessMathContent, preprocessRemoveFromOptions } from '@/utils/utils';
 import Loader from './Loader';
 
 // Type for Order interface (if not defined elsewhere)
@@ -57,7 +57,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [showHint, setShowHint] = useState(false);
   const [submissionResults, setSubmissionResults] = useState<SubmitQuizResponse | null>(null);
-  const [dontStart, setDontStart] = useState<boolean>(false);
+  const [dontStart, setDontStart] = useState();
 
   // ===== REFS AND CONSTANTS =====
   const itemStartedRef = useRef(false);
@@ -559,7 +559,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   }, [processedQuizId, resetQuiz]);
 
   useEffect(() => {
-    if (rewindVid && onPrevVideo){
+    if (rewindVid){
       onPrevVideo();
       resetQuiz();
     }
@@ -567,7 +567,9 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
 
   // Timer effect
   useEffect(() => {
-    if (!quizStarted || quizCompleted || doGesture || timeLeft <= 0) return;
+    if (!quizStarted || quizCompleted || doGesture || !timeLeft || timeLeft <= 0) return;
+
+    let hasTriggeredNext = false;
 
     const timer = setInterval(() => {
       setTimeLeft(prev => {
@@ -581,7 +583,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [quizStarted, quizCompleted, doGesture, timeLeft]); // Added timeLeft back as dependency
+  }, [quizStarted, quizCompleted, timeLeft, handleNextQuestion, doGesture]);
 
   // Set timer for current question
   useEffect(() => {
@@ -667,7 +669,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
                   </CardDescription>
                 </div>
                 <div className="flex flex-col items-center space-y-4 min-w-fit">
-                  {deadline && quizType === 'DEADLINE' && (
+                  {deadline && quizType !== 'NO_DEADLINE' && (
                     <Card className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20 min-w-[300px]">
                       <CardContent className="flex items-center space-x-3 px-4 py-0">
                         <AlertCircle className="w-5 h-5 text-amber-600" />
@@ -1089,7 +1091,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
                   <RadioGroupItem value={index.toString()} id={`option-${currentQuestion.id}-${index}`} />
                   <span className="flex-1">
                     <MathRenderer>
-                      {preprocessMathContent(option)}
+                      {preprocessMathContent(preprocessRemoveFromOptions(option))}
                     </MathRenderer>
                   </span>
                 </Label>
@@ -1121,7 +1123,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
                   />
                   <span className="flex-1">
                     <MathRenderer>
-                      {preprocessMathContent(option)}
+                      {preprocessMathContent(preprocessRemoveFromOptions(option))}
                     </MathRenderer>
                   </span>
                 </Label>
@@ -1185,7 +1187,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
                     </Badge>
                     <span className="flex-1">
                       <MathRenderer>
-                        {preprocessMathContent(item)}
+                        {preprocessMathContent(preprocessRemoveFromOptions(item))}
                       </MathRenderer>
                     </span>
                   </div>
