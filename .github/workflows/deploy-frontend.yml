@@ -2,7 +2,7 @@ name: Deploy Frontend to Firebase (Staging & Optional Production)
 
 on:
   push:
-    branches: [staging, test-cicd]
+    branches: [staging, test-cicd, sohan/devops/branch]
     paths:
       - "frontend/**"
       - ".github/workflows/deploy-frontend.yml"
@@ -137,8 +137,6 @@ jobs:
       - name: Build frontend
         run: |
           cd frontend
-          # Set the API base URL from GitHub Secrets
-          echo "VITE_API_BASE_URL=${{ secrets.APP_URL }}" > .env.production
           # Modify the build command in package.json to skip TS checks
           sed -i 's/"build": "tsc -b && vite build"/"build": "vite build --emptyOutDir"/g' package.json
           pnpm build
