@@ -1,19 +1,15 @@
-import {SignUpBody, User, ChangePasswordBody} from '#auth/classes/index.js';
+import {SignUpBody, User, ChangePasswordBody, GoogleSignUpBody} from '#auth/classes/index.js';
 import {IAuthService} from '#auth/interfaces/IAuthService.js';
 import {GLOBAL_TYPES} from '#root/types.js';
 import {injectable, inject} from 'inversify';
 import {InternalServerError} from 'routing-controllers';
 import admin from 'firebase-admin';
-import {IEnrollment, IUser} from '#root/shared/interfaces/models.js';
+import {IUser} from '#root/shared/interfaces/models.js';
 import {BaseService} from '#root/shared/classes/BaseService.js';
 import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
-import {IInviteRepository} from '#root/shared/database/interfaces/IInviteRepository.js';
-import { EnrollmentRepository } from '#root/shared/index.js';
 import { InviteRepository } from '#root/shared/index.js';
 import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase.js';
-import { InviteStatusType, InviteActionType } from '#root/shared/interfaces/models.js';
 import { InviteResult, MailService } from '#root/modules/notifications/index.js';
-
 import { appConfig } from '#root/config/app.js';
 import { USERS_TYPES } from '#root/modules/users/types.js';
 import { EnrollmentService } from '#root/modules/users/services/EnrollmentService.js';
@@ -71,8 +67,8 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
           credential: admin.credential.applicationDefault(),
         });
       }
-      this.auth = admin.auth();
     }
+    this.auth = admin.auth();
   }
   async getCurrentUserFromToken(token: string): Promise<IUser> {
     // Verify the token and decode it to get the Firebase UID
@@ -82,9 +78,28 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     // Retrieve the user from our database using the Firebase UID
     const user = await this.userRepository.findByFirebaseUID(firebaseUID);
     if (!user) {
-      throw new InternalServerError('User not found');
+      // get user data from Firebase
+      try {
+        const firebaseUser = await this.auth.getUser(firebaseUID);
+        if (!firebaseUser) {
+          throw new InternalServerError('Firebase user not found');
+        }
+        console.log('Firebase user retrieved:', firebaseUser);
+        // Map Firebase user data to our application user model
+        const userData: GoogleSignUpBody = {
+          email: firebaseUser.email,
+          firstName: firebaseUser.displayName?.split(' ')[0] || '',
+          lastName: firebaseUser.displayName?.split(' ')[1] || '',
+        };
+        const createdUser = await this.googleSignup(userData, token);
+        if (!createdUser) {
+          throw new InternalServerError('Failed to create the user');
+        }
+      } catch (error) {
+        throw new InternalServerError(`Failed to retrieve user from Firebase: ${error.message}`);
+      }
     }
-
+    user._id = user._id.toString();
     return user;
   }
   async getUserIdFromReq(req: any): Promise<string> {
@@ -124,7 +139,7 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
         email: body.email,
         emailVerified: false,
         password: body.password,
-        displayName: `${body.firstName} ${body.lastName}`,
+        displayName: `${body.firstName} ${body.lastName || ''}`,
         disabled: false,
       });
     } catch (error) {
@@ -138,8 +153,8 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
       firebaseUID: userRecord.uid,
       email: body.email,
       firstName: body.firstName,
-      lastName: body.lastName,
-      roles: ['user'],
+      lastName: body.lastName || '',
+      roles: 'user',
     };
 
     let createdUserId: string;
@@ -164,6 +179,61 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
             invite.email,
             invite.inviteStatus,
             invite.role,
+            invite.acceptedAt,
+            invite.courseId,
+            invite.courseVersionId,
+          ));
+        }
+      }
+    }
+
+    return enrolledInvites.length > 0 ? {
+      userId: createdUserId,
+      invites: enrolledInvites,
+    }: {
+      userId: createdUserId,
+    };
+  }
+
+  async googleSignup(
+    body: GoogleSignUpBody,
+    token: string,
+  ): Promise<any> {
+    await this.verifyToken(token);
+    // Decode the token to get the Firebase UID
+    const decodedToken = await this.auth.verifyIdToken(token);
+    const firebaseUID = decodedToken.uid;
+    const user: Partial<IUser> = {
+      firebaseUID: firebaseUID,
+      email: body.email,
+      firstName: body.firstName,
+      lastName: body.lastName,
+      roles: 'user',
+    };
+
+    let createdUserId: string;
+
+    await this._withTransaction(async session => {
+      const newUser = new User(user);
+      createdUserId = await this.userRepository.create(newUser, session);
+      if (!createdUserId) {
+        throw new InternalServerError('Failed to create the user');
+      }
+    });
+
+    let enrolledInvites: InviteResult[] = [];
+
+    const invites = await this.inviteRepository.findInvitesByEmail(body.email);
+    for (const invite of invites) {
+      if(invite.inviteStatus === 'ACCEPTED') {
+        const result = await this.enrollmentService.enrollUser(createdUserId.toString(), invite.courseId, invite.courseVersionId, invite.role, true);
+        if(result && (result as any).enrollment) {
+          enrolledInvites.push(new InviteResult(
+            invite._id,
+            invite.email,
+            invite.inviteStatus,
+            invite.role,
+            invite.acceptedAt,
             invite.courseId,
             invite.courseVersionId,
           ));
@@ -200,5 +270,12 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     });
 
     return {success: true, message: 'Password updated successfully'};
+  }
+
+  async updateFirebaseUser(firebaseUID: string, body: Partial<IUser>): Promise<void> {
+    // Update user in Firebase Auth
+    await this.auth.updateUser(firebaseUID, {
+      displayName: `${body.firstName} ${body.lastName}`,
+    });
   }
 }

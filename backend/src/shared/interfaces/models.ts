@@ -6,8 +6,8 @@ export interface IUser {
   firebaseUID: string;
   email: string;
   firstName: string;
-  lastName: string;
-  roles: string[];
+  lastName?: string;
+  roles: 'admin' | 'user';
 }
 
 export type Versions = {
@@ -32,6 +32,7 @@ export interface ICourseVersion {
   version: string;
   description: string;
   modules: IModule[];
+  totalItems?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -429,4 +430,16 @@ export interface IUserAnomaly {
   sectionId?: string | ObjectId;
   itemId?: string | ObjectId;
   anomalyType: string;
+}
+
+export interface AuthenticatedUserEnrollements {
+    courseId: string,
+    versionId: string,
+    role: "STUDENT" | "INSTRUCTOR" | "MANAGER" | "TA" | "STAFF",
+}
+
+export interface AuthenticatedUser {
+    userId: string,
+    globalRole: 'admin' | 'user',
+    enrollments: AuthenticatedUserEnrollements[],
 }

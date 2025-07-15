@@ -4,6 +4,8 @@ import {
   MinLength,
   IsAlpha,
   IsString,
+  Matches,
+  IsOptional,
 } from 'class-validator';
 import {JSONSchema} from 'class-validator-jsonschema';
 
@@ -42,7 +44,7 @@ class SignUpBody {
     example: 'John',
     type: 'string',
   })
-  @IsAlpha()
+  @Matches(/^[A-Za-z ]+$/)
   firstName: string;
 
   @JSONSchema({
@@ -51,8 +53,40 @@ class SignUpBody {
     example: 'Smith',
     type: 'string',
   })
-  @IsAlpha()
-  lastName: string;
+  @Matches(/^[A-Za-z ]+$/)
+  @IsOptional()
+  lastName?: string;
+}
+
+class GoogleSignUpBody {
+  @JSONSchema({
+    title: 'Email Address',
+    description: 'Email address of the user, used as login identifier',
+    example: 'user@example.com',
+    type: 'string',
+    format: 'email',
+  })
+  @IsEmail()
+  email: string;
+
+  @JSONSchema({
+    title: 'First Name',
+    description: "User's first name (alphabetic characters only)",
+    example: 'John',
+    type: 'string',
+  })
+  @Matches(/^[A-Za-z ]+$/)
+  firstName: string;
+
+  @JSONSchema({
+    title: 'Last Name',
+    description: "User's last name (alphabetic characters only)",
+    example: 'Smith',
+    type: 'string',
+  })
+  @Matches(/^[A-Za-z ]+$/)
+  @IsOptional()
+  lastName?: string;
 }
 
 class VerifySignUpProviderBody {
@@ -206,6 +240,7 @@ class LoginBody {
 
 export const AUTH_VALIDATORS = [
   SignUpBody,
+  GoogleSignUpBody,
   ChangePasswordBody,
   SignUpResponse,
   VerifySignUpProviderBody,
@@ -217,6 +252,7 @@ export const AUTH_VALIDATORS = [
 
 export {
   SignUpBody,
+  GoogleSignUpBody,
   ChangePasswordBody,
   SignUpResponse,
   VerifySignUpProviderBody,

@@ -1,4 +1,4 @@
-import {SignUpBody, ChangePasswordBody} from '#auth/classes/index.js';
+import {SignUpBody, ChangePasswordBody, GoogleSignUpBody} from '#auth/classes/index.js';
 import { InviteResult } from '#root/modules/notifications/index.js';
 import {IUser} from '#shared/interfaces/models.js';
 
@@ -21,17 +21,8 @@ export interface IAuthService {
    * @throws Error - If user creation fails for any reason
    */
   signup(body: SignUpBody): Promise<InviteResult[] | string | null>;
-
-  /**
-   * Verifies the validity of an authentication token.
-   * Decodes the token and retrieves the associated user information.
-   *
-   * @param token - The authentication token to verify (typically a JWT)
-   * @returns A promise that resolves to the user associated with the token
-   * @throws Error - If the token is invalid, expired, or cannot be verified
-   */
-  verifyToken(token: string): Promise<boolean>;
-
+  googleSignup( body: GoogleSignUpBody, token: string): Promise<InviteResult[] | string | null>;
+  getUserIdFromReq(req: any): Promise<string>;
   /**
    * Changes the password for an authenticated user.
    * Validates that the new password meets requirements and updates
@@ -46,6 +37,20 @@ export interface IAuthService {
     body: ChangePasswordBody,
     requestUser: IUser,
   ): Promise<{success: boolean; message: string}>;
+
+  /**
+   * Retrieves the currently authenticated user based on the provided token.
+   * This method extracts the user information from the token and returns
+   * the user object if found.
+   *
+   * @param token - The authentication token used to identify the user
+   * @returns A promise that resolves to the authenticated user object or null if not found
+   */
+  getCurrentUserFromToken(token: string): Promise<IUser | null>;
+  updateFirebaseUser(
+    firebaseUID: string,
+    body: Partial<IUser>,
+  ): Promise<void>;
 }
 
 /**

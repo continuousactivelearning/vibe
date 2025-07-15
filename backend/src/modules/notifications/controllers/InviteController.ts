@@ -4,26 +4,24 @@ import {
   Post,
   HttpCode,
   Params,
-  Authorized,
-  BadRequestError,
   Get,
-  NotFoundError,
-  Param,
-  QueryParam,
-  InternalServerError,
   Body,
-  Res
+  ContentType,
+  ForbiddenError,
+  Authorized,
 } from 'routing-controllers';
 import { injectable, inject } from 'inversify';
+import { Ability } from '#root/shared/functions/AbilityDecorator.js';
 import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
 import { InviteService } from '../services/InviteService.js';
 import { CourseAndVersionId, InviteBody, InviteIdParams, InviteResponse, InviteResult } from '../classes/validators/InviteValidators.js';
 import { BadRequestErrorResponse } from '#shared/middleware/errorHandler.js';
-import { SignUpBody } from '#auth/classes/validators/AuthValidators.js'
 import { NOTIFICATIONS_TYPES } from '../types.js';
-import { CourseVersion } from '#root/modules/courses/classes/index.js';
 import { MessageResponse } from '../classes/index.js';
-
+import { appConfig } from '#root/config/app.js';
+import { inviteRedirectTemplate } from '../redirectTemplate.js';
+import { InviteActions, getInviteAbility } from '../abilities/inviteAbilities.js';
+import { subject } from '@casl/ability';
 
 /**
  * Controller for managing student enrollments in courses.
@@ -41,7 +39,8 @@ export class InviteController {
     private readonly inviteService: InviteService,
   ) { }
 
-  @Post('/courses/:courseId/versions/:courseVersionId')
+  @Authorized()
+  @Post('/courses/:courseId/versions/:versionId')
   @HttpCode(200)
   @ResponseSchema(InviteResponse, {
     description: 'Invite users to a course version',
@@ -58,13 +57,29 @@ export class InviteController {
   async inviteUsers(
     @Body() body: InviteBody,
     @Params() params: CourseAndVersionId,
+    @Ability(getInviteAbility) {ability}
   ) {
-    const { courseId, courseVersionId } = params;
-    const { inviteData } = body
+    const { courseId, versionId } = params;
+    const { inviteData } = body;
+    
+    // Validate that the user can invite to each specific role
+    // This ensures students can only invite students, TAs can invite students/TAs, etc.
+    for (const invite of inviteData) {
+      const roleSpecificSubject = subject('Invite', { 
+        courseId, 
+        versionId, 
+        targetRole: invite.role 
+      });
+      
+      if (!ability.can(InviteActions.Create, roleSpecificSubject)) {
+        throw new ForbiddenError(`You do not have permission to invite users with the role: ${invite.role}`);
+      }
+    }
+    
     const results: InviteResult[] = await this.inviteService.inviteUserToCourse(
       inviteData,
       courseId,
-      courseVersionId,
+      versionId,
     );
 
     return new InviteResponse(results);
@@ -72,21 +87,30 @@ export class InviteController {
 
   @Get('/:inviteId')
   @HttpCode(200)
+  @ContentType('html')
   @OpenAPI({
     summary: 'Process Invite',
-    description: 'Process an invite given an inviteId.'
+    description: 'Process an invite given an inviteId and send a response before redirecting the user.',
+    responses: {
+      '200': {
+        description: 'JSON response with redirect information'
+      }
+    }
   })
   @ResponseSchema(MessageResponse, {
     description: 'Invite processed successfully',
     statusCode: 200,
   })
-  async processInvites(@Params() params: InviteIdParams): Promise<MessageResponse> {
+  async processInvites(
+    @Params() params: InviteIdParams,
+  ): Promise<string> {
       const { inviteId } = params;
-      const response = await this.inviteService.processInvite(inviteId);
-      return response;
+      const result = await this.inviteService.processInvite(inviteId);
+      return inviteRedirectTemplate(result.message, appConfig.frontendUrl);
   }
 
-  @Get('/courses/:courseId/versions/:courseVersionId')
+  @Authorized()
+  @Get('/courses/:courseId/versions/:versionId')
   @HttpCode(200)
   @OpenAPI({
     summary: 'Get Invites for Course Version',
@@ -98,11 +122,21 @@ export class InviteController {
   })
   async getInvitesForCourseVersion(
     @Params() params: CourseAndVersionId,
+    @Ability(getInviteAbility) {ability}
   ): Promise<InviteResponse> {
-    const { courseId, courseVersionId } = params;
+    const { courseId, versionId } = params;
+    
+    // Build subject context first
+    const inviteContext = { courseId, versionId };
+    const inviteSubject = subject('Invite', inviteContext);
+    
+    if (!ability.can(InviteActions.View, inviteSubject)) {
+      throw new ForbiddenError('You do not have permission to view invites for this course');
+    }
+    
     const invites = await this.inviteService.findInvitesForCourse(
       courseId,
-      courseVersionId
+      versionId
     );
     return new InviteResponse(invites);
   }
@@ -119,8 +153,17 @@ export class InviteController {
   })
   async resendInvite(
     @Params() params: InviteIdParams,
+    @Ability(getInviteAbility) {ability}
   ): Promise<MessageResponse> {
     const { inviteId } = params;
+    const invite = await this.inviteService.findInviteById(inviteId);
+    // Build subject context first
+    const inviteSubject = subject('Invite', {courseId: invite.courseId, versionId: invite.courseVersionId});
+    
+    if (!ability.can(InviteActions.Modify, inviteSubject)) {
+      throw new ForbiddenError('You do not have permission to resend this invite');
+    }
+    
     return this.inviteService.resendInvite(inviteId);
   }
 
@@ -136,8 +179,18 @@ export class InviteController {
   })
   async cancelInvite(
     @Params() params: InviteIdParams,
+    @Ability(getInviteAbility) {ability}
   ): Promise<MessageResponse> {
     const { inviteId } = params;
+    
+    const invite = await this.inviteService.findInviteById(inviteId);
+    // Build subject context first
+    const inviteSubject = subject('Invite', {courseId: invite.courseId, versionId: invite.courseVersionId});
+    
+    if (!ability.can(InviteActions.Modify, inviteSubject)) {
+      throw new ForbiddenError('You do not have permission to cancel this invite');
+    }
+    
     return this.inviteService.cancelInvite(inviteId);
   } 
 }

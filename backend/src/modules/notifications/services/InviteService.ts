@@ -46,9 +46,9 @@ export class InviteService extends BaseService {
     return {
       to: invite.email,
       subject: `Invitation to join course: ${course.name}`,
-      text: `You have been invited to join the course ${course.name} as ${invite.role}. Click the link to accept the invite: ${appConfig.url}/notifications/invite/${invite._id.toString()}`,
+      text: `You have been invited to join the course ${course.name} as ${invite.role}. Click the link to accept the invite: ${appConfig.url}${appConfig.routePrefix}/notifications/invite/${invite._id.toString()}`,
       html: `<p>You have been invited to join the course ${course.name} as ${invite.role}. Click the link to accept the invite:</p>
-             <a href="${appConfig.url}/notifications/invite/${invite._id.toString()}">Accept Invite</a>`,
+             <a href="${appConfig.url}${appConfig.routePrefix}/notifications/invite/${invite._id.toString()}">Accept Invite</a>`,
     };
   }
 
@@ -143,9 +143,9 @@ export class InviteService extends BaseService {
         message: 'You have already accepted this invite.',
       };
     }
-
+    const date = new Date();
     // Validate the invite expiresAt < new Date() throw error
-    if (invite.expiresAt < new Date()) {
+    if (invite.expiresAt < date) {
       throw new BadRequestError('Invite has expired');
     }
     // If enrolled, return
@@ -157,6 +157,7 @@ export class InviteService extends BaseService {
 
     // Update invite status to ACCEPTED
     invite.inviteStatus = 'ACCEPTED';
+    invite.acceptedAt = date;
     await this.inviteRepo.updateInvite(inviteId, invite);
 
     // If existing user, enroll them
@@ -249,7 +250,8 @@ export class InviteService extends BaseService {
         invite._id,
         invite.email,
         invite.inviteStatus,
-        invite.role
+        invite.role,
+        invite.acceptedAt
       );
     });
   }
@@ -261,7 +263,8 @@ export class InviteService extends BaseService {
         invite._id,
         invite.email,
         invite.inviteStatus,
-        invite.role
+        invite.role,
+        invite.acceptedAt
       );
     });
   }
@@ -278,8 +281,25 @@ export class InviteService extends BaseService {
         invite._id,
         invite.email,
         invite.inviteStatus,
-        invite.role
+        invite.role,
+        invite.acceptedAt,
       );
     });
+  }
+
+  async findInviteById(inviteId: string): Promise<InviteResult> {
+    const invite = await this.inviteRepo.findInviteById(inviteId);
+    if (!invite) {
+      throw new NotFoundError('Invite not found');
+    }
+    return new InviteResult(
+      invite._id,
+      invite.email,
+      invite.inviteStatus,
+      invite.role,
+      invite.acceptedAt,
+      invite.courseId,
+      invite.courseVersionId
+    );
   }
 }
