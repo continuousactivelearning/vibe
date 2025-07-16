@@ -47,6 +47,8 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
   const { currentCourse, setWatchItemId } = useCourseStore();
   const startItem = useStartItem();
   const stopItem = useStopItem();
+  const DEFAULT_VOLUME = 50;
+
 
   // Parse start and end times
   const startTimeSeconds = parseTimeToSeconds(startTime || '0');
@@ -206,9 +208,11 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
         events: {
           onReady: (event: { target: YTPlayerInstance }) => {
             const dur = event.target.getDuration();
+            const player = event.target;
             setPlayerReady(true);
             setDuration(dur);
-            setVolume(event.target.getVolume());
+            player.setVolume(DEFAULT_VOLUME);
+            setVolume(DEFAULT_VOLUME);  // update local state
             setMaxTime(startTimeSeconds);
             event.target.seekTo(startTimeSeconds, true);
             onDurationChange?.(dur);
