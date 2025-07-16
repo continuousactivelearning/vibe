@@ -33,6 +33,7 @@ import { useCourseStore } from '@/store/course-store'
 import CourseEnrollments from '../pages/teacher/course-enrollments'
 import InvitePage from '../pages/teacher/invite'
 import ViewProgress from '../pages/teacher/view-progress'
+import VideoTest from '@/app/pages/student/video-test';
 
 
 const sampleText = `
@@ -372,6 +373,13 @@ const studentProfileRoute = new Route({
   component: StudentProfile,
 });
 
+// Student video test route
+const studentVideoTestRoute = new Route({
+  getParentRoute: () => studentLayoutRoute,
+  path: '/video-test',
+  component: VideoTest,
+});
+
 // const parentComponentRoute = new Route({
 //   getParentRoute: () => studentLayoutRoute,
 //   path: '/test-ai',
@@ -430,6 +438,7 @@ const routeTree = rootRoute.addChildren([
     studentDashboardRoute,
     studentCoursesRoute,
     studentProfileRoute,
+    studentVideoTestRoute,
   ]),
   coursePageRoute,
 ]);
