@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback, JSX, use } from 'react';
+import React, { useRef, useEffect, useState, useCallback, JSX } from 'react';
 import ReactDOM from 'react-dom';
 import { ChevronUp, ChevronDown, Maximize2, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,10 +7,11 @@ import BlurDetection from '../ai-components/BlurDetector';
 import SpeechDetector from '../ai-components/SpeechDetector';
 import FaceDetectors from '../ai-components/FaceDetectors';
 import FaceRecognitionOverlay from '../ai-components/FaceRecognitionOverlay';
-import { FaceRecognition, FaceRecognitionDebugInfo } from '../ai-components/FaceRecognitionComponent';
+import { FaceRecognition, FaceRecognitionDebugInfo } from '../ai-components/FaceRecognitionComponentNoWorker';
 // import FaceRecognitionIntegrated from '../ai-components/FaceRecognitionIntegrated';
 import useCameraProcessor from '../ai-components/useCameraProcessor';
 import { useReportAnomaly } from '@/lib/api/hooks';
+import ElementRecordingControls from './ElementRecordingControls';
 
 import { useAuthStore } from '@/lib/store/auth-store';
 import { useCourseStore } from '@/lib/store/course-store';
@@ -37,8 +38,6 @@ interface ProctoringSettings {
 
 interface FloatingVideoProps {
   isVisible?: boolean;
-  onClose?: () => void;
-  onAnomalyDetected?: (hasAnomaly: boolean) => void;
   setDoGesture: (value: boolean) => void;
   settings?: ProctoringSettings;
 }
@@ -46,8 +45,6 @@ interface FloatingVideoProps {
 let flag = 0;
 function FloatingVideo({
   isVisible = true,
-  onClose,
-  onAnomalyDetected,
   setDoGesture,
   settings
 }: FloatingVideoProps): JSX.Element | null {
@@ -61,7 +58,7 @@ function FloatingVideo({
   const [overlayPosition, setOverlayPosition] = useState<'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'>('top-right');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isPoppedOut, setIsPoppedOut] = useState(true);
-  const [anomaly, setAnomaly] = useState(false);
+  const [anomaly] = useState(false);
 
 
   // Original aspect ratio (maintain the initial component ratio)
@@ -74,16 +71,16 @@ function FloatingVideo({
   const [isFocused, setIsFocused] = useState(false);
   const [facesCount, setFacesCount] = useState(0);
   const [recognizedFaces, setRecognizedFaces] = useState<FaceRecognition[]>([]);
-  const [faceRecognitionDebug, setFaceRecognitionDebug] = useState<FaceRecognitionDebugInfo>({
-    knownFacesCount: 0,
-    knownFaceLabels: [],
-    detectedPhotoFaces: 0,
-    currentFrameFaces: 0,
-    recognizedFaces: 0,
-    lastUpdateTime: Date.now(),
-    backendStatus: 'loading'
+  // const [faceRecognitionDebug, setFaceRecognitionDebug] = useState<FaceRecognitionDebugInfo>({
+  //   knownFacesCount: 0,
+  //   knownFaceLabels: [],
+  //   detectedPhotoFaces: 0,
+  //   currentFrameFaces: 0,
+  //   recognizedFaces: 0,
+  //   lastUpdateTime: Date.now(),
+  //   backendStatus: 'loading'
 
-  });
+  // });
   const [penaltyPoints, setPenaltyPoints] = useState(-10);
   const [penaltyType, setPenaltyType] = useState("");
 
@@ -148,7 +145,7 @@ function FloatingVideo({
   // Handle face recognition debug info updates
   const handleFaceRecognitionDebugUpdate = useCallback((debugInfo: FaceRecognitionDebugInfo) => {
     console.log('🔍 [FloatingVideo] Face recognition debug update:', debugInfo);
-    setFaceRecognitionDebug(debugInfo);
+    // setFaceRecognitionDebug(debugInfo);
   }, []);
 
   // Store current media stream
@@ -177,7 +174,7 @@ function FloatingVideo({
           moduleId: courseStore.currentCourse?.moduleId || "",
           sectionId: courseStore.currentCourse?.sectionId || "",
           itemId: courseStore.currentCourse?.itemId || "",
-          anomalyType: anomalyType
+          anomalyType: penaltyType || "unknown"
         }
       });
     }
@@ -889,6 +886,19 @@ function FloatingVideo({
                 Score: {penaltyPoints}
               </div>
             )}
+
+            {/* Element Recording Controls Overlay */}
+            {!isCollapsed && (
+              <div className="absolute bottom-2 left-2 right-2 z-30">
+                <ElementRecordingControls
+                  targetElementRef={containerRef}
+                  autoStart={true}
+                  autoStopOnExit={true}
+                  isVisible={isVisible}
+                  className="bg-black bg-opacity-75 p-2 rounded"
+                />
+              </div>
+            )}
           </>
         )}
       </div>
@@ -924,7 +934,11 @@ function FloatingVideo({
             videoRef={videoRef}
             onRecognitionResult={handleFaceRecognitionResult}
             onDebugInfoUpdate={handleFaceRecognitionDebugUpdate}
-            settings={isFaceCountDetectionEnabled, isFaceRecognitionEnabled, isFocusEnabled}
+            settings={{
+              isFaceCountDetectionEnabled,
+              isFaceRecognitionEnabled,
+              isFocusEnabled
+            }}
           />
         )}
       </div>
