@@ -25,40 +25,6 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  versioning:
-    name: Versioning
-    runs-on: ubuntu-latest
-    outputs:
-      new_version: ${{ steps.tag_version.outputs.new_version || steps.fallback_version.outputs.new_version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        with:
-          github_token: ${{ env.GITHUB_TOKEN }}
-          release_branches: main,staging,test-cicd
-          default_bump: patch
-          tag_prefix: ''
-          fetch_all_tags: true
-          create_annotated_tag: true
-          dry_run: false
-
-      - name: Set fallback version if tagging failed
-        if: steps.tag_version.outcome == 'failure'
-        id: fallback_version
-        run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
   lint:
     name: Lint and Test
@@ -91,7 +57,7 @@ jobs:
 
   build:
     name: Build
-    needs: [versioning, lint]
+    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -148,20 +114,11 @@ jobs:
           path: ./frontend/dist
           retention-days: 1
 
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-          NEW_VERSION: ${{ needs.versioning.outputs.new_version }}
-        with:
-          tag_name: v${{ env.NEW_VERSION }}
-          release_name: Release v${{ env.NEW_VERSION }}
-          body: |
-            Release v${{ env.NEW_VERSION }}
+
 
   deploy-staging:
     name: Deploy to Firebase (Staging)
-    needs: [build, versioning]
+    needs: [build]
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -197,7 +154,7 @@ jobs:
   deploy-production:
     name: Deploy to Firebase (Production)
     if: github.event.inputs.deploy_production == 'true'
-    needs: [versioning, build]
+    needs: [build]
     runs-on: ubuntu-latest
     environment:
       name: production
