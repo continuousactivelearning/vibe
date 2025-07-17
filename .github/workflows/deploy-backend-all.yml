@@ -121,7 +121,7 @@ jobs:
         with:
           service: ${{ env.GCP_SERVICE }}
           region: ${{ env.GCP_REGION }}
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=staging
@@ -156,7 +156,7 @@ jobs:
         with:
           service: vibe-backend-production
           region: ${{ env.GCP_REGION }}
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=production

@@ -12,6 +12,12 @@ RUN pnpm install
 COPY . .
 RUN pnpm tsc || echo "TypeScript compilation had errors but continuing build"
 
+ARG SENTRY_AUTH_TOKEN
+ARG SENTRY_ORG
+RUN if [ -n "$SENTRY_AUTH_TOKEN" ]; then \
+    pnpx @sentry/wizard@latest -i sourcemaps --saas --org vicharana-shala --project vibe-server --auth-token $SENTRY_AUTH_TOKEN --url ./build; \
+    fi
+
 FROM node:22-alpine
 
 RUN apk add --no-cache dumb-init git wget
