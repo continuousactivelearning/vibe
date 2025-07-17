@@ -1,3 +1,5 @@
+import './instrument.ts';
+import * as Sentry from '@sentry/node';
 import express from 'express';
 import cors from 'cors';
 import {useExpressServer, RoutingControllersOptions} from 'routing-controllers';
@@ -49,6 +51,18 @@ app.use(
 
 // Start server
 useExpressServer(app, moduleOptions);
+
+Sentry.setupExpressErrorHandler(app);
+
+app.use(function onError(err, req, res, next) {
+  res.statusCode = 500;
+  res.end(res.sentry + "\n");
+});
+
+app.get("/debug-sentry", function mainHandler(req, res) {
+  throw new Error("Sentry error!");
+});
+
 app.listen(appConfig.port, () => {
   printStartupSummary();
 });
