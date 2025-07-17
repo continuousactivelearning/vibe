@@ -1,7 +1,9 @@
-const TYPES = {
+const GAMIFICATION_TYPES = {
   // Services
   MetricService: Symbol.for('MetricService'),
   AchievementService: Symbol.for('AchievementService'),
+  ScoringService: Symbol.for('ScoringService'),
+
   UserGameAchievementsService: Symbol.for('UserGameAchievementsService'),
   UserGameMetricsService: Symbol.for('UserGameMetricsService'),
   MetricTriggerService: Symbol.for('MetricTriggerService'),
@@ -10,7 +12,11 @@ const TYPES = {
 
   // Repositories
   GamifyEngineRepository: Symbol.for('GamifyEngineRepository'),
+  WeightsRepo: Symbol.for('ScoringWeightsRepository'),
   GamifyLayerRepository: Symbol.for('GamifyLayerRepository'),
 };
 
-export {TYPES as GAMIFICATION_TYPES};
+const QUIZZES_TYPES = {
+  SubmissionRepo: Symbol.for('SubmissionRepository'),
+};
+export {GAMIFICATION_TYPES, QUIZZES_TYPES};

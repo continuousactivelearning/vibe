@@ -35,4 +35,8 @@ export interface IGamifyLayerRepository {
     ruleId: ObjectId | string,
     session?: ClientSession,
   ): Promise<DeleteResult | null>;
+  deleteRulesByEventId(
+    eventId: ObjectId,
+    session?: ClientSession,
+  ): Promise<DeleteResult | null>;
 }

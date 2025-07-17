@@ -4,14 +4,11 @@ import {GLOBAL_TYPES} from '#root/types.js';
 import {injectable, inject} from 'inversify';
 import {InternalServerError} from 'routing-controllers';
 import admin from 'firebase-admin';
-import {IEnrollment, IUser} from '#root/shared/interfaces/models.js';
+import { IUser} from '#root/shared/interfaces/models.js';
 import {BaseService} from '#root/shared/classes/BaseService.js';
 import {IUserRepository} from '#root/shared/database/interfaces/IUserRepository.js';
-import {IInviteRepository} from '#root/shared/database/interfaces/IInviteRepository.js';
-import { EnrollmentRepository } from '#root/shared/index.js';
 import { InviteRepository } from '#root/shared/index.js';
 import {MongoDatabase} from '#root/shared/database/providers/mongo/MongoDatabase.js';
-import { InviteStatusType, InviteActionType } from '#root/shared/interfaces/models.js';
 import { InviteResult, MailService } from '#root/modules/notifications/index.js';
 
 import { appConfig } from '#root/config/app.js';
@@ -43,14 +40,10 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
   constructor(
     @inject(GLOBAL_TYPES.UserRepo)
     private userRepository: IUserRepository,
-    @inject(NOTIFICATIONS_TYPES.InviteService)
-    private inviteService: InviteService,
     @inject(GLOBAL_TYPES.InviteRepo)
     private inviteRepository: InviteRepository,
     @inject(USERS_TYPES.EnrollmentService)
     private enrollmentService: EnrollmentService,
-    @inject(GLOBAL_TYPES.MailService)
-    private mailService: MailService,
     @inject(GLOBAL_TYPES.Database)
     private database: MongoDatabase,
   ) {
