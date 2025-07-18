@@ -36,7 +36,7 @@ ENV PORT=8080
 ENV APP_PORT=8080
 
 # Cloud Run will automatically handles port binding (TODO: remove this after cloud run deployment)
-EXPOSE 8080
+# EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost:${PORT}/health || exit 1
