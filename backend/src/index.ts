@@ -79,6 +79,15 @@ app.get("/debug-sentry-error", function errorHandler(req, res) {
   throw new Error("Sentry error test!");
 });
 
+// Health check endpoint for Cloud Run
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    environment: NODE_ENV
+  });
+});
+
 if (NODE_ENV === 'production' || NODE_ENV === 'staging') {
   console.log('Setting up Sentry error handling - test for production and staging environment');
   setupSentryErrorHandling(app);
