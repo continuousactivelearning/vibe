@@ -389,7 +389,7 @@ function CourseCard({
         className="cursor-pointer hover:bg-accent/30 transition-colors duration-200"
         onClick={() => !editingCourse && toggleCourse()}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col  md:flex-row items-center justify-between">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             <div
               className={`transition-transform duration-200 ${expandedCourse ? "rotate-90" : ""}`}
