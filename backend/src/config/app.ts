@@ -27,5 +27,10 @@ export const appConfig = {
     privateKey: env('FIREBASE_PRIVATE_KEY')?.replace(/\\n/g, '\n') || undefined,
     projectId: env('FIREBASE_PROJECT_ID') || undefined,
     apiKey: env('FIREBASE_API_KEY') || undefined,
-  }
+  },
+  sentry: {
+    dsn: env('SENTRY_DSN') || undefined,
+    environment: env('NODE_ENV') || 'development',
+    sendDefaultPii: true,
+  },
 };
