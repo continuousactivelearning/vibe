@@ -80,8 +80,9 @@ export function AppSidebar() {
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-
-      <SidebarFooter>
+        
+      {/* Eliminating profile section which is not needed */}
+      {/* <SidebarFooter>
       {state === "expanded" && (
         <Link
           to="/teacher/profile"
@@ -107,7 +108,7 @@ export function AppSidebar() {
           )}
         </Link>
       )}
-      </SidebarFooter>
+      </SidebarFooter> */}
 
       <SidebarRail />
     </Sidebar>
