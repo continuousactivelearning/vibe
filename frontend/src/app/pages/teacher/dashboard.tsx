@@ -37,6 +37,7 @@ import {
   Sector,
 } from 'recharts';
 import type { Task, ActiveShapeProps, ChartLabelProps } from '@/types/dashboard.types';
+import { Link } from "@tanstack/react-router";
 
 
 // Helper function to get greeting based on time of day
@@ -268,28 +269,37 @@ export default function Page() {
         <section className="bg-muted/30 p-4 rounded-lg">
           <div className="flex flex-wrap justify-between items-center mb-3">
             <h2 className="text-lg font-medium">Quick Actions</h2>
-            <Button variant="outline" size="sm">
+            {/* <Button variant="outline" size="sm">
               <Plus className="h-4 w-4 mr-2" />
               More Actions
-            </Button>
+            </Button> */}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Link to="/teacher/courses/create" className="w-full">
+            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary w-full">
               <BookOpen className="h-5 w-5" />
-              <span>Add Course</span>
+              {/* <span>Add Course</span> */}
+              Add Course
             </Button>
-            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary">
+            </Link>
+            <Link to="/teacher/courses/articles/create" className="w-full">
+            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary w-full">
               <FileText className="h-5 w-5" />
-              <span>Create Article</span>
+              {/* <span>Create Article</span> */}
+            Create Article
             </Button>
-            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary">
+            </Link>
+            {/* <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary">
               <ClipboardCheck className="h-5 w-5" />
               <span>New Assignment</span>
-            </Button>
-            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary">
+            </Button> */}
+            <Link to="/teacher/courses/quiz/create" className="w-full">
+            <Button variant="outline" className="flex flex-col h-24 px-4 py-3 justify-center items-center gap-2 hover:bg-primary/5 hover:border-primary w-full">
               <FileQuestion className="h-5 w-5" />
-              <span>Create Quiz</span>
+              {/* <span>Create Quiz</span> */}
+              Create Quiz
             </Button>
+            </Link>
           </div>
         </section>
 
