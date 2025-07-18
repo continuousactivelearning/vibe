@@ -15,6 +15,7 @@ import {
 
 import { useCourseVersionById, useCreateModule, useUpdateModule, useDeleteModule, useCreateSection, useUpdateSection, useDeleteSection, useCreateItem, useUpdateItem, useDeleteItem, useItemsBySectionId, useItemById } from "@/hooks/hooks";
 import { useCourseStore } from "@/store/course-store";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 // ✅ Icons per item type
 const getItemIcon = (type: string) => {
   switch (type) {
@@ -177,7 +178,6 @@ export default function TeacherCoursePage() {
           <SidebarContent className="bg-card/50 pl-2">
             <ScrollArea className="flex-1">
               <SidebarMenu className="space-y-2 text-sm pr-1 pt-2">
-                {/* TODO: Replace 'any' with correct Module type */}
                 {modules.map((module: any) => (
                   <SidebarMenuItem key={module.moduleId}>
                     <SidebarMenuButton
@@ -210,43 +210,50 @@ export default function TeacherCoursePage() {
 
                             {expandedSections[section.sectionId] && (
                               <SidebarMenuSub className="ml-4 space-y-1 pt-1">
-                                {(sectionItems[section.sectionId] || []).map((item: any) => (
-                                  <SidebarMenuSubItem key={item._id}>
-                                    <SidebarMenuSubButton
-                                      className="justify-start"
-                                      onClick={() =>
-                                        setSelectedEntity({
-                                          type: "item",
-                                          data: item,
-                                          parentIds: {
-                                            moduleId: module.moduleId,
-                                            sectionId: section.sectionId,
-                                          },
-                                        })
-                                      }
-                                    >
-                                      {getItemIcon(item.type)}
-                                      <span className="ml-2 truncate">{item.name}</span>
-                                    </SidebarMenuSubButton>
-                                  </SidebarMenuSubItem>
-                                ))}
+                                {(sectionItems[section.sectionId] || [])
+                                  .filter((item: any) => item && item._id && item.name)
+                                  .map((item: any) => (
+                                    <SidebarMenuSubItem key={item._id}>
+                                      <SidebarMenuSubButton
+                                        className="justify-start"
+                                        onClick={() =>
+                                          setSelectedEntity({
+                                            type: "item",
+                                            data: item,
+                                            parentIds: {
+                                              moduleId: module.moduleId,
+                                              sectionId: section.sectionId,
+                                            },
+                                          })
+                                        }
+                                      >
+                                        {getItemIcon(item.type)}
+                                        <span className="ml-2 truncate">{item.name}</span>
+                                      </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                  ))}
                                 <div className="ml-6 mt-2">
-                                  <select
-                                    className="text-xs border rounded px-2 py-1 bg-background text-foreground"
+                                  <Select
                                     defaultValue=""
-                                    onChange={(e) => {
-                                      const type = e.target.value;
+                                    onValueChange={(type) => {
                                       if (type) {
                                         handleAddItem(module.moduleId, section.sectionId, type);
-                                        e.target.value = "";
+                                        type = "";
                                       }
                                     }}
                                   >
-                                    <option value="" disabled>Add Item</option>
-                                    <option value="article">Article</option>
-                                    <option value="video">Video</option>
-                                    <option value="quiz">Quiz</option>
-                                  </select>
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Add Item" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectGroup>
+                                        <SelectLabel>Items</SelectLabel>
+                                        <SelectItem value="article">Article</SelectItem>
+                                        <SelectItem value="video">Video</SelectItem>
+                                        <SelectItem value="quiz">Quiz</SelectItem>
+                                      </SelectGroup>
+                                    </SelectContent>
+                                  </Select> 
                                 </div>
                               </SidebarMenuSub>
                             )}
