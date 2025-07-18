@@ -29,40 +29,6 @@ env:
   GCP_SERVICE: vibe-backend-staging
 
 jobs:
-  versioning:
-    name: Versioning
-    runs-on: ubuntu-latest
-    outputs:
-      new_version: ${{ steps.tag_version.outputs.new_version || steps.fallback_version.outputs.new_version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-      
-      - name: Bump version and push tag
-        id: tag_version
-        uses: mathieudutour/github-tag-action@v6.1
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
-        with:
-          github_token: ${{ env.GITHUB_TOKEN }}
-          release_branches: main,staging,test-cicd
-          default_bump: patch
-          tag_prefix: ''
-          fetch_all_tags: true
-          create_annotated_tag: true
-          dry_run: false
-
-      - name: Set fallback version if tagging failed
-        if: steps.tag_version.outcome == 'failure'
-        id: fallback_version
-        run: echo "new_version=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
 
   lint:
     name: Lint and Test
@@ -103,7 +69,7 @@ jobs:
 
   build:
     name: Build and Push
-    needs: [versioning, lint]
+    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +92,7 @@ jobs:
           file: ./backend/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:staging
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -139,7 +105,7 @@ jobs:
 
   deploy_staging:
     name: Deploy to Cloud Run (Staging)
-    needs: [versioning, build]
+    needs: [build]
     runs-on: ubuntu-latest
     environment:
       name: staging
@@ -155,7 +121,7 @@ jobs:
         with:
           service: ${{ env.GCP_SERVICE }}
           region: ${{ env.GCP_REGION }}
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=staging
@@ -169,12 +135,14 @@ jobs:
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
             APP_ORIGINS=${{ secrets.APP_ORIGINS }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
           flags: --allow-unauthenticated
 
   deploy_production:
     name: Deploy to Cloud Run (Production)
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_production == 'true'
-    needs: [versioning, build]
+    needs: [build]
     runs-on: ubuntu-latest
     environment:
       name: production
@@ -190,7 +158,7 @@ jobs:
         with:
           service: vibe-backend-production
           region: ${{ env.GCP_REGION }}
-          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:${{ needs.versioning.outputs.new_version }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           env_vars: |
             NODE_ENV=production
@@ -204,4 +172,6 @@ jobs:
             FIREBASE_PROJECT_ID=${{ secrets.FIREBASE_PROJECT_ID }}
             FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
             APP_ORIGINS=${{ secrets.APP_ORIGINS }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
           flags: --allow-unauthenticated
