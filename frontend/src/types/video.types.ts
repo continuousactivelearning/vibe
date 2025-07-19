@@ -10,7 +10,7 @@ export interface VideoProps {
   rewindVid: boolean;
   pauseVid: boolean;
   onDurationChange?: (duration: number) => void;
-
+  anomalies?: string[];
 }
 
 // Minimal YouTube Player instance interface
