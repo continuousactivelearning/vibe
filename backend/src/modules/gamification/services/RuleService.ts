@@ -95,7 +95,11 @@ export class ruleService extends BaseService {
       const eventId = new ObjectId(id);
       const rules = await this.gamifyLayerRepo.readRules(eventId, session);
 
-      return rules ? rules.map(rule => plainToInstance(Rule, rule)) : null;
+      if (!rules) {
+        throw new NotFoundError(`No rules found for event ID ${id}`);
+      }
+
+      return rules.map(rule => plainToInstance(Rule, rule));
     });
   }
 
