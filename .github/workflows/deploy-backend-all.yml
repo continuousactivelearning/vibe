@@ -138,6 +138,7 @@ jobs:
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SMTP_USER=${{ secrets.SMTP_USER }}
             SMTP_PASS=${{ secrets.SMTP_PASS }}
+            TAILSCALE_AUTHKEY=${{ secrets.TAILSCALE_AUTHKEY }}
           flags: --allow-unauthenticated
 
   deploy_production:
@@ -174,4 +175,5 @@ jobs:
             SENTRY_DSN=${{ secrets.SENTRY_DSN }}
             SMTP_USER=${{ secrets.SMTP_USER }}
             SMTP_PASS=${{ secrets.SMTP_PASS }}
+            TAILSCALE_AUTHKEY=${{ secrets.TAILSCALE_AUTHKEY }}
           flags: --allow-unauthenticated

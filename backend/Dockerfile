@@ -33,6 +33,17 @@ COPY --from=builder /app/build ./build
 
 COPY --from=builder /app/src/modules ./src/modules
 
+# Tailscale Setup
+
+COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscaled /app/tailscaled
+COPY --from=docker.io/tailscale/tailscale:stable /usr/local/bin/tailscale /app/tailscale
+RUN mkdir -p /var/run/tailscale /var/cache/tailscale /var/lib/tailscale
+
+RUN /app/tailscaled --tun=userspace-networking --socks5-server=localhost:1055 &
+RUN /app/tailscale up --auth-key=${TAILSCALE_AUTHKEY} --hostname=gcp
+
+ENV ALL_PROXY=socks5://localhost:1055/
+
 ARG APP_PORT
 
 # Cloud Run will automatically handles port binding (TODO: remove this after cloud run deployment)
