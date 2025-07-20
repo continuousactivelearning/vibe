@@ -139,6 +139,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       // Pause video due to anomaly detection
       if (playing) {
         player.pauseVideo();
+        wasPlayingBeforeRewind.current = true; // Remember it was playing
         console.log('Video paused due to anomaly detection');
       }
     } else {
@@ -496,7 +497,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
           />
 
           {/* Anomaly Overlay */}
-          {(rewindVid || doGesture) && (
+          {(rewindVid || doGesture || pauseVid) && (
             <div
               className='shadow-2xl'
               style={{
@@ -545,7 +546,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
                   }}
                 >
                   {/* Warning SVG icon */}
-                  {rewindVid && (<svg
+                  {(rewindVid || pauseVid) && (<svg
                     width="140"
                     height="140"
                     viewBox="0 0 156.262 144.407"
@@ -602,7 +603,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
 
                   }}
                 >
-                  {rewindVid
+                  {(rewindVid || pauseVid)
                     ? (
                       <span style={{ fontWeight: 500, fontSize: 15 }}>
                         {anomalies.includes("voiceDetection") ? (
