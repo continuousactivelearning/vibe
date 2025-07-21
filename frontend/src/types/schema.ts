@@ -4,107 +4,31 @@
  */
 
 export interface paths {
-    "/auth/signup": {
+    "/api/notifications/invite/courses/{courseId}/versions/{versionId}": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Get Invites for Course Version
+         * @description Retrieve all invites for a specific course version.
+         */
+        get: operations["InviteController.getInvitesForCourseVersion"];
         put?: never;
         /**
-         * Register User
-         * @description Creates a new user account with the provided credentials.
+         * Invite users to a course
+         * @description Invites users to a specific version of a course.
          */
-        post: operations["AuthController.signup"];
+        post: operations["InviteController.inviteUsers"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/auth/signup/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Verify User
-         * @description Creates a new user account using the token provided.
-         */
-        post: operations["AuthController.verifySignUpProvider"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/change-password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Change Password
-         * @description Changes the authenticated user's password to the new password provided.
-         */
-        patch: operations["AuthController.changePassword"];
-        trace?: never;
-    };
-    "/auth/verify": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Verify Token
-         * @description Verifies if the user's authentication token is valid and belongs to an admin user.
-         */
-        post: operations["AuthController.verifyToken"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Course
-         * @description Creates a new course with the provided details.
-         */
-        post: operations["CourseController.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/{id}": {
+    "/api/notifications/invite/{inviteId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -112,54 +36,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get Course
-         * @description Retrieves the course details for the specified course ID.
+         * Process Invite
+         * @description Process an invite given an inviteId and send a response before redirecting the user.
          */
-        get: operations["CourseController.read"];
-        /**
-         * Update Course
-         * @description Updates the course details for the specified course ID.
-         */
-        put: operations["CourseController.update"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/{id}/versions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Create Course Version
-         * @description Creates a new version for a specific course.
-         */
-        post: operations["CourseVersionController.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Course Version
-         * @description Retrieves a course version by its ID.
-         */
-        get: operations["CourseVersionController.read"];
+        get: operations["InviteController.processInvites"];
         put?: never;
         post?: never;
         delete?: never;
@@ -168,27 +48,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/courses/{courseId}/versions/{versionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Course Version
-         * @description Deletes a course version by its ID.
-         */
-        delete: operations["CourseVersionController.delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules": {
+    "/api/notifications/invite/resend/{inviteId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -198,61 +58,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create Module
-         * @description Creates a new module in the specified course version with the provided details.
+         * Resend Invite
+         * @description Resend an invite email to the user.
          */
-        post: operations["ModuleController.create"];
+        post: operations["InviteController.resendInvite"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/courses/versions/{versionId}/modules/{moduleId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Module
-         * @description Updates an existing module's name or description within a course version.
-         */
-        put: operations["ModuleController.update"];
-        post?: never;
-        /**
-         * Delete Module
-         * @description Permanently removes a module from a course version.
-         */
-        delete: operations["ModuleController.delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Move Module
-         * @description Reorders a module within its course version by placing it before or after another module.
-         */
-        put: operations["ModuleController.move"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections": {
+    "/api/notifications/invite/cancel/{inviteId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -262,61 +78,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Create Section
-         * @description Creates a new section in the specified module and automatically generates an associated items group.
+         * Cancel Invite
+         * @description Cancel an existing invite.
          */
-        post: operations["SectionController.create"];
+        post: operations["InviteController.cancelInvite"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Update Section
-         * @description Updates an existing section's name or description within a module.
-         */
-        put: operations["SectionController.update"];
-        post?: never;
-        /**
-         * Delete Section
-         * @description Permanently removes a section from a module.
-         */
-        delete: operations["SectionController.delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Move Section
-         * @description Reorders a section within its module by placing it before or after another section.
-         */
-        put: operations["SectionController.move"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items": {
+    "/api/users/{userId}/enrollments/courses/{courseId}/versions/{versionId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -324,98 +96,14 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get All Items
-         * @description Retrieves all items from the specified section of a module in a course version.
+         * Get enrollment details for a user in a course version
+         * @description Retrieves enrollment details, including role and status, for a user in a specific course version.
          */
-        get: operations["ItemController.readAll"];
+        get: operations["EnrollmentController.getEnrollment"];
         put?: never;
         /**
-         * Create Item
-         * @description Creates a new item in the specified section with the provided details.
-         */
-        post: operations["ItemController.create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Get Item
-         * @description Retrieves a specific item from the specified section of a module in a course version.
-         */
-        get: operations["ItemController.readItem"];
-        /**
-         * Update Item
-         * @description Updates an existing item in the specified section with the provided details.
-         */
-        put: operations["ItemController.update"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/itemGroups/{itemsGroupId}/items/{itemId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /**
-         * Delete Item
-         * @description Deletes an item from a course section permanently.
-         */
-        delete: operations["ItemController.delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}/move": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Move Item
-         * @description Moves an item to a new position within its section by recalculating its order.
-         */
-        put: operations["ItemController.move"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users/{userId}/enrollments/courses/{courseId}/versions/{courseVersionId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Enroll User in Course
-         * @description Enrolls a user in a specific version of a course.
+         * Enroll a user in a course version
+         * @description Enrolls a user in a specific course version with a given role.
          */
         post: operations["EnrollmentController.enrollUser"];
         delete?: never;
@@ -424,7 +112,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/enrollments/courses/{courseId}/versions/{courseVersionId}/unenroll": {
+    "/api/users/{userId}/enrollments/courses/{courseId}/versions/{versionId}/unenroll": {
         parameters: {
             query?: never;
             header?: never;
@@ -434,8 +122,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Unenroll User from Course
-         * @description Unenrolls a user from a specific version of a course.
+         * Unenroll a user from a course version
+         * @description Removes a user's enrollment and progress from a specific course version.
          */
         post: operations["EnrollmentController.unenrollUser"];
         delete?: never;
@@ -444,7 +132,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/enrollments": {
+    "/api/users/enrollments": {
         parameters: {
             query?: never;
             header?: never;
@@ -452,8 +140,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User Enrollments
-         * @description Retrieves a paginated list of courses and course versions a user is enrolled in.
+         * Get all enrollments for a user
+         * @description Retrieves a paginated list of all course enrollments for a user.
          */
         get: operations["EnrollmentController.getUserEnrollments"];
         put?: never;
@@ -464,7 +152,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/": {
+    "/api/users/enrollments/courses/{courseId}/versions/{versionId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -472,8 +160,28 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User Progress
-         * @description Retrieves a user's progress for a specific course version.
+         * Get all enrollments for a course version
+         * @description Retrieves a paginated list of all users enrolled in a specific course version.
+         */
+        get: operations["EnrollmentController.getCourseVersionEnrollments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/progress/courses/{courseId}/versions/{versionId}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user progress in a course version
+         * @description Retrieves the progress of a user in a specific course version.
          */
         get: operations["ProgressController.getUserProgress"];
         put?: never;
@@ -484,7 +192,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/start": {
+    "/api/users/progress/courses/{courseId}/versions/{versionId}/percentage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get %age progress in a course version
+         * @description Retrieves the progress of a user in a specific course version.
+         */
+        get: operations["ProgressController.getUserProgressPercentage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/progress/courses/{courseId}/versions/{versionId}/start": {
         parameters: {
             query?: never;
             header?: never;
@@ -494,8 +222,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start Course Item
-         * @description Starts tracking a user's progress on a specific course item.
+         * Start an item for user progress
+         * @description Marks the start of an item for a user in a course version.
          */
         post: operations["ProgressController.startItem"];
         delete?: never;
@@ -504,7 +232,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/stop": {
+    "/api/users/progress/courses/{courseId}/versions/{versionId}/stop": {
         parameters: {
             query?: never;
             header?: never;
@@ -514,8 +242,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Stop Course Item
-         * @description Stops tracking a user's progress on a specific course item.
+         * Stop an item for user progress
+         * @description Marks the stop of an item for a user in a course version.
          */
         post: operations["ProgressController.stopItem"];
         delete?: never;
@@ -524,7 +252,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/update": {
+    "/api/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -538,13 +266,13 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update Progress
-         * @description Updates a user's progress for a specific course item.
+         * Update user progress
+         * @description Updates the progress of a user for a specific item in a course version.
          */
         patch: operations["ProgressController.updateProgress"];
         trace?: never;
     };
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/reset": {
+    "/api/users/{userId}/progress/courses/{courseId}/versions/{versionId}/reset": {
         parameters: {
             query?: never;
             header?: never;
@@ -558,13 +286,17 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Reset Course Progress
-         * @description Resets a user's progress for a course, module, section, or item.
+         * Reset user progress
+         * @description Resets the user's progress in a course version.
+         *     If only moduleId is provided, resets to the beginning of the module.
+         *     If moduleId and sectionId are provided, resets to the beginning of the section.
+         *     If moduleId, sectionId, and itemId are provided, resets to the beginning of the item.
+         *     If none are provided, resets to the beginning of the course.
          */
         patch: operations["ProgressController.resetProgress"];
         trace?: never;
     };
-    "/users/firebase/{firebaseUID}": {
+    "/api/users/{userId}/watchTime/item/{itemId}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -572,11 +304,1263 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get User by Firebase UID
-         * @description Retrieves a user ID using their Firebase UID.
+         * Get User Watch Time
+         * @description Gets the User Watch Time for the given Item Id
          */
-        get: operations["UserController.getUserByFirebaseUID"];
+        get: operations["ProgressController.getWatchTime"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user information by user ID
+         * @description Retrieves user information based on the provided user ID.
+         */
+        get: operations["UserController.getUserById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/edit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit user information
+         * @description Edit user information like first and last name.
+         */
+        patch: operations["UserController.editUser"];
+        trace?: never;
+    };
+    "/api/users/make-admin/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Make a user an admin
+         * @description Promotes a user to admin status based on the provided user ID.
+         */
+        post: operations["UserController.makeAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a new user account
+         * @description Registers a new user using Firebase Authentication and stores additional user details in the application database. This is typically the first step for any new user to access the system.
+         */
+        post: operations["AuthController.signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/signup/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register a new user account
+         * @description Registers a new user using Firebase Authentication and stores additional user details in the application database. This is typically the first step for any new user to access the system.
+         */
+        post: operations["AuthController.googleSignup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change user password
+         * @description Allows an authenticated user to update their password. This action is performed via Firebase Authentication and requires the current credentials to be valid.
+         */
+        patch: operations["AuthController.changePassword"];
+        trace?: never;
+    };
+    "/api/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Login */
+        post: operations["AuthController.login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a new course
+         * @description Creates a new course in the system.<br/>.
+         */
+        post: operations["CourseController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/{courseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get course details
+         * @description Retrieves course information by ID.<br/>
+         *     Accessible to:
+         *     - Users who are part of the course (students, teaching assistants, instructors, or managers)
+         *
+         */
+        get: operations["CourseController.read"];
+        /**
+         * Update a course
+         * @description Updates course metadata such as title or description.<br/>
+         *     Accessible to:
+         *     - Instructor or manager for the course.
+         */
+        put: operations["CourseController.update"];
+        post?: never;
+        /**
+         * Delete a course
+         * @description Deletes a course by ID.
+         */
+        delete: operations["CourseController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/{courseId}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a course version
+         * @description Creates a new version of a given course.<br/>
+         *     Accessible to:
+         *     - Instructor or manager of the course.
+         */
+        post: operations["CourseVersionController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get course version details
+         * @description Retrieves information about a specific version of a course.<br/>
+         *     Accessible to:
+         *     - Users who are part of the course version (students, teaching assistants, instructors, or managers).
+         */
+        get: operations["CourseVersionController.read"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/{courseId}/versions/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a course version
+         * @description Deletes a specific version of a course.<br/>
+         *     Accessible to:
+         *     - Manager of the course.
+         */
+        delete: operations["CourseVersionController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all item references in a section
+         * @description Retrieves a list of item references from a specific section. Each reference includes only the item's `_id`, `type`, and `order`, without full item details.<br/>
+         *       Accessible to:
+         *       - All users who are part of the course.
+         */
+        get: operations["ItemController.readAll"];
+        put?: never;
+        /**
+         * Create an item
+         * @description Creates a new item within a section.
+         *       Accessible to:
+         *       - Instructors, managers or teaching assistants of the course.
+         */
+        post: operations["ItemController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update an item
+         * @description Updates the configuration or content of a specific item within a section.<br/>
+         *       Accessible to:
+         *       - Instructors, managers, and teaching assistants of the course.
+         */
+        put: operations["ItemController.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/itemGroups/{itemsGroupId}/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an item
+         * @description Deletes a specific item from a section.<br/>
+         *       Accessible to:
+         *       - Instructors or managers of the course.
+         */
+        delete: operations["ItemController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reorder an item
+         * @description Changes the position of an item within a section of a course version.<br/>
+         *     Accessible to:
+         *     - Instructors, managers, and teaching assistants of the course.
+         */
+        put: operations["ItemController.move"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/{courseId}/versions/{versionId}/item/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an item by ID
+         * @description Retrieves a specific item from a course version.<br/>
+         *     Access control logic:
+         *     - For students: The item is returned only if it matches the student's current item ID in their course progress.
+         *     - For instructors, managers, and teaching assistants: The item is accessible without this restriction.
+         */
+        get: operations["ItemController.getItem"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a module
+         * @description Creates a new module within a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        post: operations["ModuleController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update a module
+         * @description Updates the content or metadata of a module in a given course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        put: operations["ModuleController.update"];
+        post?: never;
+        /**
+         * Delete a module
+         * @description Deletes a module from a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        delete: operations["ModuleController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reorder a module
+         * @description Changes the position of a module within the sequence of modules in the course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        put: operations["ModuleController.move"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a section
+         * @description Creates a new section within a module of a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        post: operations["SectionController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update a section
+         * @description Updates the title, description, or configuration of a section within a module of a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        put: operations["SectionController.update"];
+        post?: never;
+        /**
+         * Delete a section
+         * @description Deletes a section from a module in a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        delete: operations["SectionController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reorder a section
+         * @description Changes the position of a section within its module in a specific course version.<br/>
+         *     Accessible to:
+         *     - Instructors or managers of the course.
+         */
+        put: operations["SectionController.move"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/questions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a new question
+         * @description Creates a new quiz question and returns its ID.
+         */
+        post: operations["QuestionController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/questions/{questionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get question by ID
+         * @description Retrieves a quiz question by its ID.
+         */
+        get: operations["QuestionController.getById"];
+        /**
+         * Update a question
+         * @description Updates an existing quiz question.
+         */
+        put: operations["QuestionController.update"];
+        post?: never;
+        /**
+         * Delete a question
+         * @description Deletes a quiz question by its ID.
+         */
+        delete: operations["QuestionController.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/questions/{questionId}/flag": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Flag a question
+         * @description Flags a quiz question for review with a reason.
+         */
+        post: operations["QuestionController.flagQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/questions/flags/{flagId}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resolve a flagged question
+         * @description Resolves a flagged question by marking it as resolved or rejected.
+         */
+        post: operations["QuestionController.resolveFlag"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/bank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all question banks for a quiz
+         * @description Retrieves all question banks associated with a quiz.
+         */
+        get: operations["QuizController.getAllQuestionBanks"];
+        put?: never;
+        /**
+         * Add a question bank to a quiz
+         * @description Associates a question bank with a quiz.
+         */
+        post: operations["QuizController.addQuestionBank"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit question bank configuration for a quiz
+         * @description Updates the configuration of a question bank within a quiz.
+         */
+        patch: operations["QuizController.editQuestionBank"];
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/bank/{questionBankId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove a question bank from a quiz
+         * @description Removes the association of a question bank from a quiz.
+         */
+        delete: operations["QuizController.removeQuestionBank"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/user/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user metrics for a quiz
+         * @description Retrieves quiz metrics for a specific user.
+         */
+        get: operations["QuizController.getUserMetrices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/attempts/{attemptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz attempt details
+         * @description Retrieves details of a specific quiz attempt.
+         */
+        get: operations["QuizController.getQuizAttempt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/submissions/{submissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz submission details
+         * @description Retrieves details of a specific quiz submission.
+         */
+        get: operations["QuizController.getQuizSubmission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get all submissions for a quiz
+         * @description Retrieves all submissions for a quiz.
+         */
+        get: operations["QuizController.getAllSubmissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz details
+         * @description Retrieves details of a quiz.
+         */
+        get: operations["QuizController.getQuizDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz analytics
+         * @description Retrieves analytics data for a quiz.
+         */
+        get: operations["QuizController.getQuizAnalytics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz performance statistics
+         * @description Retrieves performance statistics for each question in a quiz.
+         */
+        get: operations["QuizController.getQuizPerformance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get quiz results
+         * @description Retrieves results for all students who attempted the quiz.
+         */
+        get: operations["QuizController.getQuizResults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/submission/{submissionId}/score/{score}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Override submission score
+         * @description Overrides the score for a specific quiz submission.
+         */
+        post: operations["QuizController.updateQuizSubmissionScore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/submission/{submissionId}/regrade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Regrade a quiz submission
+         * @description Regrades a quiz submission with new grading results.
+         */
+        post: operations["QuizController.regradeSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/submission/{submissionId}/question/{questionId}/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add feedback to a question in a submission
+         * @description Adds feedback to a specific question in a quiz submission.
+         */
+        post: operations["QuizController.addFeedbackToQuestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/quiz/{quizId}/user/{userId}/reset-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset available attempts for a user on a quiz
+         * @description Resets the number of available attempts for a user on a specific quiz.
+         */
+        post: operations["QuizController.resetAvailableAttempts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/question-bank/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a new question bank
+         * @description Creates a new question bank for organizing quiz questions.
+         */
+        post: operations["QuestionBankController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/question-bank/{questionBankId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get question bank by ID
+         * @description Retrieves a question bank and its details by its ID.
+         */
+        get: operations["QuestionBankController.getById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Add a question to a question bank
+         * @description Adds a question to the specified question bank.
+         */
+        patch: operations["QuestionBankController.addQuestion"];
+        trace?: never;
+    };
+    "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Remove a question from a question bank
+         * @description Removes a question from the specified question bank.
+         */
+        patch: operations["QuestionBankController.removeQuestion"];
+        trace?: never;
+    };
+    "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/replace-duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Replace a question with its duplicate in a question bank
+         * @description Duplicates a question and replaces the original in the question bank.
+         */
+        patch: operations["QuestionBankController.replaceQuestion"];
+        trace?: never;
+    };
+    "/api/quizzes/{quizId}/attempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start a new quiz attempt
+         * @description Creates a new attempt for the specified quiz for the current user.
+         */
+        post: operations["AttemptController.attempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/{quizId}/attempt/{attemptId}/save": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save answers for an ongoing attempt
+         * @description Saves the current answers for a quiz attempt without submitting.
+         */
+        post: operations["AttemptController.save"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/{quizId}/attempt/{attemptId}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a quiz attempt
+         * @description Submits the answers for a quiz attempt and returns the result.
+         */
+        post: operations["AttemptController.submit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/quizzes/{quizId}/attempt/{attemptId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get details of a quiz attempt
+         * @description Retrieves the details of a specific quiz attempt for the current user.
+         */
+        get: operations["AttemptController.getAttempt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/genai/generate/transcript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate transcript */
+        post: operations["GenAIVideoController.generateTranscript"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/genai/generate/transcript/segment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Segment transcript */
+        post: operations["GenAIVideoController.segmentTranscript"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/genai/generate/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate questions */
+        post: operations["GenAIVideoController.generateQuestions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/genai/generate-course-items-from-video": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate course items from video */
+        post: operations["GenAIVideoController.generateCourseItemsFromVideo"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/courses/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create */
+        post: operations["CourseSettingsController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/courses/{courseId}/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get */
+        get: operations["CourseSettingsController.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/courses/{courseId}/{versionId}/proctoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update course settings */
+        put: operations["CourseSettingsController.updateCourseSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create
+         * @description Operations for managing user settings in courses
+         */
+        post: operations["UserSettingsController.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/users/{studentId}/{courseId}/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get
+         * @description Operations for managing user settings in courses
+         */
+        get: operations["UserSettingsController.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/settings/users/{studentId}/{courseId}/{versionId}/proctoring": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update user settings
+         * @description Operations for managing user settings in courses
+         */
+        put: operations["UserSettingsController.updateUserSettings"];
         post?: never;
         delete?: never;
         options?: never;
@@ -588,6 +1572,338 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        User: {
+            /**
+             * @description MongoDB Object ID of the user
+             * @example 60d5ec49b3f1c8e4a8f8b8c7
+             */
+            _id?: string;
+            /**
+             * @description Firebase UID of the user
+             * @example a1b2c3d4e5f6
+             */
+            firebaseUID: string;
+            /**
+             * Format: email
+             * @description Email address of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description First name of the user
+             * @example John
+             */
+            firstName: string;
+            /**
+             * @description Last name of the user
+             * @example Doe
+             */
+            lastName: string;
+            /**
+             * @description Role of the user
+             * @example user
+             * @enum {string}
+             */
+            roles: "admin" | "user";
+        };
+        Course: {
+            /**
+             * @description Unique identifier for the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            _id?: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the course was created
+             * @example 2023-10-01T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the course was last updated
+             * @example 2023-10-01T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        Section: {
+            /**
+             * @description Unique identifier for the section
+             * @example 60f6bc47c8b7d9e5f1a2a3b4
+             */
+            sectionId?: string;
+            /**
+             * @description Name of the section
+             * @example Variables and Data Types
+             */
+            name: string;
+            /**
+             * @description Brief description of what this section covers
+             * @example This section explains variables, constants, and data types in JavaScript.
+             */
+            description: string;
+            /**
+             * @description String that defines the section order in the module
+             * @example 001-001
+             */
+            order: string;
+            /**
+             * @description ID of the items group associated with this section
+             * @example 60f6bc47c8b7d9e5f1a2a3b5
+             */
+            itemsGroupId: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the section was created
+             * @example 2024-07-01T09:30:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the section was last updated
+             * @example 2024-07-01T11:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        Module: {
+            /**
+             * @description Module ID
+             * @example 60e5ac43b3a1b0d1f8c7a8d2
+             */
+            moduleId?: string;
+            /**
+             * @description Module name
+             * @example Introduction to JavaScript
+             */
+            name: string;
+            /**
+             * @description Module overview
+             * @example This module introduces the basics of JavaScript programming.
+             */
+            description: string;
+            /**
+             * @description Module order key
+             * @example 001-002
+             */
+            order: string;
+            /** @description Sections under this module */
+            sections: components["schemas"]["Section"][];
+            /**
+             * Format: date-time
+             * @description Created on
+             * @example 2024-07-01T10:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last updated on
+             * @example 2024-07-01T12:00:00.000Z
+             */
+            updatedAt: string;
+        };
+        CourseVersion: {
+            /**
+             * @description Course version ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            _id?: string;
+            /**
+             * @description Associated course ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c2
+             */
+            courseId: string;
+            /**
+             * @description Version label
+             * @example v1.0.0
+             */
+            version: string;
+            /**
+             * @description Version summary
+             * @example Initial release of course materials.
+             */
+            description: string;
+            /** @description Modules in this version */
+            modules: components["schemas"]["Module"][];
+            /**
+             * Format: date-time
+             * @description Created on
+             * @example 2024-07-01T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last updated on
+             * @example 2024-07-01T15:30:00.000Z
+             */
+            updatedAt: string;
+        };
+        DetectorOptionsDto: {
+            /**
+             * @description Whether the detector is enabled
+             * @example true
+             */
+            enabled: boolean;
+        };
+        DetectorSettingsDto: {
+            /**
+             * @description The detector type
+             * @example cameraMic
+             * @enum {string}
+             */
+            detectorName: "cameraMic" | "blurDetection" | "faceCountDetection" | "handGestureDetection" | "voiceDetection" | "virtualBackgroundDetection" | "rightClickDisabled" | "faceRecognition";
+            /**
+             * @description Configuration options for the detector
+             * @example {
+             *       "enabled": true
+             *     }
+             */
+            settings: components["schemas"]["DetectorOptionsDto"];
+        };
+        ProctoringSettingsDto: {
+            detectors: components["schemas"]["DetectorSettingsDto"][];
+        };
+        SettingsDto: {
+            proctors: components["schemas"]["ProctoringSettingsDto"];
+        };
+        CreateCourseSettingsBody: {
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            courseVersionId: string;
+            /**
+             * @description Id of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            settings: components["schemas"]["SettingsDto"];
+        };
+        ReadCourseSettingsParams: {
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            versionId: string;
+        };
+        AddCourseProctoringParams: {
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            versionId: string;
+        };
+        AddCourseProctoringBody: {
+            detectors: components["schemas"]["DetectorSettingsDto"][];
+        };
+        RemoveCourseProctoringParams: {
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            courseVersionId: string;
+        };
+        RemoveCourseProctoringBody: {
+            /**
+             * @description Component to remove from course proctoring
+             * @example cameraMic
+             * @enum {string}
+             */
+            detectorName: "cameraMic" | "blurDetection" | "faceCountDetection" | "handGestureDetection" | "voiceDetection" | "virtualBackgroundDetection" | "rightClickDisabled" | "faceRecognition";
+        };
+        CreateUserSettingsBody: {
+            /**
+             * @description ID of the student
+             * @example 60d5ec49b3f1c8e4a8f8b8c5
+             */
+            studentId: string;
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            courseVersionId: string;
+            settings: components["schemas"]["SettingsDto"];
+        };
+        ReadUserSettingsParams: {
+            /**
+             * @description ID of the student
+             * @example 60d5ec49b3f1c8e4a8f8b8c5
+             */
+            studentId: string;
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            versionId: string;
+        };
+        AddUserProctoringParams: {
+            /**
+             * @description ID of the student
+             * @example 60d5ec49b3f1c8e4a8f8b8c5
+             */
+            studentId: string;
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            versionId: string;
+        };
+        AddUserProctoringBody: {
+            detectors: components["schemas"]["DetectorSettingsDto"][];
+        };
+        RemoveUserProctoringParams: {
+            /**
+             * @description ID of the student
+             * @example 60d5ec49b3f1c8e4a8f8b8c5
+             */
+            studentId: string;
+            /**
+             * @description ID of the course
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             */
+            courseVersionId: string;
+        };
+        RemoveUserProctoringBody: {
+            /**
+             * @description Component to remove from user proctoring
+             * @example cameraMic
+             * @enum {string}
+             */
+            detectorName: "cameraMic" | "blurDetection" | "faceCountDetection" | "handGestureDetection" | "voiceDetection" | "virtualBackgroundDetection" | "rightClickDisabled" | "faceRecognition";
+        };
         SignUpBody: {
             /**
              * Email Address
@@ -614,12 +1930,33 @@ export interface components {
              * @description User's last name (alphabetic characters only)
              * @example Smith
              */
-            lastName: string;
+            lastName?: string;
+        };
+        GoogleSignUpBody: {
+            /**
+             * Email Address
+             * Format: email
+             * @description Email address of the user, used as login identifier
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * First Name
+             * @description User's first name (alphabetic characters only)
+             * @example John
+             */
+            firstName: string;
+            /**
+             * Last Name
+             * @description User's last name (alphabetic characters only)
+             * @example Smith
+             */
+            lastName?: string;
         };
         VerifySignUpProviderBody: {
             /**
-             * Token
-             * @description Token used for signup verification
+             * Firebase Auth Token
+             * @description Firebase Auth Token
              * @example 43jdlsaksla;f328e9fjhsda
              */
             token: string;
@@ -689,18 +2026,292 @@ export interface components {
              */
             readonly message: string;
         };
+        LoginBody: {
+            /**
+             * Email Address
+             * Format: email
+             * @description Email address of the user
+             */
+            email: string;
+            /**
+             * Password
+             * @description Password for account authentication
+             * @example SecureP@ssw0rd
+             */
+            password: string;
+        };
+        UserResponse: {
+            /**
+             * @description Unique identifier for the user
+             * @example 60d5ec49b3f1c8e4a8f8b8d1
+             */
+            _id?: string;
+            /**
+             * @description Firebase UID associated with the user
+             * @example firebase-uid-123456
+             */
+            firebaseUID: string;
+            /**
+             * Format: email
+             * @description Email address of the user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description First name of the user
+             * @example John
+             */
+            firstName: string;
+            /**
+             * @description Last name of the user
+             * @example Doe
+             */
+            lastName: string;
+            /**
+             * @description Role of the user
+             * @example user
+             * @enum {string}
+             */
+            roles: "admin" | "user";
+        };
+        Progress: {
+            /**
+             * @description Progress record ID
+             * @example 64b1c1f5a2c4b8d9e6f7a901
+             */
+            _id?: string;
+            /**
+             * @description User ID associated with the progress
+             * @example 64b1c1f5a2c4b8d9e6f7a902
+             */
+            userId: string;
+            /**
+             * @description Course ID to which this progress belongs
+             * @example 64b1c1f5a2c4b8d9e6f7a903
+             */
+            courseId: string;
+            /**
+             * @description Course version ID tracking this progress
+             * @example 64b1c1f5a2c4b8d9e6f7a904
+             */
+            courseVersionId: string;
+            /**
+             * @description Current module ID the user is engaged with
+             * @example 64b1c1f5a2c4b8d9e6f7a905
+             */
+            currentModule: string;
+            /**
+             * @description Current section ID the user is progressing through
+             * @example 64b1c1f5a2c4b8d9e6f7a906
+             */
+            currentSection: string;
+            /**
+             * @description Current item ID the user is viewing or interacting with
+             * @example 64b1c1f5a2c4b8d9e6f7a907
+             */
+            currentItem: string;
+            /**
+             * @description Indicates whether the user has completed the course
+             * @example false
+             */
+            completed: boolean;
+        };
+        Enrollment: {
+            /**
+             * @description Enrollment ID
+             * @example 64a98c1f2f9e4d3d902db8c1
+             */
+            _id?: string;
+            /**
+             * @description User ID
+             * @example 64a98c1f2f9e4d3d902db8c2
+             */
+            userId: string;
+            /**
+             * @description Course ID
+             * @example 64a98c1f2f9e4d3d902db8c3
+             */
+            courseId: string;
+            /**
+             * @description Course version ID
+             * @example 64a98c1f2f9e4d3d902db8c4
+             */
+            courseVersionId: string;
+            /**
+             * @description User role in the course
+             * @example STUDENT
+             * @enum {string}
+             */
+            role: "INSTRUCTOR" | "STUDENT" | "MANAGER" | "TA" | "STAFF";
+            /**
+             * @description Enrollment status
+             * @example ACTIVE
+             * @enum {string}
+             */
+            status: "ACTIVE" | "INACTIVE" | "COMPLETED" | "DROPPED";
+            /**
+             * Format: date-time
+             * @description Enrollment creation timestamp
+             * @example 2025-07-01T12:00:00.000Z
+             */
+            enrollmentDate: string;
+        };
+        EnrollUserResponse: {
+            enrollment: components["schemas"]["Enrollment"][];
+            progress: components["schemas"]["Progress"][];
+            /**
+             * @description User Role in Enrollment
+             * @example STUDENT
+             */
+            role: string;
+        };
+        EnrolledUserResponse: {
+            /**
+             * @description Role assigned to the user in this enrollment
+             * @example STUDENT
+             */
+            role: string;
+            /**
+             * @description Status of the user in this enrollment
+             * @example ACTIVE
+             */
+            status: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the enrollment was created
+             * @example 2025-07-01T12:00:00.000Z
+             */
+            enrollmentDate: string;
+        };
+        Invite: {
+            /**
+             * Format: email
+             * @description The email address of the person being invited.
+             * @example invitee@example.com
+             */
+            email: string;
+            /** @description The unique identifier of the course the invite is for. */
+            courseId: string;
+            /** @description The unique identifier of the specific course version for the invite. */
+            courseVersionId: string;
+            isAlreadyEnrolled: boolean;
+            isNewUser: boolean;
+            /**
+             * Accepted At
+             * Format: date-time
+             * @description Timestamp when the user accepted the invite
+             * @example 2023-10-01T12:00:00Z
+             */
+            acceptedAt?: string;
+        };
+        MessageResponse: {
+            /**
+             * @description Invite Message
+             * @example Invite processed successfully
+             */
+            message: string;
+        };
+        InviteIdParams: {
+            /** @description Unique identifier for the invite */
+            inviteId: string;
+        };
+        CourseAndVersionId: {
+            /** @description ID of the course to which users are being invited */
+            courseId: string;
+            /** @description ID of the specific version of the course */
+            versionId: string;
+        };
+        EmailInvite: {
+            /**
+             * Format: email
+             * @description Email address of the user to be invited
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description Role that the user will have in the course
+             * @example STUDENT
+             * @enum {string}
+             */
+            role: "INSTRUCTOR" | "STUDENT" | "MANAGER" | "TA" | "STAFF";
+        };
+        InviteBody: {
+            inviteData: components["schemas"]["EmailInvite"][];
+        };
+        InviteResult: {
+            /**
+             * @description Invite ID
+             * @example 60c72b2f9b1e8d3f4c8b4567
+             */
+            inviteId: string;
+            /**
+             * Format: email
+             * @description Email of the invited user
+             * @example user@example.com
+             */
+            email: string;
+            /**
+             * @description Status of the invitation
+             * @example PENDING
+             * @enum {string}
+             */
+            inviteStatus: "ACCEPTED" | "PENDING" | "CANCELLED" | "EMAIL_FAILED" | "ALREADY_ENROLLED";
+            /**
+             * @description Assigned role for the invited user
+             * @example STUDENT
+             * @enum {string}
+             */
+            role: "INSTRUCTOR" | "STUDENT" | "MANAGER" | "TA" | "STAFF";
+            /**
+             * @description Course ID related to the invite
+             * @example 60c72b2f9b1e8d3f4c8b4567
+             */
+            courseId?: string;
+            /**
+             * @description Course version ID related to the invite
+             * @example 60c72b2f9b1e8d3f4c8b4567
+             */
+            courseVersionId?: string;
+            /**
+             * Format: date-time
+             * @description Date when the invite was accepted
+             * @example 2023-10-01T12:00:00Z
+             */
+            acceptedAt?: string;
+        };
+        InviteResponse: {
+            /**
+             * @description Array of invite results
+             * @example [
+             *       {
+             *         "inviteId": "60c72b2f9b1e8d3f4c8b4567",
+             *         "email": "user@example.com",
+             *         "inviteStatus": "PENDING",
+             *         "role": "STUDENT",
+             *         "courseId": "60c72b2f9b1e8d3f4c8b4567",
+             *         "courseVersionId": "60c72b2f9b1e8d3f4c8b4567",
+             *         "userId": "60d21b4667d0d8992e610c01"
+             *       }
+             *     ]
+             */
+            invites: components["schemas"]["InviteResult"][];
+        };
         ValidationErrorResponse: {
             /** @description The object that was validated. */
             readonly target: Record<string, never>;
             /** @description The property that failed validation. */
             readonly property: string;
+            /** @description The value that failed validation. */
+            readonly value: Record<string, never>;
             /** @description Constraints that failed validation with error messages. */
             readonly constraints: Record<string, never>;
-            /**
-             * Format: ValidationErrorResponse
-             * @description Contains all nested validation errors of the property.
-             */
-            readonly children: Record<string, never>[];
+            /** @description Nested validation errors (flattened for documentation) */
+            readonly children?: {
+                property: string;
+                constraints: {
+                    [key: string]: string;
+                };
+            }[];
             /** @description Contains all nested validation errors of the property. */
             readonly contexts?: Record<string, never>;
         };
@@ -714,1312 +2325,307 @@ export interface components {
             /** @description The error details. */
             readonly errors: components["schemas"]["ValidationErrorResponse"];
         };
-        CreateCourseBody: {
-            /**
-             * Course Name
-             * @description Name of the course
-             * @example Introduction to Programming
-             */
-            name: string;
-            /**
-             * Course Description
-             * @description Description of the course
-             * @example This course covers the basics of programming.
-             */
-            description: string;
-        };
-        UpdateCourseBody: {
-            /**
-             * @description Name of the course
-             * @example Introduction to Programming
-             */
-            name?: string;
-            /**
-             * @description Description of the course
-             * @example This course covers the basics of programming.
-             */
-            description?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] This is a virtual field used only for validation. Do not include this field in requests.
-             *     Either "name" or "description" must be provided.
-             */
-            readonly nameOrDescription?: string;
-        };
-        ReadCourseParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description Object ID of the course to read
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            id: string;
-        };
-        UpdateCourseParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description Object ID of the course to update
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            id: string;
-        };
-        CourseDataResponse: {
-            /**
-             * Format: Mongo Object ID
-             * @description Unique identifier for the course
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            readonly _id: string;
-            /**
-             * @description Name of the course
-             * @example Introduction to Programming
-             */
-            name: string;
-            /**
-             * @description Description of the course
-             * @example This course covers the basics of programming.
-             */
-            description: string;
-            /**
-             * @description List of course version IDs
-             * @example [
-             *       "60d5ec49b3f1c8e4a8f8b8c2",
-             *       "60d5ec49b3f1c8e4a8f8b8c3"
-             *     ]
-             */
-            readonly versions: string[];
-            /**
-             * @description List of instructor IDs associated with the course
-             * @example [
-             *       "60d5ec49b3f1c8e4a8f8b8c4",
-             *       "60d5ec49b3f1c8e4a8f8b8c5"
-             *     ]
-             */
-            readonly instructors: string[];
-            /**
-             * Course Created At
-             * Format: date-time
-             * @description Timestamp when the course was created
-             * @example 2023-10-01T12:00:00Z
-             */
-            readonly createdAt: string;
-            /**
-             * Course Updated At
-             * Format: date-time
-             * @description Timestamp when the course was last updated
-             * @example 2023-10-01T12:00:00Z
-             */
-            readonly updatedAt: string;
-        };
-        CourseNotFoundErrorResponse: {
-            /**
-             * @description The error message.
-             * @example No course found with the specified ID. Please verify the ID and try again.
-             */
+        ForbiddenErrorResponse: {
+            /** @description The error message. */
             readonly message: string;
+            /** @description The error details. */
+            readonly errors: components["schemas"]["ValidationErrorResponse"];
         };
-        CourseVersion: {
-            modules: Record<string, never>[];
-        };
-        CreateCourseVersionBody: {
-            /**
-             * Course ID
-             * Format: Mongo Object ID
-             * @description ID of the course this version belongs to (auto-managed)
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            readonly courseId?: string | "" | unknown;
-            /**
-             * Version Label
-             * @description The version label or identifier (e.g., v1.0, Fall 2025)
-             * @example v1.0
-             */
-            version: string;
-            /**
-             * Version Description
-             * @description A brief description of the course version
-             * @example First release of the course
-             */
-            description: string;
-        };
-        CreateCourseVersionParams: {
-            /**
-             * Course ID
-             * Format: Mongo Object ID
-             * @description ID of the course to attach the new version to
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            id: string;
-        };
-        ReadCourseVersionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version to retrieve
-             * @example 60d5ec49b3f1c8e4a8f8b8d2
-             */
-            id: string;
-        };
-        DeleteCourseVersionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version to delete
-             * @example 60d5ec49b3f1c8e4a8f8b8d2
-             */
-            versionId: string;
-            /**
-             * Course ID
-             * Format: Mongo Object ID
-             * @description ID of the course to which the version belongs
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            courseId: string;
-        };
-        CourseVersionDataResponse: {
-            /**
-             * Format: Mongo Object ID
-             * @description ID of the course version
-             * @example 60d5ec49b3f1c8e4a8f8b8d2
-             */
-            readonly id: string;
-            /**
-             * @description Version name/label
-             * @example v1.0
-             */
-            readonly name: string;
-            /**
-             * @description Description of the version
-             * @example First release of the course
-             */
-            readonly description: string;
-            /**
-             * Format: Mongo Object ID
-             * @description ID of the course this version belongs to
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
-            readonly courseId: string;
-            /**
-             * Format: date-time
-             * @description Creation timestamp
-             * @example 2023-10-01T12:00:00Z
-             */
-            readonly createdAt: string;
-            /**
-             * Format: date-time
-             * @description Last update timestamp
-             * @example 2023-10-01T12:00:00Z
-             */
-            readonly updatedAt: string;
-        };
-        CourseVersionNotFoundErrorResponse: {
-            /**
-             * @description HTTP status code
-             * @example 404
-             */
-            readonly statusCode: number;
-            /**
-             * @description Error message
-             * @example Course version not found
-             */
+        InternalServerErrorResponse: {
+            /** @description The error message. */
             readonly message: string;
-            /**
-             * @description Error type
-             * @example Not Found
-             */
-            readonly error: string;
-        };
-        CreateCourseVersionResponse: {
-            /** @description The updated course object */
-            readonly course: Record<string, never>;
-            /** @description The created version object */
-            readonly version: Record<string, never>;
-        };
-        CreateModuleBody: {
-            /**
-             * Module Name
-             * @description Name/title of the module
-             * @example Introduction to Data Structures
-             */
-            name: string;
-            /**
-             * Module Description
-             * @description Detailed description of the module content
-             * @example This module covers fundamental data structures including arrays, linked lists, stacks, and queues.
-             */
-            description: string;
-            /**
-             * After Module ID
-             * Format: Mongo Object ID
-             * @description Optional: Position the new module after this module ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterModuleId?: string;
-            /**
-             * Before Module ID
-             * Format: Mongo Object ID
-             * @description Optional: Position the new module before this module ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeModuleId?: string;
-        };
-        UpdateModuleBody: {
-            /**
-             * Module Name
-             * @description Updated name of the module
-             * @example Advanced Data Structures
-             */
-            name?: string;
-            /**
-             * Module Description
-             * @description Updated description of the module content
-             * @example This module covers advanced data structures including trees, graphs, and hash tables.
-             */
-            description?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] This is a virtual field used only for validation. Do not include this field in requests.
-             *     Either "name" or "description" must be provided.
-             */
-            readonly nameOrDescription?: string;
-        };
-        MoveModuleBody: {
-            /**
-             * After Module ID
-             * Format: Mongo Object ID
-             * @description Move the module after this module ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterModuleId?: string;
-            /**
-             * Before Module ID
-             * Format: Mongo Object ID
-             * @description Move the module before this module ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeModuleId?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Either afterModuleId or beforeModuleId must be provided.
-             */
-            readonly onlyOneAllowed?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Both afterModuleId and beforeModuleId should not be provided together.
-             */
-            readonly bothNotAllowed?: string;
-        };
-        CreateModuleParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version to which the module will be added
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-        };
-        UpdateModuleParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module to be updated
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-        };
-        MoveModuleParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module to move
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-        };
-        DeleteModuleParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module to delete
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-        };
-        ModuleDataResponse: {
-            /** @description The updated course version data containing modules */
-            readonly version: Record<string, never>;
-        };
-        ModuleNotFoundErrorResponse: {
-            /**
-             * @description The error message
-             * @example No module found with the specified ID. Please verify the ID and try again.
-             */
-            readonly message: string;
-        };
-        ModuleDeletedResponse: {
-            /**
-             * @description Deletion confirmation message
-             * @example Module with the ID 60d5ec49b3f1c8e4a8f8b8e6 in Version 60d5ec49b3f1c8e4a8f8b8d5 has been deleted successfully.
-             */
-            readonly message: string;
-        };
-        CreateSectionBody: {
-            /**
-             * Section Name
-             * @description Name/title of the section
-             * @example Introduction to Algorithms
-             */
-            name: string;
-            /**
-             * Section Description
-             * @description Description or purpose of the section
-             * @example This section covers fundamental algorithmic concepts including time complexity and space complexity.
-             */
-            description: string;
-            /**
-             * After Section ID
-             * Format: Mongo Object ID
-             * @description Optional: Place the new section after this section ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterSectionId?: string;
-            /**
-             * Before Section ID
-             * Format: Mongo Object ID
-             * @description Optional: Place the new section before this section ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeSectionId?: string;
-        };
-        UpdateSectionBody: {
-            /**
-             * Section Name
-             * @description Updated name of the section
-             * @example Advanced Algorithms
-             */
-            name?: string;
-            /**
-             * Section Description
-             * @description Updated description of the section
-             * @example This section covers advanced algorithmic concepts including dynamic programming and greedy algorithms.
-             */
-            description?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] This is a virtual field used only for validation. Do not include this field in requests.
-             *     Either "name" or "description" must be provided.
-             */
-            readonly nameOrDescription?: string;
-        };
-        MoveSectionBody: {
-            /**
-             * After Section ID
-             * Format: Mongo Object ID
-             * @description Move the section after this section ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterSectionId?: string;
-            /**
-             * Before Section ID
-             * Format: Mongo Object ID
-             * @description Move the section before this section ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeSectionId?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Either afterSectionId or beforeSectionId must be provided.
-             */
-            readonly onlyOneAllowed?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Both afterSectionId and beforeSectionId should not be provided together.
-             */
-            readonly bothNotAllowed?: string;
-        };
-        CreateSectionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version to which the module belongs
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module where the new section will be added
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-        };
-        MoveSectionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section to be moved
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-        };
-        UpdateSectionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section to be updated
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-        };
-        SectionDataResponse: {
-            /** @description The updated course version data containing the section */
-            readonly version: Record<string, never>;
-        };
-        SectionNotFoundErrorResponse: {
-            /**
-             * @description The error message
-             * @example No section found with the specified ID. Please verify the ID and try again.
-             */
-            readonly message: string;
-        };
-        SectionDeletedResponse: {
-            /**
-             * @description Deletion confirmation message
-             * @example Section with the ID 60d5ec49b3f1c8e4a8f8b8e6 in Version 60d5ec49b3f1c8e4a8f8b8d5 has been deleted successfully.
-             */
-            readonly message: string;
-        };
-        DeleteSectionParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the module
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module to delete
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section to delete
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            sectionId: string;
-        };
-        VideoDetailsPayloadValidator: {
-            /**
-             * Video URL
-             * Format: uri
-             * @description Public video URL (e.g., YouTube or Vimeo link)
-             * @example https://www.youtube.com/watch?v=dQw4w9WgXcQ
-             */
-            URL: string;
-            /**
-             * Start Time
-             * @description Start time of the video clip in HH:MM:SS format
-             * @example 00:01:30
-             */
-            startTime: string;
-            /**
-             * End Time
-             * @description End time of the video clip in HH:MM:SS format
-             * @example 00:10:15
-             */
-            endTime: string;
-            /**
-             * Video Points
-             * @description Points assigned to the video interaction
-             * @example 10
-             */
-            points: number;
-        };
-        QuizDetailsPayloadValidator: {
-            /**
-             * Pass Threshold
-             * @description Minimum percentage required to pass, between 0 and 1
-             * @example 0.7
-             */
-            passThreshold: number;
-            /**
-             * Maximum Attempts
-             * @description Maximum number of attempts allowed for the quiz, -1 for unlimited
-             * @example 3
-             */
-            maxAttempts: number;
-            /**
-             * Quiz Type
-             * @description Type of quiz: DEADLINE or NO_DEADLINE
-             * @example DEADLINE
-             * @enum {string}
-             */
-            quizType: "DEADLINE" | "NO_DEADLINE";
-            /**
-             * Approximate Time to Complete
-             * @description Approximate time to complete the quiz in HH:MM:SS format
-             * @example 00:30:00
-             */
-            approximateTimeToComplete: string;
-            /**
-             * Allow Partial Grading
-             * @description Whether to allow partial grading for questions, particularly for MSQ/SML type of questions.
-             * @example true
-             */
-            allowPartialGrading: boolean;
-            /**
-             * Allow Hint
-             * @description Whether to allow students to see the hints for questions
-             * @example true
-             */
-            allowHint: boolean;
-            /**
-             * Show Correct Answers After Submission
-             * @description Whether to return and show correct answers after successful submission of an attempt
-             * @example true
-             */
-            showCorrectAnswersAfterSubmission: boolean;
-            /**
-             * Show Explanation After Submission
-             * @description Whether to return and show explanations for correct answers after successful submission of an attempt
-             * @example true
-             */
-            showExplanationAfterSubmission: boolean;
-            /**
-             * Show Score After Submission
-             * @description Whether to return and show score after successful submission of an attempt
-             * @example true
-             */
-            showScoreAfterSubmission: boolean;
-            /**
-             * Question Visibility
-             * @description Number of quiz questions visible to students in an attempt
-             * @example 5
-             */
-            questionVisibility: number;
-            /**
-             * Quiz Release Time
-             * Format: date-time
-             * @description ISO date string representing quiz release time
-             * @example 2023-10-15T14:00:00Z
-             */
-            releaseTime: string;
-            /**
-             * Quiz Deadline
-             * Format: date-time
-             * @description ISO date string for quiz deadline
-             * @example 2023-10-22T23:59:59Z
-             */
-            deadline?: string;
-        };
-        BlogDetailsPayloadValidator: {
-            /**
-             * Blog Tags
-             * @description Tags for categorizing the blog (auto-managed)
-             * @example [
-             *       "programming",
-             *       "algorithms"
-             *     ]
-             */
-            readonly tags?: string[] | "" | unknown;
-            /**
-             * Blog Content
-             * @description Full blog content in markdown or plain text
-             * @example # Introduction
-             *
-             *     This is a sample blog post about programming...
-             */
-            content: string;
-            /**
-             * Blog Points
-             * @description Points assigned to the blog submission
-             * @example 20
-             */
-            points: number;
-            /**
-             * Estimated Read Time
-             * @description Estimated time to complete reading the blog in minutes
-             * @example 15
-             */
-            estimatedReadTimeInMinutes: number;
-        };
-        CreateItemBody: {
-            /**
-             * Item Name
-             * @description Title of the item
-             * @example Introduction to Data Structures
-             */
-            name: string;
-            /**
-             * Item Description
-             * @description Description of the item
-             * @example Learn about basic data structures like arrays, linked lists, and stacks.
-             */
-            description: string;
-            /**
-             * After Item ID
-             * Format: Mongo Object ID
-             * @description Place item after this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterItemId?: string;
-            /**
-             * Before Item ID
-             * Format: Mongo Object ID
-             * @description Place item before this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeItemId?: string;
-            /**
-             * Item Type
-             * @description Type of the item: VIDEO, BLOG, or QUIZ
-             * @example VIDEO
-             * @enum {string}
-             */
-            type: "VIDEO" | "QUIZ" | "BLOG";
-            /**
-             * Video Details
-             * @description Details specific to video items
-             */
-            videoDetails?: components["schemas"]["VideoDetailsPayloadValidator"];
-            /**
-             * Blog Details
-             * @description Details specific to blog items
-             */
-            blogDetails?: components["schemas"]["BlogDetailsPayloadValidator"];
-            /**
-             * Quiz Details
-             * @description Details specific to quiz items
-             */
-            quizDetails?: components["schemas"]["QuizDetailsPayloadValidator"];
-        };
-        UpdateItemBody: {
-            /**
-             * Item Name
-             * @description Updated title of the item
-             * @example Advanced Data Structures
-             */
-            name?: string;
-            /**
-             * Item Description
-             * @description Updated description of the item
-             * @example Learn about advanced data structures like trees, graphs, and hash tables.
-             */
-            description?: string;
-            /**
-             * Item Order
-             * @description Order key for item placement (auto-managed)
-             * @example a1b2c3
-             */
-            readonly order?: string | "" | unknown;
-            /**
-             * Item Details
-             * @description Item details (depends on type) – video, blog, or quiz
-             */
-            readonly itemDetails?: "" | unknown;
-            /**
-             * Created At
-             * Format: date-time
-             * @description Item creation timestamp (auto-managed)
-             * @example 2023-10-01T12:00:00Z
-             */
-            readonly createdAt?: string | "" | unknown;
-            /**
-             * Updated At
-             * Format: date-time
-             * @description Item update timestamp (auto-managed)
-             * @example 2023-10-05T15:30:00Z
-             */
-            readonly updatedAt?: string | "" | unknown;
-            /**
-             * Item Type
-             * @description Updated type of the item: VIDEO, BLOG, or QUIZ
-             * @example BLOG
-             * @enum {string}
-             */
-            type?: "VIDEO" | "QUIZ" | "BLOG";
-            /**
-             * After Item ID
-             * Format: Mongo Object ID
-             * @description Place item after this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterItemId?: string;
-            /**
-             * Before Item ID
-             * Format: Mongo Object ID
-             * @description Place item before this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeItemId?: string;
-            /**
-             * Video Details
-             * @description Updated details specific to video items
-             */
-            videoDetails?: components["schemas"]["VideoDetailsPayloadValidator"];
-            /**
-             * Blog Details
-             * @description Updated details specific to blog items
-             */
-            blogDetails?: components["schemas"]["BlogDetailsPayloadValidator"];
-            /**
-             * Quiz Details
-             * @description Updated details specific to quiz items
-             */
-            quizDetails?: components["schemas"]["QuizDetailsPayloadValidator"];
-        };
-        MoveItemBody: {
-            /**
-             * After Item ID
-             * Format: Mongo Object ID
-             * @description Move the item after this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            afterItemId?: string;
-            /**
-             * Before Item ID
-             * Format: Mongo Object ID
-             * @description Move the item before this item ID
-             * @example 60d5ec49b3f1c8e4a8f8b8c4
-             */
-            beforeItemId?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Either afterItemId or beforeItemId must be provided.
-             */
-            readonly onlyOneAllowed?: string;
-            /**
-             * @deprecated
-             * @description [READONLY] Validation helper. Both afterItemId and beforeItemId should not be provided together.
-             */
-            readonly bothNotAllowed?: string;
-        };
-        CreateItemParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module inside the version
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section inside the module
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-        };
-        ReadAllItemsParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the items
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section containing the items
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-        };
-        UpdateItemParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-            /**
-             * Item ID
-             * Format: Mongo Object ID
-             * @description ID of the item to be updated
-             * @example 60d5ec49b3f1c8e4a8f8b8f8
-             */
-            itemId: string;
-        };
-        MoveItemParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-            /**
-             * Item ID
-             * Format: Mongo Object ID
-             * @description ID of the item to be moved
-             * @example 60d5ec49b3f1c8e4a8f8b8f8
-             */
-            itemId: string;
-        };
-        DeleteItemParams: {
-            /**
-             * Items Group ID
-             * Format: Mongo Object ID
-             * @description ID of the items group containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8g9
-             */
-            itemsGroupId: string;
-            /**
-             * Item ID
-             * Format: Mongo Object ID
-             * @description ID of the item to delete
-             * @example 60d5ec49b3f1c8e4a8f8b8f8
-             */
-            itemId: string;
-        };
-        ItemNotFoundErrorResponse: {
-            /**
-             * @description The error message
-             * @example No item found with the specified ID. Please verify the ID and try again.
-             */
-            readonly message: string;
-        };
-        ItemDataResponse: {
-            /** @description The item data */
-            readonly itemsGroup: Record<string, never>;
-            /** @description The updated version data (when applicable) */
-            readonly version?: Record<string, never>;
-        };
-        DeletedItemResponse: {
-            /** @description The deleted item data */
-            readonly deletedItem: Record<string, never>;
-            /** @description The updated items group after deletion */
-            readonly updatedItemsGroup: Record<string, never>;
-        };
-        ReadItemParams: {
-            /**
-             * Version ID
-             * Format: Mongo Object ID
-             * @description ID of the course version containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8d5
-             */
-            versionId: string;
-            /**
-             * Module ID
-             * Format: Mongo Object ID
-             * @description ID of the module containing the section
-             * @example 60d5ec49b3f1c8e4a8f8b8e6
-             */
-            moduleId: string;
-            /**
-             * Section ID
-             * Format: Mongo Object ID
-             * @description ID of the section containing the item
-             * @example 60d5ec49b3f1c8e4a8f8b8f7
-             */
-            sectionId: string;
-            /**
-             * Item ID
-             * Format: Mongo Object ID
-             * @description ID of the item to be retrieved
-             * @example 60d5ec49b3f1c8e4a8f8b8f8
-             */
-            itemId: string;
+            /** @description The error details. */
+            readonly errors: components["schemas"]["ValidationErrorResponse"];
         };
         GetUserProgressParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description User ID to retrieve progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
+            /** @description User ID to retrieve progress for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course ID to retrieve progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Course ID to retrieve progress for */
             courseId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course version ID to retrieve progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            courseVersionId: string;
+            /** @description Course version ID to retrieve progress for */
+            versionId: string;
         };
         StartItemBody: {
             /**
-             * Format: Mongo Object ID
              * @description ID of the course item to start
              * @example 60d5ec49b3f1c8e4a8f8b8c4
              */
             itemId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the module containing the item
              * @example 60d5ec49b3f1c8e4a8f8b8c5
              */
             moduleId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the section containing the item
              * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
             sectionId: string;
         };
         StartItemParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description User ID to track progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
+            /** @description User ID to track progress for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course ID to track progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Course ID to track progress for */
             courseId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course version ID to track progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            courseVersionId: string;
+            /** @description Course version ID to track progress for */
+            versionId: string;
         };
         StartItemResponse: {
             /**
-             * Format: Mongo Object ID
              * @description Watch item ID for tracking progress
              * @example 60d5ec49b3f1c8e4a8f8b8c7
              */
             watchItemId: string;
         };
         StopItemParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description User ID to stop tracking progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
+            /** @description User ID to stop tracking progress for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course ID to stop tracking progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Course ID to stop tracking progress for */
             courseId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course version ID to stop tracking progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            courseVersionId: string;
+            /** @description Course version ID to stop tracking progress for */
+            versionId: string;
         };
         StopItemBody: {
             /**
-             * Format: Mongo Object ID
              * @description Watch item ID used for tracking progress
              * @example 60d5ec49b3f1c8e4a8f8b8c7
              */
             watchItemId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the course item to stop tracking
              * @example 60d5ec49b3f1c8e4a8f8b8c4
              */
             itemId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the section containing the item
              * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
             sectionId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the module containing the item
              * @example 60d5ec49b3f1c8e4a8f8b8c5
              */
             moduleId: string;
-            attemptId?: string | null;
+            /**
+             * @description Attempt ID for quiz tracking
+             * @example 60d5ec49b3f1c8e4a8f8b8c7
+             */
+            attemptId?: string;
         };
         UpdateProgressBody: {
             /**
-             * Format: Mongo Object ID
              * @description ID of the module to update progress for
              * @example 60d5ec49b3f1c8e4a8f8b8c5
              */
             moduleId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the section to update progress for
              * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
             sectionId: string;
             /**
-             * Format: Mongo Object ID
              * @description ID of the item to update progress for
              * @example 60d5ec49b3f1c8e4a8f8b8c4
              */
             itemId: string;
             /**
-             * Format: Mongo Object ID
              * @description Watch item ID used for tracking progress
              * @example 60d5ec49b3f1c8e4a8f8b8c7
              */
-            watchItemId?: string | null;
+            watchItemId?: string;
             /**
-             * Format: Mongo Object ID
-             * @description Attempt ID used for quiz tracking progress
-             * @example 60d5ec49b3f1c8e4a8f8b8c7
+             * @description ID of the attempt for quiz
+             * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
-            attemptId?: string | null;
+            attemptId?: string;
         };
         UpdateProgressParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description User ID to update progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
+            /** @description User ID to update progress for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course ID to update progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Course ID to update progress for */
             courseId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course version ID to update progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
+            /** @description Course version ID to update progress for */
+            versionId: string;
+        };
+        WatchTimeResponse: {
+            /** @description Unique identifier for the watch time record */
+            _id?: string;
+            /** @description User ID to track watch time for */
+            userId: string;
+            /** @description Course ID associated with the watch event */
+            courseId: string;
+            /** @description Version ID of the course */
             courseVersionId: string;
+            /** @description Item ID that is being watched */
+            itemId: string;
+            /**
+             * Format: date-time
+             * @description Start time of the watch session
+             */
+            startTime: string;
+            /**
+             * Format: date-time
+             * @description End time of the watch session
+             */
+            endTime: string;
         };
         ResetCourseProgressParams: {
-            /**
-             * Format: Mongo Object ID
-             * @description User ID to reset progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
-             */
+            /** @description User ID to reset progress for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course ID to reset progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Course ID to reset progress for */
             courseId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description Course version ID to reset progress for
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
-             */
-            courseVersionId: string;
+            /** @description Course version ID to reset progress for */
+            versionId: string;
         };
         ResetCourseProgressBody: {
             /**
-             * Format: Mongo Object ID
              * @description Optional module ID to reset progress to
              * @example 60d5ec49b3f1c8e4a8f8b8c5
              */
             moduleId?: string | null;
             /**
-             * Format: Mongo Object ID
              * @description Optional section ID to reset progress to
              * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
             sectionId?: string | null;
             /**
-             * Format: Mongo Object ID
              * @description Optional item ID to reset progress to
              * @example 60d5ec49b3f1c8e4a8f8b8c4
              */
             itemId?: string | null;
-            invalidFieldsCheck?: unknown;
-            invalidFieldsCheck2?: unknown;
+            /** @description field to trigger validation error if moduleId is not provided */
+            readonly invalidFieldsCheck?: string;
+            /** @description field to trigger validation error if sectionId is not provided */
+            readonly invalidFieldsCheck2?: string;
         };
         ProgressDataResponse: {
             /**
-             * Format: Mongo Object ID
-             * @description Unique identifier for the progress record
+             * @description Unique identifier for this progress record.
              * @example 60d5ec49b3f1c8e4a8f8b8d1
              */
             readonly _id: string;
             /**
-             * Format: Mongo Object ID
-             * @description User ID associated with this progress
+             * @description MongoDB ObjectId of the user associated with this progress record.
              * @example 60d5ec49b3f1c8e4a8f8b8c1
              */
             userId: string;
             /**
-             * Format: Mongo Object ID
-             * @description Course ID associated with this progress
+             * @description MongoDB ObjectId of the course the user is progressing through.
              * @example 60d5ec49b3f1c8e4a8f8b8c2
              */
             courseId: string;
             /**
-             * Format: Mongo Object ID
-             * @description Course version ID associated with this progress
+             * @description MongoDB ObjectId of the specific version of the course being progressed through.
              * @example 60d5ec49b3f1c8e4a8f8b8c3
              */
             courseVersionId: string;
             /**
-             * Format: Mongo Object ID
-             * @description ID of the current module in progress
+             * @description MongoDB ObjectId of the current module the user is on.
              * @example 60d5ec49b3f1c8e4a8f8b8c5
              */
             currentModule: string;
             /**
-             * Format: Mongo Object ID
-             * @description ID of the current section in progress
+             * @description MongoDB ObjectId of the current section the user is on.
              * @example 60d5ec49b3f1c8e4a8f8b8c6
              */
             currentSection: string;
             /**
-             * Format: Mongo Object ID
-             * @description ID of the current item in progress
+             * @description MongoDB ObjectId of the current item (e.g., lecture, quiz) the user is on.
              * @example 60d5ec49b3f1c8e4a8f8b8c4
              */
             currentItem: string;
             /**
-             * @description Whether the course has been completed
+             * @description Boolean flag indicating whether the user has completed the course.
              * @example false
              */
             completed: boolean;
         };
-        EnrollmentParams: {
+        CompletedProgressResponse: {
             /**
-             * Format: Mongo Object ID
-             * @description User ID of the student to enroll
-             * @example 60d5ec49b3f1c8e4a8f8b8c1
+             * @description Indicates whether the course has been completed
+             * @example true
              */
+            readonly completed: boolean;
+            /**
+             * @description Percentage of course completion
+             * @example 75
+             */
+            readonly percentCompleted: number;
+            /**
+             * @description Total number of items in the course
+             * @example 20
+             */
+            readonly totalItems: number;
+            /**
+             * @description Total number of completed items in the course
+             * @example 15
+             */
+            readonly completedItems: number;
+        };
+        ProgressNotFoundErrorResponse: {
+            /**
+             * @description Error message indicating progress not found
+             * @example Progress not found for the specified user and course version
+             */
+            readonly message: string;
+        };
+        WatchTimeParams: {
+            /** @description user ID to get watch time for */
             userId: string;
-            /**
-             * Format: Mongo Object ID
-             * @description ID of the course to enroll in
-             * @example 60d5ec49b3f1c8e4a8f8b8c2
-             */
+            /** @description Item ID to get watch time for */
+            itemId: string;
+        };
+        WatchTimeBody: {
+            /** @description Course ID to get watch time for */
+            courseId?: string;
+            /** @description Course version ID to get watch time for */
+            versionId?: string;
+        };
+        EnrollmentParams: {
+            /** @description User ID of the student to enroll */
+            userId: string;
+            /** @description ID of the course to enroll in */
             courseId: string;
+            /** @description ID of the specific course version to enroll in */
+            versionId: string;
+        };
+        EnrollmentBody: {
             /**
-             * Format: Mongo Object ID
-             * @description ID of the specific course version to enroll in
-             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             * @description Role of the user
+             * @example INSTRUCTOR
+             * @enum {string}
              */
-            courseVersionId: string;
+            role: "INSTRUCTOR" | "STUDENT" | "MANAGER" | "TA" | "STAFF";
         };
         EnrollmentDataResponse: {
             /**
-             * Format: Mongo Object ID
              * @description Unique identifier for the enrollment record
              * @example 60d5ec49b3f1c8e4a8f8b8d2
              */
             readonly _id: string;
+            /** @description User object associated with this enrollment */
+            user: Record<string, never>;
             /**
-             * Format: Mongo Object ID
              * @description User ID associated with this enrollment
              * @example 60d5ec49b3f1c8e4a8f8b8c1
              */
             userId: string;
             /**
-             * Format: Mongo Object ID
              * @description Course ID associated with this enrollment
              * @example 60d5ec49b3f1c8e4a8f8b8c2
              */
             courseId: string;
             /**
-             * Format: Mongo Object ID
              * @description Course version ID associated with this enrollment
              * @example 60d5ec49b3f1c8e4a8f8b8c3
              */
             courseVersionId: string;
+            /**
+             * @description Role of the user
+             * @example INSTRUCTOR
+             * @enum {string}
+             */
+            role: "INSTRUCTOR" | "STUDENT";
             /**
              * @description Status of the enrollment
              * @example active
@@ -2029,21 +2635,58 @@ export interface components {
             /**
              * Format: date-time
              * @description Date when the user was enrolled
-             * @example 2023-10-01T12:00:00Z
+             * @example 2023-10-01T12:00:00.000Z
              */
             enrollmentDate: string;
         };
         EnrollUserResponseData: {
             /** @description Enrollment data for the user */
-            enrollment: Record<string, never>;
+            enrollment: components["schemas"]["EnrollmentDataResponse"];
             /** @description Progress data for the user */
-            progress: Record<string, never>;
+            progress: components["schemas"]["ProgressDataResponse"];
+        };
+        EnrolledUserResponseData: {
+            /**
+             * @description Role of the user in the course
+             * @example INSTRUCTOR
+             * @enum {string}
+             */
+            role: "INSTRUCTOR" | "STUDENT";
+            /**
+             * @description Status of the enrollment
+             * @example active
+             * @enum {string}
+             */
+            status: "active" | "inactive";
+            /**
+             * Format: date-time
+             * @description Date when the user was enrolled
+             * @example 2023-10-01T12:00:00.000Z
+             */
+            enrollmentDate: string;
         };
         EnrollmentResponse: {
+            /**
+             * @description Total number of enrollment records available across all pages.
+             * @example 100
+             */
             totalDocuments: number;
+            /**
+             * @description Total number of pages based on the current pagination settings.
+             * @example 10
+             */
             totalPages: number;
+            /**
+             * @description The current page number of the paginated enrollment response.
+             * @example 1
+             */
             currentPage: number;
-            enrollments: Record<string, never>[];
+            /** @description List of enrollment records for the current page. */
+            enrollments: components["schemas"]["EnrollmentDataResponse"][];
+        };
+        CourseVersionEnrollmentResponse: {
+            /** @description Array of enrollment data for the course version */
+            enrollments: components["schemas"]["EnrollmentDataResponse"][];
         };
         EnrollmentNotFoundErrorResponse: {
             /**
@@ -2052,19 +2695,19 @@ export interface components {
              */
             message: string;
         };
-        UserByFirebaseUIDParams: {
+        GetUserParams: {
             /**
-             * @description Firebase UID of the user to find
+             * @description User ID of the person
              * @example cKy6H2O04PgTh8O3DpUXjgJYUr53
              */
-            firebaseUID: string;
+            userId: string;
         };
-        UserByFirebaseUIDResponse: {
+        GetUserResponse: {
             /**
              * @description Unique identifier for the user in the database
              * @example 60d5ec49b3f1c8e4a8f8b8c1
              */
-            readonly id: string;
+            readonly _id: string;
             /**
              * @description Firebase UID of the user
              * @example cKy6H2O04PgTh8O3DpUXjgJYUr53
@@ -2085,6 +2728,18 @@ export interface components {
              * @description User's last name
              * @example Smith
              */
+            readonly lastName?: string;
+        };
+        EditUserBody: {
+            /**
+             * @description User's first name
+             * @example John
+             */
+            readonly firstName: string;
+            /**
+             * @description User's last name
+             * @example Smith
+             */
             readonly lastName: string;
         };
         UserNotFoundErrorResponse: {
@@ -2093,6 +2748,1941 @@ export interface components {
              * @example User not found with the provided Firebase UID
              */
             readonly message: string;
+        };
+        CourseBody: {
+            /**
+             * @description Name of the course
+             * @example Introduction to Programming
+             */
+            name: string;
+            /**
+             * @description Description of the course
+             * @example This course covers the basics of programming.
+             */
+            description: string;
+        };
+        CourseIdParams: {
+            /** @description Object ID of the course */
+            courseId: string;
+        };
+        CourseDataResponse: {
+            /** @description Course ID */
+            readonly _id?: string;
+            /**
+             * @description Course name
+             * @example Introduction to Programming
+             */
+            name: string;
+            /**
+             * @description Course description
+             * @example This course covers the basics of programming.
+             */
+            description: string;
+            /**
+             * @description Version IDs
+             * @example [
+             *       "60d5ec49b3f1c8e4a8f8b8c2"
+             *     ]
+             */
+            readonly versions: string[];
+            /**
+             * @description Instructor IDs
+             * @example [
+             *       "60d5ec49b3f1c8e4a8f8b8c4"
+             *     ]
+             */
+            readonly instructors: string[];
+            /**
+             * Format: date-time
+             * @description Created timestamp
+             * @example 2023-10-01T12:00:00Z
+             */
+            readonly createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last updated timestamp
+             * @example 2023-10-01T12:00:00Z
+             */
+            readonly updatedAt: string;
+        };
+        CourseNotFoundErrorResponse: {
+            /**
+             * @description The error message.
+             * @example No course found with the specified ID. Please verify the ID and try again.
+             */
+            readonly message: string;
+        };
+        CreateCourseVersionBody: {
+            /**
+             * @description The version label or identifier (e.g., v1.0, Fall 2025)
+             * @example v1.0
+             */
+            version: string;
+            /**
+             * @description A brief description of the course version
+             * @example First release of the course
+             */
+            description: string;
+        };
+        CreateCourseVersionParams: {
+            /** @description ID of the course to attach the new version to */
+            courseId: string;
+        };
+        ReadCourseVersionParams: {
+            /** @description ID of the course version to retrieve */
+            versionId: string;
+        };
+        DeleteCourseVersionResponse: {
+            /** @description Success message after deletion */
+            message: string;
+        };
+        DeleteCourseVersionParams: {
+            /** @description ID of the course version to delete */
+            versionId: string;
+            /** @description ID of the course to which the version belongs */
+            courseId: string;
+        };
+        CourseVersionDataResponse: {
+            /**
+             * @description ID of the course version
+             * @example 60d5ec49b3f1c8e4a8f8b8d2
+             */
+            readonly id?: string;
+        };
+        CourseVersionNotFoundErrorResponse: {
+            /**
+             * @description Error message
+             * @example Course version not found
+             */
+            readonly message?: string;
+        };
+        CreateCourseVersionResponse: {
+            version?: components["schemas"]["CourseVersion"];
+        };
+        VideoDetailsPayloadValidator: {
+            /**
+             * Format: uri
+             * @description Public video URL (e.g., YouTube or Vimeo link)
+             * @example https://www.youtube.com/watch?v=dQw4w9WgXcQ
+             */
+            URL: string;
+            /**
+             * @description Start time of the video clip in HH:MM:SS format
+             * @example 00:01:30
+             */
+            startTime: string;
+            /**
+             * @description End time of the video clip in HH:MM:SS format
+             * @example 00:10:15
+             */
+            endTime: string;
+            /**
+             * @description Points assigned to the video interaction
+             * @example 10
+             */
+            points: number;
+        };
+        QuizDetailsPayloadValidator: {
+            /**
+             * @description Minimum percentage required to pass, between 0 and 1
+             * @example 0.7
+             */
+            passThreshold: number;
+            /**
+             * @description Maximum number of attempts allowed for the quiz, -1 for unlimited
+             * @example 3
+             */
+            maxAttempts: number;
+            /**
+             * @description Type of quiz: DEADLINE or NO_DEADLINE
+             * @example DEADLINE
+             * @enum {string}
+             */
+            quizType: "DEADLINE" | "NO_DEADLINE";
+            /**
+             * @description Approximate time to complete the quiz in HH:MM:SS format
+             * @example 00:30:00
+             */
+            approximateTimeToComplete: string;
+            /**
+             * @description Whether to allow partial grading for questions, particularly for MSQ/SML type of questions.
+             * @example true
+             */
+            allowPartialGrading: boolean;
+            /**
+             * @description Whether to allow students to see the hints for questions
+             * @example true
+             */
+            allowHint: boolean;
+            /**
+             * @description Whether to return and show correct answers after successful submission of an attempt
+             * @example true
+             */
+            showCorrectAnswersAfterSubmission: boolean;
+            /**
+             * @description Whether to return and show explanations for correct answers after successful submission of an attempt
+             * @example true
+             */
+            showExplanationAfterSubmission: boolean;
+            /**
+             * @description Whether to return and show score after successful submission of an attempt
+             * @example true
+             */
+            showScoreAfterSubmission: boolean;
+            /**
+             * @description Number of quiz questions visible to students in an attempt
+             * @example 5
+             */
+            questionVisibility: number;
+            /**
+             * Format: date-time
+             * @description ISO date string representing quiz release time
+             * @example 2023-10-15T14:00:00Z
+             */
+            releaseTime: string;
+            /**
+             * Format: date-time
+             * @description ISO date string for quiz deadline
+             * @example 2023-10-22T23:59:59Z
+             */
+            deadline?: string;
+        };
+        BlogDetailsPayloadValidator: {
+            tags?: "" | unknown;
+            content: string;
+            points: string;
+            estimatedReadTimeInMinutes: string;
+        };
+        CreateItemBody: {
+            /**
+             * @description Title of the item
+             * @example Introduction to Data Structures
+             */
+            name: string;
+            /**
+             * @description Description of the item
+             * @example Learn about basic data structures like arrays, linked lists, and stacks.
+             */
+            description: string;
+            /**
+             * @description Place item after this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterItemId?: string;
+            /**
+             * @description Place item before this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeItemId?: string;
+            /**
+             * @description Type of the item: VIDEO, BLOG, or QUIZ
+             * @example VIDEO
+             * @enum {string}
+             */
+            type: "VIDEO" | "BLOG" | "QUIZ";
+            /** @description Details specific to video items */
+            videoDetails?: components["schemas"]["VideoDetailsPayloadValidator"];
+            /** @description Details specific to blog items */
+            blogDetails?: components["schemas"]["BlogDetailsPayloadValidator"];
+            /** @description Details specific to quiz items */
+            quizDetails?: components["schemas"]["QuizDetailsPayloadValidator"];
+        };
+        UpdateItemBody: {
+            /**
+             * @description Title of the item
+             * @example Introduction to Data Structures
+             */
+            name: string;
+            /**
+             * @description Description of the item
+             * @example Learn about basic data structures like arrays, linked lists, and stacks.
+             */
+            description: string;
+            /**
+             * @description Place item after this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterItemId?: string;
+            /**
+             * @description Place item before this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeItemId?: string;
+            /**
+             * @description Type of the item: VIDEO, BLOG, or QUIZ
+             * @example VIDEO
+             * @enum {string}
+             */
+            type: "VIDEO" | "BLOG" | "QUIZ";
+            /** @description Details specific to video items */
+            videoDetails?: components["schemas"]["VideoDetailsPayloadValidator"];
+            /** @description Details specific to blog items */
+            blogDetails?: components["schemas"]["BlogDetailsPayloadValidator"];
+            /** @description Details specific to quiz items */
+            quizDetails?: components["schemas"]["QuizDetailsPayloadValidator"];
+        };
+        MoveItemBody: {
+            /**
+             * @description Move the item after this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterItemId?: string;
+            /**
+             * @description Move the item before this item ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeItemId?: string;
+        };
+        VersionModuleSectionItemParams: {
+            /** @description ID of the course version */
+            versionId: string;
+            /** @description ID of the module */
+            moduleId: string;
+            /** @description ID of the section */
+            sectionId: string;
+            /** @description ID of the item */
+            itemId: string;
+        };
+        DeleteItemParams: {
+            /**
+             * @description ID of the items group containing the item
+             * @example 60d5ec49b3f1c8e4a8f8b8f9
+             */
+            itemsGroupId: string;
+            /**
+             * @description ID of the item to delete
+             * @example 60d5ec49b3f1c8e4a8f8b8f8
+             */
+            itemId: string;
+        };
+        GetItemParams: {
+            /**
+             * @description ID of the course in which user is enrolled
+             * @example 60d5ec49b3f1c8e4a8f8b8f9
+             */
+            courseId: string;
+            /**
+             * @description ID of the course version containing the item
+             * @example 60d5ec49b3f1c8e4a8f8b8f8
+             */
+            versionId: string;
+            /**
+             * @description ID of the item
+             * @example 60d5ec49b3f1c8e4a8f8b8f8
+             */
+            itemId: string;
+        };
+        ItemNotFoundErrorResponse: {
+            /**
+             * @description The error message
+             * @example No item found with the specified ID. Please verify the ID and try again.
+             */
+            readonly message: string;
+        };
+        ItemRefResponse: {
+            /** @description The unique identifier of the item */
+            readonly _id?: string;
+            /**
+             * @description The name of the item
+             * @enum {string}
+             */
+            readonly type: "VIDEO" | "QUIZ" | "BLOG";
+            /** @description The order of the item */
+            readonly order: string;
+        };
+        ItemsGroupResponse: {
+            /** @description The unique identifier of the items group */
+            readonly _id?: string;
+            /** @description The list of items in the group */
+            readonly items: components["schemas"]["ItemRefResponse"][];
+            /** @description The ID of the section to which this items group belongs */
+            readonly sectionId: string;
+        };
+        GetItemResponse: {
+            /** @description The version Id */
+            readonly versionId: string;
+            /** @description The item Id */
+            readonly itemId: string;
+        };
+        ItemDataResponse: {
+            /** @description The item data */
+            readonly itemsGroup: components["schemas"]["ItemsGroupResponse"];
+            /** @description The updated version data (when applicable) */
+            readonly version?: components["schemas"]["CourseVersion"];
+            /** @description The Created Item */
+            readonly createdItem?: Record<string, never>;
+        };
+        DeletedItemResponse: {
+            /** @description The deleted item id */
+            readonly deletedItemId: string;
+            /** @description The updated items group after deletion */
+            readonly updatedItemsGroup: components["schemas"]["ItemsGroupResponse"];
+        };
+        CreateModuleBody: {
+            /**
+             * @description Name/title of the module
+             * @example Introduction to Data Structures
+             */
+            name: string;
+            /**
+             * @description Detailed description of the module content
+             * @example This module covers fundamental data structures including arrays, linked lists, stacks, and queues.
+             */
+            description: string;
+            /**
+             * @description Position the new module after this module ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterModuleId?: string;
+            /**
+             * @description Position the new module before this module ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeModuleId?: string;
+        };
+        UpdateModuleBody: {
+            /**
+             * @description Updated name of the module
+             * @example Advanced Data Structures
+             */
+            name: string;
+            /**
+             * @description Updated description of the module content
+             * @example This module covers advanced data structures including trees, graphs, and hash tables.
+             */
+            description: string;
+        };
+        MoveModuleBody: {
+            /**
+             * @description Move the module after this module ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterModuleId?: string;
+            /**
+             * @description Move the module before this module ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeModuleId?: string;
+        };
+        CreateModuleParams: {
+            /** @description ID of the course version to which the module will be added */
+            versionId: string;
+        };
+        VersionModuleParams: {
+            /** @description ID of the course version containing the module */
+            versionId: string;
+            /** @description ID of the module to be updated */
+            moduleId: string;
+        };
+        ModuleDataResponse: {
+            /** @description The updated course version data containing modules */
+            readonly version: components["schemas"]["CourseVersion"];
+        };
+        ModuleNotFoundErrorResponse: {
+            /** @description The error message */
+            readonly message: string;
+        };
+        ModuleDeletedResponse: {
+            /** @description Deletion confirmation message */
+            readonly message: string;
+        };
+        CreateSectionBody: {
+            /**
+             * @description Name/title of the section
+             * @example Introduction to Algorithms
+             */
+            name: string;
+            /**
+             * @description Description or purpose of the section
+             * @example This section covers fundamental algorithmic concepts including time complexity and space complexity.
+             */
+            description: string;
+            /**
+             * @description Optional: Place the new section after this section ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterSectionId?: string;
+            /**
+             * @description Optional: Place the new section before this section ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeSectionId?: string;
+        };
+        UpdateSectionBody: {
+            /**
+             * @description Updated name of the section
+             * @example Advanced Algorithms
+             */
+            name: string;
+            /**
+             * @description Updated description of the section
+             * @example This section covers advanced algorithmic concepts including dynamic programming and greedy algorithms.
+             */
+            description: string;
+        };
+        MoveSectionBody: {
+            /**
+             * @description Move the section after this section ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c3
+             */
+            afterSectionId?: string;
+            /**
+             * @description Move the section before this section ID
+             * @example 60d5ec49b3f1c8e4a8f8b8c4
+             */
+            beforeSectionId?: string;
+        };
+        VersionModuleSectionParams: {
+            /** @description ID of the course version containing the module */
+            versionId: string;
+            /** @description ID of the module containing the section */
+            moduleId: string;
+            /** @description ID of the section */
+            sectionId: string;
+        };
+        SectionDataResponse: {
+            /** @description The updated course version data containing the section */
+            readonly version: Record<string, never>;
+        };
+        SectionNotFoundErrorResponse: {
+            /**
+             * @description The error message
+             * @example No section found with the specified ID. Please verify the ID and try again.
+             */
+            readonly message: string;
+        };
+        SectionDeletedResponse: {
+            /**
+             * @description Success message for deleted section
+             * @example Section with the ID 60d5ec49b3f1c8e4a8f8b8e6 in Version 60d5ec49b3f1c8e4a8f8b8d5 has been deleted successfully.
+             */
+            readonly message: string;
+        };
+        QuestionParameter: {
+            /**
+             * @description Name of the parameter
+             * @example Param1
+             */
+            name: string;
+            /**
+             * @description Possible values for the parameter
+             * @example [
+             *       "easy",
+             *       "medium",
+             *       "hard"
+             *     ]
+             */
+            possibleValues: string[];
+            /**
+             * @description Type of the parameter
+             * @example number
+             * @enum {string}
+             */
+            type: "number" | "string";
+        };
+        LotItem: {
+            /**
+             * @description Text of the lot item
+             * @example Option A
+             */
+            text: string;
+            /**
+             * @description Explanation for the lot item
+             * @example This is the correct answer because...
+             */
+            explaination: string;
+        };
+        LotOrder: {
+            /** @description Lot item to be ordered */
+            lotItem: components["schemas"]["LotItem"];
+            /**
+             * @description Order of the lot item
+             * @example 1
+             */
+            order: number;
+        };
+        Question: {
+            /**
+             * @description Text of the question
+             * @example What is 2 + 2?
+             */
+            text: string;
+            /**
+             * @description Type of the question
+             * @example SELECT_ONE_IN_LOT
+             * @enum {string}
+             */
+            type: "SELECT_ONE_IN_LOT" | "SELECT_MANY_IN_LOT" | "ORDER_THE_LOTS" | "NUMERIC_ANSWER_TYPE" | "DESCRIPTIVE";
+            /**
+             * @description Whether the question is parameterized
+             * @example false
+             */
+            isParameterized: boolean;
+            /**
+             * @description Parameters for the question
+             * @example [
+             *       {
+             *         "name": "Param1",
+             *         "possibleValues": [
+             *           "cat",
+             *           "dog"
+             *         ],
+             *         "type": "string"
+             *       }
+             *     ]
+             */
+            parameters: components["schemas"]["QuestionParameter"][];
+            /**
+             * @description Hint for the question
+             * @example Think about basic addition.
+             */
+            hint: string;
+            /**
+             * @description Time limit for the question in seconds
+             * @example 60
+             */
+            timeLimitSeconds: number;
+            /**
+             * @description Points for the question
+             * @example 5
+             */
+            points: number;
+        };
+        SOLSolution: {
+            /**
+             * @description Incorrect lot items
+             * @example [
+             *       {
+             *         "text": "Option B",
+             *         "explaination": "Incorrect because..."
+             *       },
+             *       {
+             *         "text": "Option C",
+             *         "explaination": "Incorrect because..."
+             *       }
+             *     ]
+             */
+            incorrectLotItems: components["schemas"]["LotItem"][];
+            /**
+             * @description Correct lot item
+             * @example {
+             *       "text": "Option A",
+             *       "explaination": "Correct because..."
+             *     }
+             */
+            correctLotItem: components["schemas"]["LotItem"];
+        };
+        SMLSolution: {
+            /**
+             * @description Incorrect lot items
+             * @example [
+             *       {
+             *         "text": "Option B",
+             *         "explaination": "Incorrect because..."
+             *       },
+             *       {
+             *         "text": "Option C",
+             *         "explaination": "Incorrect because..."
+             *       }
+             *     ]
+             */
+            incorrectLotItems: components["schemas"]["LotItem"][];
+            /**
+             * @description Correct lot items
+             * @example [
+             *       {
+             *         "text": "Option A",
+             *         "explaination": "Correct because..."
+             *       },
+             *       {
+             *         "text": "Option D",
+             *         "explaination": "Correct because..."
+             *       }
+             *     ]
+             */
+            correctLotItems: components["schemas"]["LotItem"][];
+        };
+        OTLSolution: {
+            /**
+             * @description Ordering of lot items
+             * @example [
+             *       {
+             *         "lotItem": {
+             *           "text": "Step 1",
+             *           "explaination": "..."
+             *         },
+             *         "order": 1
+             *       },
+             *       {
+             *         "lotItem": {
+             *           "text": "Step 2",
+             *           "explaination": "..."
+             *         },
+             *         "order": 2
+             *       }
+             *     ]
+             */
+            ordering: components["schemas"]["LotOrder"][];
+        };
+        NATSoltion: {
+            /**
+             * @description Decimal precision for the answer
+             * @example 2
+             */
+            decimalPrecision: number;
+            /**
+             * @description Upper limit for the answer
+             * @example 100
+             */
+            upperLimit: number;
+            /**
+             * @description Lower limit for the answer
+             * @example 0
+             */
+            lowerLimit: number;
+            /**
+             * @description Value of the answer (optional)
+             * @example 42
+             */
+            value?: number;
+            /**
+             * @description Expression for the answer (optional)
+             * @example 21 * 2
+             */
+            expression?: string;
+        };
+        DESSolution: {
+            /**
+             * @description Descriptive solution text
+             * @example The answer is found by adding 2 and 2.
+             */
+            solutionText: string;
+        };
+        QuestionBody: {
+            /** @description Question object */
+            question: components["schemas"]["Question"];
+            /** @description Solution object for the question */
+            solution: components["schemas"]["SOLSolution"];
+        };
+        QuestionResponse: {
+            /**
+             * @description Question ID
+             * @example 60d21b4667d0d8992e610c87
+             */
+            _id: string;
+            /**
+             * @description Solution explanation
+             * @example The answer is found by adding 2 and 2.
+             */
+            solutionText?: string;
+            /**
+             * @description Answer precision (decimal places)
+             * @example 2
+             */
+            decimalPrecision?: number;
+            /**
+             * @description Answer upper limit
+             * @example 100
+             */
+            upperLimit?: number;
+            /**
+             * @description Answer lower limit
+             * @example 0
+             */
+            lowerLimit?: number;
+            /**
+             * @description Expected answer value
+             * @example 42
+             */
+            value?: number;
+            /**
+             * @description Expected answer expression
+             * @example 21 * 2
+             */
+            expression?: string;
+            /**
+             * @description Correct item order
+             * @example [
+             *       {
+             *         "lotItem": {
+             *           "text": "Step 1",
+             *           "explaination": "..."
+             *         },
+             *         "order": 1
+             *       },
+             *       {
+             *         "lotItem": {
+             *           "text": "Step 2",
+             *           "explaination": "..."
+             *         },
+             *         "order": 2
+             *       }
+             *     ]
+             */
+            ordering?: components["schemas"]["LotOrder"][];
+            /**
+             * @description List of correct items
+             * @example [
+             *       {
+             *         "text": "Option A",
+             *         "explaination": "Correct because..."
+             *       },
+             *       {
+             *         "text": "Option D",
+             *         "explaination": "Correct because..."
+             *       }
+             *     ]
+             */
+            correctLotItems?: components["schemas"]["LotItem"][];
+            /**
+             * @description List of incorrect items
+             * @example [
+             *       {
+             *         "text": "Option B",
+             *         "explaination": "Incorrect because..."
+             *       },
+             *       {
+             *         "text": "Option C",
+             *         "explaination": "Incorrect because..."
+             *       }
+             *     ]
+             */
+            incorrectLotItems?: components["schemas"]["LotItem"][];
+            /**
+             * @description Single correct item
+             * @example {
+             *       "text": "Option A",
+             *       "explaination": "Correct because..."
+             *     }
+             */
+            correctLotItem?: components["schemas"]["LotItem"];
+            /**
+             * @description Text of the question
+             * @example What is 2 + 2?
+             */
+            text: string;
+            /**
+             * @description Type of the question
+             * @example SELECT_ONE_IN_LOT
+             * @enum {string}
+             */
+            type: "SELECT_ONE_IN_LOT" | "SELECT_MANY_IN_LOT" | "ORDER_THE_LOTS" | "NUMERIC_ANSWER_TYPE" | "DESCRIPTIVE";
+            /**
+             * @description Whether the question is parameterized
+             * @example false
+             */
+            isParameterized: boolean;
+            /**
+             * @description Parameters for the question
+             * @example [
+             *       {
+             *         "name": "Param1",
+             *         "possibleValues": [
+             *           "cat",
+             *           "dog"
+             *         ],
+             *         "type": "string"
+             *       }
+             *     ]
+             */
+            parameters: components["schemas"]["QuestionParameter"][];
+            /**
+             * @description Hint for the question
+             * @example Think about basic addition.
+             */
+            hint: string;
+            /**
+             * @description Time limit for the question in seconds
+             * @example 60
+             */
+            timeLimitSeconds: number;
+            /**
+             * @description Points for the question
+             * @example 5
+             */
+            points: number;
+        };
+        QuestionId: {
+            /**
+             * @description Question ID
+             * @example 60d21b4667d0d8992e610c87
+             */
+            questionId: string;
+        };
+        QuestionNotFoundErrorResponse: {
+            /**
+             * @description The error message.
+             * @example Question not found.
+             */
+            readonly message: string;
+        };
+        FlagQuestionBody: {
+            /**
+             * @description Reason for flagging the question
+             * @example This question contains inappropriate content
+             */
+            reason: string;
+            /**
+             * @description course id for the question
+             * @example 6864be0c86bc95b1c9e49e19
+             */
+            courseId?: string;
+            /**
+             * @description version id for the question
+             * @example 6864be0c86bc95b1c9e49e19
+             */
+            versionId?: string;
+        };
+        FlagId: {
+            /**
+             * @description ID of the flag to resolve
+             * @example 60d21b4667d0d8992e610c87
+             */
+            flagId: string;
+        };
+        ResolveFlagBody: {
+            /**
+             * @description Status to set for the flag
+             * @example RESOLVED
+             * @enum {string}
+             */
+            status: "RESOLVED" | "REJECTED";
+        };
+        CreateQuestionBankBody: {
+            /**
+             * @description ID of the course
+             * @example 60d21b4667d0d8992e610c85
+             */
+            courseId?: string;
+            /**
+             * @description ID of the course version
+             * @example 60d21b4667d0d8992e610c86
+             */
+            courseVersionId?: string;
+            /**
+             * @description Array of question IDs
+             * @example [
+             *       "60d21b4667d0d8992e610c87"
+             *     ]
+             */
+            questions?: string[];
+            /**
+             * @description Tags for the question bank
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+            /**
+             * @description Title of the question bank
+             * @example Algebra Basics
+             */
+            title: string;
+            /**
+             * @description Description of the question bank
+             * @example A collection of algebra questions.
+             */
+            description?: string;
+        };
+        GetQuestionBankByIdParams: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c85
+             */
+            questionBankId: string;
+        };
+        QuestionBankAndQuestionParams: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c85
+             */
+            questionBankId: string;
+            /**
+             * @description ID of the question
+             * @example 60d21b4667d0d8992e610c87
+             */
+            questionId: string;
+        };
+        CreateQuestionBankResponse: {
+            /**
+             * @description Question bank ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            questionBankId: string;
+        };
+        QuestionBankResponse: {
+            /**
+             * @description Question bank ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            _id: string;
+            /**
+             * @description Associated course ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            courseId?: string;
+            /**
+             * @description Associated course version ID
+             * @example 60d21b4667d0d8992e610c86
+             */
+            courseVersionId?: string;
+            /**
+             * @description List of question IDs in the bank
+             * @example [
+             *       "60d21b4667d0d8992e610c87"
+             *     ]
+             */
+            questions?: string[];
+            /**
+             * @description Tags related to the question bank
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+            /**
+             * @description Question bank title
+             * @example Algebra Basics
+             */
+            title: string;
+            /**
+             * @description Short description of the question bank
+             * @example A collection of algebra questions.
+             */
+            description: string;
+        };
+        ReplaceQuestionResponse: {
+            /**
+             * @description New Question Id
+             * @example 60d21b4667d0d8992e610c88
+             */
+            newQuestionId: string;
+        };
+        QuestionBankNotFoundErrorResponse: {
+            /**
+             * @description The error message.
+             * @example Question bank not found.
+             */
+            readonly message: string;
+        };
+        QuestionBankRef: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c85
+             */
+            bankId: string;
+            /**
+             * @description How many questions to pick
+             * @example 10
+             */
+            count: number;
+            /**
+             * @description Optional filter for question difficulty
+             * @example [
+             *       "easy",
+             *       "medium"
+             *     ]
+             */
+            difficulty?: string[];
+            /**
+             * @description Optional filter for question tags
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+            /**
+             * @description Optional question type filter
+             * @example multiple-choice
+             */
+            type?: string;
+        };
+        QuestionAnswerFeedback: {
+            /**
+             * @description Question ID
+             * @example 60d21b4667d0d8992e610c02
+             */
+            questionId: string;
+            /**
+             * @description Answer status
+             * @example CORRECT
+             * @enum {string}
+             */
+            status: "CORRECT" | "INCORRECT" | "PARTIAL";
+            /**
+             * @description Score awarded
+             * @example 5
+             */
+            score: number;
+            /**
+             * @description Answer feedback
+             * @example Good job! You answered correctly.
+             */
+            answerFeedback?: string;
+        };
+        CreateAttemptParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+        };
+        SaveAttemptParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the attempt
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+        };
+        SubmitAttemptParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the attempt
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+        };
+        GetAttemptResponse: {
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            _id: string;
+            /**
+             * @description Quiz ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description User ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+            /**
+             * @description Details of questions in the attempt
+             * @example [
+             *       {
+             *         "questionId": "60d21b4667d0d8992e610c02"
+             *       }
+             *     ]
+             */
+            questionDetails: components["schemas"]["QuestionDetails"][];
+            /** @description Submitted answers */
+            answers?: components["schemas"]["QuestionAnswer"][];
+            /**
+             * Format: date-time
+             * @description Attempt creation time
+             * @example 2024-06-18T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last update time
+             * @example 2024-06-18T12:30:00.000Z
+             */
+            updatedAt: string;
+        };
+        SOLAnswer: {
+            /**
+             * @description ID of the selected lot item
+             * @example 60d21b4667d0d8992e610c10
+             */
+            lotItemId: string;
+        };
+        SMLAnswer: {
+            /**
+             * @description IDs of the selected lot items
+             * @example [
+             *       "60d21b4667d0d8992e610c10",
+             *       "60d21b4667d0d8992e610c11"
+             *     ]
+             */
+            lotItemIds: string[];
+        };
+        Order: {
+            /**
+             * @description Order of the lot item
+             * @example 1
+             */
+            order: number;
+            /**
+             * @description ID of the lot item
+             * @example 60d21b4667d0d8992e610c10
+             */
+            lotItemId: string;
+        };
+        OTLAnswer: {
+            /**
+             * @description Orderings of lot items
+             * @example [
+             *       {
+             *         "order": 1,
+             *         "lotItemId": "60d21b4667d0d8992e610c10"
+             *       }
+             *     ]
+             */
+            orders: components["schemas"]["Order"][];
+        };
+        NATAnswer: {
+            /**
+             * @description Numeric answer value
+             * @example 42
+             */
+            value: number;
+        };
+        DESAnswer: {
+            /**
+             * @description Descriptive answer text
+             * @example The answer is four.
+             */
+            answerText: string;
+        };
+        QuestionAnswer: {
+            /**
+             * @description ID of the question
+             * @example 60d21b4667d0d8992e610c02
+             */
+            questionId: string;
+            /**
+             * @description Type of the question
+             * @example SELECT_ONE_IN_LOT
+             * @enum {string}
+             */
+            questionType: "SELECT_ONE_IN_LOT" | "SELECT_MANY_IN_LOT" | "ORDER_THE_LOTS" | "NUMERIC_ANSWER_TYPE" | "DESCRIPTIVE";
+            /** @description Answer for the question */
+            answer: components["schemas"]["SOLAnswer"];
+        };
+        QuestionDetails: {
+            /**
+             * @description ID of the question
+             * @example 60d21b4667d0d8992e610c02
+             */
+            questionId: string;
+            /**
+             * @description Parameter map for the question
+             * @example {
+             *       "difficulty": "easy",
+             *       "maxScore": 10
+             *     }
+             */
+            parameterMap?: {
+                [key: string]: string | number;
+            };
+        };
+        QuestionAnswersBody: {
+            /** @description Array of answers for the quiz */
+            answers: components["schemas"]["QuestionAnswer"][];
+        };
+        /**
+         * @description Map of string keys to string or number values
+         * @example {
+         *       "difficulty": "easy",
+         *       "maxScore": 10
+         *     }
+         */
+        ParameterMapValidator: {
+            __dummy?: unknown;
+        } & {
+            [key: string]: string | number;
+        };
+        /**
+         * @description A lot item used for rendering (excludes explanation)
+         * @example {
+         *       "_id": "60d21b4667d0d8992e610c01",
+         *       "text": "Option A"
+         *     }
+         */
+        LotItemRenderViewValidator: {
+            /**
+             * @description Mongo ID of the item
+             * @example 60d21b4667d0d8992e610c01
+             */
+            _id?: string;
+            /**
+             * @description Text for the item
+             * @example Option A
+             */
+            text: string;
+        };
+        QuestionRenderView: {
+            /**
+             * @description Dynamic parameters for the question
+             * @example {
+             *       "difficulty": "easy",
+             *       "maxScore": 10
+             *     }
+             */
+            parameterMap?: components["schemas"]["ParameterMapValidator"];
+            /**
+             * @description Options to display for the question
+             * @example [
+             *       {
+             *         "_id": "60d21b4667d0d8992e610c01",
+             *         "text": "Option A"
+             *       },
+             *       {
+             *         "_id": "60d21b4667d0d8992e610c02",
+             *         "text": "Option B"
+             *       }
+             *     ]
+             */
+            lotItems?: components["schemas"]["LotItemRenderViewValidator"][];
+            /**
+             * @description Allowed decimal places for numeric input
+             * @example 2
+             */
+            decimalPrecision?: number;
+            /**
+             * @description Text of the question
+             * @example What is 2 + 2?
+             */
+            text: string;
+            /**
+             * @description Type of the question
+             * @example SELECT_ONE_IN_LOT
+             * @enum {string}
+             */
+            type: "SELECT_ONE_IN_LOT" | "SELECT_MANY_IN_LOT" | "ORDER_THE_LOTS" | "NUMERIC_ANSWER_TYPE" | "DESCRIPTIVE";
+            /**
+             * @description Whether the question is parameterized
+             * @example false
+             */
+            isParameterized: boolean;
+            /**
+             * @description Parameters for the question
+             * @example [
+             *       {
+             *         "name": "Param1",
+             *         "possibleValues": [
+             *           "cat",
+             *           "dog"
+             *         ],
+             *         "type": "string"
+             *       }
+             *     ]
+             */
+            parameters: components["schemas"]["QuestionParameter"][];
+            /**
+             * @description Hint for the question
+             * @example Think about basic addition.
+             */
+            hint: string;
+            /**
+             * @description Time limit for the question in seconds
+             * @example 60
+             */
+            timeLimitSeconds: number;
+            /**
+             * @description Points for the question
+             * @example 5
+             */
+            points: number;
+        };
+        CreateAttemptResponse: {
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+            /** @description Rendered questions for this attempt */
+            questionRenderViews: components["schemas"]["QuestionRenderView"][];
+        };
+        SubmitAttemptResponse: {
+            /**
+             * @description Score obtained
+             * @example 8
+             */
+            totalScore?: number;
+            /**
+             * @description Maximum score
+             * @example 10
+             */
+            totalMaxScore?: number;
+            /** @description Question-wise feedback */
+            overallFeedback: components["schemas"]["QuestionAnswerFeedback"][];
+            /**
+             * @description Result status
+             * @example PASSED
+             * @enum {string}
+             */
+            gradingStatus: "PENDING" | "PASSED" | "FAILED";
+            /**
+             * @description Grading timestamp
+             * @example 2024-06-18T12:30:00.000Z
+             */
+            gradedAt?: string;
+            /**
+             * @description Evaluator name
+             * @example admin
+             */
+            gradedBy?: string;
+        };
+        QuizIdParam: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+        };
+        QuizAttemptParam: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the attempt
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+        };
+        QuizSubmissionParam: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the submission
+             * @example 60d21b4667d0d8992e610c77
+             */
+            submissionId: string;
+        };
+        UpdateQuizSubmissionParam: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the submission
+             * @example 60d21b4667d0d8992e610c77
+             */
+            submissionId: string;
+            /**
+             * @description Score to update
+             * @example 8
+             */
+            score: number;
+        };
+        RemoveQuestionBankParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c88
+             */
+            questionBankId: string;
+        };
+        AddFeedbackParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the submission
+             * @example 60d21b4667d0d8992e610c77
+             */
+            submissionId: string;
+            /**
+             * @description ID of the question
+             * @example 60d21b4667d0d8992e610c02
+             */
+            questionId: string;
+        };
+        GetUserMatricesParams: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description ID of the user
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+        };
+        AddQuestionBankBody: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c88
+             */
+            bankId: string;
+            /**
+             * @description Number of questions to pick
+             * @example 10
+             */
+            count: number;
+            /**
+             * @description Difficulty filters
+             * @example [
+             *       "easy",
+             *       "medium"
+             *     ]
+             */
+            difficulty?: string[];
+            /**
+             * @description Tags filters
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+        };
+        EditQuestionBankBody: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c88
+             */
+            bankId: string;
+            /**
+             * @description Number of questions to pick
+             * @example 10
+             */
+            count: number;
+            /**
+             * @description Difficulty filters
+             * @example [
+             *       "easy",
+             *       "medium"
+             *     ]
+             */
+            difficulty?: string[];
+            /**
+             * @description Tags filters
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+        };
+        RegradeSubmissionBody: {
+            /**
+             * @description Total score after regrading
+             * @example 8
+             */
+            totalScore?: number;
+            /**
+             * @description Maximum possible score after regrading
+             * @example 10
+             */
+            totalMaxScore?: number;
+            /** @description Overall feedback after regrading */
+            overallFeedback?: components["schemas"]["QuestionAnswerFeedback"][];
+            /**
+             * @description Grading status after regrading
+             * @example PASSED
+             * @enum {string}
+             */
+            gradingStatus: "PENDING" | "PASSED" | "FAILED";
+        };
+        AddFeedbackBody: {
+            /**
+             * @description Feedback text
+             * @example Great answer!
+             */
+            feedback: string;
+        };
+        AttemptDetails: {
+            /**
+             * @description ID of the attempt
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+            /**
+             * @description ID of the submission result
+             * @example 60d21b4667d0d8992e610c77
+             */
+            submissionResultId?: string;
+        };
+        UserQuizMetricsResponse: {
+            /**
+             * @description Metrics record ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            _id?: string;
+            /**
+             * @description Quiz ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description User ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+            /**
+             * @description Latest attempt status
+             * @example ATTEMPTED
+             * @enum {string}
+             */
+            latestAttemptStatus: "ATTEMPTED" | "SUBMITTED";
+            /**
+             * @description Latest attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            latestAttemptId?: string;
+            /**
+             * @description Latest submission result ID
+             * @example 60d21b4667d0d8992e610c77
+             */
+            latestSubmissionResultId?: string;
+            /**
+             * @description Remaining attempts
+             * @example 2
+             */
+            remainingAttempts: number;
+            /** @description Quiz attempt history */
+            attempts: components["schemas"]["AttemptDetails"][];
+        };
+        QuizAttemptResponse: {
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            _id?: string;
+            /**
+             * @description Quiz ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description User ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+            /** @description Questions in the quiz */
+            questionDetails: components["schemas"]["QuestionDetails"][];
+            /** @description Submitted answers */
+            answers?: components["schemas"]["QuestionAnswer"][];
+            /**
+             * Format: date-time
+             * @description Created on
+             * @example 2024-06-18T12:00:00.000Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Last updated on
+             * @example 2024-06-18T12:30:00.000Z
+             */
+            updatedAt: string;
+        };
+        GradingResult: {
+            /**
+             * @description Score awarded
+             * @example 8
+             */
+            totalScore?: number;
+            /**
+             * @description Maximum possible score
+             * @example 10
+             */
+            totalMaxScore?: number;
+            /** @description Feedback per question */
+            overallFeedback?: components["schemas"]["QuestionAnswerFeedback"][];
+            /**
+             * @description Grading status
+             * @example PASSED
+             * @enum {string}
+             */
+            gradingStatus: "PENDING" | "PASSED" | "FAILED";
+            /**
+             * Format: date-time
+             * @description Grading timestamp
+             * @example 2024-06-18T12:30:00.000Z
+             */
+            gradedAt?: string;
+            /**
+             * @description Graded by
+             * @example Teacher
+             */
+            gradedBy?: string;
+        };
+        QuizSubmissionResponse: {
+            /**
+             * @description Submission ID
+             * @example 60d21b4667d0d8992e610c77
+             */
+            _id?: string;
+            /**
+             * @description Quiz ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description User ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+            /**
+             * Format: date-time
+             * @description Submitted on
+             * @example 2024-06-18T12:45:00.000Z
+             */
+            submittedAt: string;
+            /** @description Grading result */
+            gradingResult?: components["schemas"]["GradingResult"];
+        };
+        QuizDetails: {
+            /** @description List of question banks referenced in the quiz */
+            questionBankRefs: components["schemas"]["QuestionBankRef"][];
+            /**
+             * @description Passing threshold for the quiz
+             * @example 0.7
+             */
+            passThreshold: number;
+            /**
+             * @description Maximum number of attempts allowed
+             * @example 3
+             */
+            maxAttempts: number;
+            /**
+             * @description Type of the quiz
+             * @example DEADLINE
+             * @enum {string}
+             */
+            quizType: "DEADLINE" | "NO_DEADLINE";
+            /**
+             * @description Release time for the quiz
+             * @example 2024-06-18T12:00:00.000Z
+             */
+            releaseTime: string;
+            /**
+             * @description Number of questions visible to the user at a time
+             * @example 5
+             */
+            questionVisibility: number;
+            /**
+             * @description Deadline for the quiz, only applicable for DEADLINE type
+             * @example 2024-06-25T12:00:00.000Z
+             */
+            deadline?: string;
+            /**
+             * @description Approximate time to complete the quiz
+             * @example 01:30:00
+             */
+            approximateTimeToComplete: string;
+            /**
+             * @description If true, allows partial grading for SML questions
+             * @example true
+             */
+            allowPartialGrading: boolean;
+            /**
+             * @description If true, allows users to use hints for questions
+             * @example false
+             */
+            allowHint: boolean;
+            /**
+             * @description If true, shows correct answers after submission
+             * @example true
+             */
+            showCorrectAnswersAfterSubmission: boolean;
+            /**
+             * @description If true, shows explanation after submission
+             * @example true
+             */
+            showExplanationAfterSubmission: boolean;
+            /**
+             * @description If true, shows score after submission
+             * @example true
+             */
+            showScoreAfterSubmission: boolean;
+        };
+        QuizDetailsResponse: {
+            /**
+             * @description ID of the quiz
+             * @example 60d21b4667d0d8992e610c85
+             */
+            _id?: string;
+            /**
+             * @description Name of the quiz
+             * @example Algebra Quiz
+             */
+            name: string;
+            /**
+             * @description Description of the quiz
+             * @example A quiz on algebra basics.
+             */
+            description: string;
+            /**
+             * @description Type of the quiz
+             * @example QUIZ
+             * @enum {string}
+             */
+            type: "VIDEO" | "QUIZ" | "BLOG";
+            /** @description Quiz details */
+            details?: components["schemas"]["QuizDetails"];
+        };
+        QuizAnalyticsResponse: {
+            /**
+             * @description Total attempts
+             * @example 100
+             */
+            totalAttempts: number;
+            /**
+             * @description Total submissions
+             * @example 80
+             */
+            submissions: number;
+            /**
+             * @description Pass percentage
+             * @example 75
+             */
+            passRate: number;
+            /**
+             * @description Average score
+             * @example 7.5
+             */
+            averageScore: number;
+        };
+        QuizPerformanceResponse: {
+            /**
+             * @description Question ID
+             * @example 60d21b4667d0d8992e610c02
+             */
+            questionId: string;
+            /**
+             * @description Correct response rate (%)
+             * @example 80
+             */
+            correctRate: number;
+            /**
+             * @description Average question score
+             * @example 4.2
+             */
+            averageScore: number;
+        };
+        QuizResultsResponse: {
+            /**
+             * @description Student ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            studentId: string;
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+            /**
+             * @description Attempt score
+             * @example 9
+             */
+            score: number;
+            /**
+             * @description Grading status
+             * @example PASSED
+             * @enum {string}
+             */
+            status: "PENDING" | "PASSED" | "FAILED";
+        };
+        SubmissionResponse: {
+            /**
+             * @description Submission ID
+             * @example 60d21b4667d0d8992e610c77
+             */
+            _id: string;
+            /**
+             * @description Quiz ID
+             * @example 60d21b4667d0d8992e610c85
+             */
+            quizId: string;
+            /**
+             * @description User ID
+             * @example 60d21b4667d0d8992e610c01
+             */
+            userId: string;
+            /**
+             * @description Attempt ID
+             * @example 60d21b4667d0d8992e610c99
+             */
+            attemptId: string;
+            /**
+             * Format: date-time
+             * @description Submitted on
+             * @example 2024-06-18T12:45:00.000Z
+             */
+            submittedAt: string;
+            /** @description Grading result */
+            gradingResult?: components["schemas"]["GradingResult"];
+        };
+        GetAllSubmissionsResponse: {
+            /** @description Submissions list */
+            submissions: components["schemas"]["SubmissionResponse"][];
+        };
+        QuestionBankRefResponse: {
+            /**
+             * @description ID of the question bank
+             * @example 60d21b4667d0d8992e610c88
+             */
+            bankId: string;
+            /**
+             * @description Number of questions to pick
+             * @example 10
+             */
+            count: number;
+            /**
+             * @description Difficulty filters
+             * @example [
+             *       "easy",
+             *       "medium"
+             *     ]
+             */
+            difficulty?: string[];
+            /**
+             * @description Tags filters
+             * @example [
+             *       "math",
+             *       "science"
+             *     ]
+             */
+            tags?: string[];
+            /**
+             * @description Type filter
+             * @example MCQ
+             */
+            type?: string;
+        };
+        AttemptNotFoundErrorResponse: {
+            /**
+             * @description The error message.
+             * @example No attempt found.
+             */
+            readonly message: string;
+        };
+        QuizNotFoundErrorResponse: {
+            /**
+             * @description The error message.
+             * @example Quiz not found.
+             */
+            readonly message: string;
+        };
+        GetAllQuestionBanksResponse: {
+            /** @description List of all question banks */
+            questionBanks: components["schemas"]["QuestionBankRef"][];
         };
     };
     responses: never;
@@ -2103,6 +4693,739 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "InviteController.getInvitesForCourseVersion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of invites for the course version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteResponse"];
+                };
+            };
+        };
+    };
+    "InviteController.inviteUsers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description InviteBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["InviteBody"];
+            };
+        };
+        responses: {
+            /** @description Invite users to a course version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InviteResponse"];
+                };
+            };
+            /** @description Invalid input data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+        };
+    };
+    "InviteController.processInvites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invite processed successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": components["schemas"]["MessageResponse"];
+                };
+            };
+        };
+    };
+    "InviteController.resendInvite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invite resent successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+        };
+    };
+    "InviteController.cancelInvite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                inviteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Invite cancelled successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessageResponse"];
+                };
+            };
+        };
+    };
+    "EnrollmentController.getEnrollment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Enrollment details for the user in the course version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrolledUserResponse"];
+                };
+            };
+            /** @description Enrollment not found for the user in the specified course version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "EnrollmentController.enrollUser": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description EnrollmentBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EnrollmentBody"];
+            };
+        };
+        responses: {
+            /** @description User enrolled successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollUserResponse"];
+                };
+            };
+            /** @description Invalid role or User already enrolled */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description User or course version not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "EnrollmentController.unenrollUser": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User unenrolled successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollUserResponse"];
+                };
+            };
+            /** @description Enrollment not found for the user in the specified course version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "EnrollmentController.getUserEnrollments": {
+        parameters: {
+            query?: {
+                page?: unknown;
+                limit?: unknown;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of user enrollments */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentResponse"];
+                };
+            };
+            /** @description Invalid page or limit parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description No enrollments found for the user */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "EnrollmentController.getCourseVersionEnrollments": {
+        parameters: {
+            query?: {
+                page?: unknown;
+                limit?: unknown;
+            };
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of enrollments for the course version */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseVersionEnrollmentResponse"];
+                };
+            };
+            /** @description Invalid page or limit parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description No enrollments found for the course version */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.getUserProgress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User progress retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressDataResponse"];
+                };
+            };
+            /** @description Progress not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.getUserProgressPercentage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User progress retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompletedProgressResponse"];
+                };
+            };
+            /** @description Progress not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.startItem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description StartItemBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StartItemBody"];
+            };
+        };
+        responses: {
+            /** @description Item started successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StartItemResponse"];
+                };
+            };
+            /** @description courseVersionId, moduleId, sectionId, or itemId do not match user progress */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Progress not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.stopItem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description StopItemBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["StopItemBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description courseVersionId, moduleId, sectionId, or itemId do not match user progress */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Progress not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressNotFoundErrorResponse"];
+                };
+            };
+            /** @description Failed to stop tracking item */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.updateProgress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseVersionId: string;
+                userId: string;
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        /** @description UpdateProgressBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateProgressBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description courseVersionId, moduleId, sectionId, or itemId do not match user progress */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Progress not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProgressNotFoundErrorResponse"];
+                };
+            };
+            /** @description Progress could not be updated */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.resetProgress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description ResetCourseProgressBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ResetCourseProgressBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                };
+            };
+            /** @description Progress could not be reset */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorResponse"];
+                };
+            };
+        };
+    };
+    "ProgressController.getWatchTime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User Watch Time retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchTimeResponse"][];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                };
+            };
+            /** @description Could not Fetch the Watch Time */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InternalServerErrorResponse"];
+                };
+            };
+        };
+    };
+    "UserController.getUserById": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description User information retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "UserController.editUser": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description EditUserBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EditUserBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "UserController.makeAdmin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description User not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
     "AuthController.signup": {
         parameters: {
             query?: never;
@@ -2117,74 +5440,38 @@ export interface operations {
             };
         };
         responses: {
-            /** @description User successfully registered */
+            /** @description Successful response */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SignUpResponse"];
-                };
-            };
-            /** @description Invalid input data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description Registration failed */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthErrorResponse"];
+                    "application/json": unknown;
                 };
             };
         };
     };
-    "AuthController.verifySignUpProvider": {
+    "AuthController.googleSignup": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** @description VerifySignUpProviderBody */
+        /** @description GoogleSignUpBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["VerifySignUpProviderBody"];
+                "application/json": components["schemas"]["GoogleSignUpBody"];
             };
         };
         responses: {
-            /** @description User successfully verified */
+            /** @description Successful response */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SignUpResponse"];
-                };
-            };
-            /** @description Invalid input data */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description Registration failed */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthErrorResponse"];
+                    "application/json": unknown;
                 };
             };
         };
@@ -2203,60 +5490,38 @@ export interface operations {
             };
         };
         responses: {
-            /** @description Password changed successfully */
+            /** @description Successful response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ChangePasswordResponse"];
-                };
-            };
-            /** @description Invalid password format or mismatch */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description Password change failed */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthErrorResponse"];
+                    "application/json": unknown;
                 };
             };
         };
     };
-    "AuthController.verifyToken": {
+    "AuthController.login": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        /** @description LoginBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LoginBody"];
+            };
+        };
         responses: {
-            /** @description Token verification successful */
+            /** @description Successful response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TokenVerificationResponse"];
-                };
-            };
-            /** @description Invalid or expired token */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["AuthErrorResponse"];
+                    "application/json": unknown;
                 };
             };
         };
@@ -2268,10 +5533,10 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        /** @description CreateCourseBody */
+        /** @description CourseBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["CreateCourseBody"];
+                "application/json": components["schemas"]["CourseBody"];
             };
         };
         responses: {
@@ -2300,7 +5565,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                courseId: string;
             };
             cookie?: never;
         };
@@ -2340,14 +5605,14 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                courseId: string;
             };
             cookie?: never;
         };
-        /** @description UpdateCourseBody */
+        /** @description CourseBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["UpdateCourseBody"];
+                "application/json": components["schemas"]["CourseBody"];
             };
         };
         responses: {
@@ -2380,12 +5645,52 @@ export interface operations {
             };
         };
     };
+    "CourseController.delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Course not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
     "CourseVersionController.create": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                courseId: string;
             };
             cookie?: never;
         };
@@ -2402,7 +5707,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CreateCourseVersionResponse"];
+                    "application/json": components["schemas"]["CourseVersion"];
                 };
             };
             /** @description Bad Request Error */
@@ -2442,7 +5747,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CourseVersionDataResponse"];
+                    "application/json": components["schemas"]["CourseVersion"];
                 };
             };
             /** @description Bad Request Error */
@@ -2483,7 +5788,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeleteCourseVersionParams"];
+                    "application/json": components["schemas"]["DeleteCourseVersionResponse"];
                 };
             };
             /** @description Bad Request Error */
@@ -2502,6 +5807,274 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CourseVersionNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.readAll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+                moduleId: string;
+                sectionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Items retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemDataResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+                moduleId: string;
+                sectionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description CreateItemBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateItemBody"];
+            };
+        };
+        responses: {
+            /** @description Item created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemDataResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+                moduleId: string;
+                sectionId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        /** @description UpdateItemBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["UpdateItemBody"];
+            };
+        };
+        responses: {
+            /** @description Item updated successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemDataResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                itemsGroupId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Item deleted successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeletedItemResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                versionId: string;
+                moduleId: string;
+                sectionId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        /** @description MoveItemBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MoveItemBody"];
+            };
+        };
+        responses: {
+            /** @description Item moved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemDataResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "ItemController.getItem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Item retrieved successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetItemResponse"];
+                };
+            };
+            /** @description Bad Request Error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Item not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
                 };
             };
         };
@@ -2707,7 +6280,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SectionDataResponse"];
+                    "application/json": components["schemas"]["CourseVersion"];
                 };
             };
             /** @description Bad Request Error */
@@ -2754,7 +6327,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SectionDataResponse"];
+                    "application/json": components["schemas"]["CourseVersion"];
                 };
             };
             /** @description Bad Request Error */
@@ -2843,7 +6416,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SectionDataResponse"];
+                    "application/json": components["schemas"]["CourseVersion"];
                 };
             };
             /** @description Bad Request Error */
@@ -2866,76 +6439,30 @@ export interface operations {
             };
         };
     };
-    "ItemController.readAll": {
+    "QuestionController.create": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                versionId: string;
-                moduleId: string;
-                sectionId: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            /** @description Items retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemDataResponse"];
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
-                };
-            };
-        };
-    };
-    "ItemController.create": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                versionId: string;
-                moduleId: string;
-                sectionId: string;
-            };
-            cookie?: never;
-        };
-        /** @description CreateItemBody */
+        /** @description QuestionBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["CreateItemBody"];
+                "application/json": components["schemas"]["QuestionBody"];
             };
         };
         responses: {
-            /** @description Item created successfully */
+            /** @description Question created successfully */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemDataResponse"];
+                    "application/json": components["schemas"]["QuestionId"];
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Question creation failed due to invalid body */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -2944,41 +6471,29 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
-                };
-            };
         };
     };
-    "ItemController.readItem": {
+    "QuestionController.getById": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                versionId: string;
-                moduleId: string;
-                sectionId: string;
-                itemId: string;
+                questionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Item retrieved successfully */
+            /** @description Question retrieved successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemDataResponse"];
+                    "application/json": components["schemas"]["QuestionResponse"];
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Invalid question id */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -2987,87 +6502,65 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Item not found */
+            /** @description Question not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["QuestionNotFoundErrorResponse"];
                 };
             };
         };
     };
-    "ItemController.update": {
+    "QuestionController.update": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                versionId: string;
-                moduleId: string;
-                sectionId: string;
-                itemId: string;
+                questionId: string;
             };
             cookie?: never;
         };
-        /** @description UpdateItemBody */
+        /** @description QuestionBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["UpdateItemBody"];
+                "application/json": components["schemas"]["QuestionBody"];
             };
         };
         responses: {
-            /** @description Item updated successfully */
+            /** @description Question updated successfully */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemDataResponse"];
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description Item not found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["QuestionResponse"];
                 };
             };
         };
     };
-    "ItemController.delete": {
+    "QuestionController.delete": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                itemsGroupId: string;
-                itemId: string;
+                questionId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Item deleted successfully */
+            /** @description Successful response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DeletedItemResponse"];
+                    "application/json": unknown;
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Invalid question id */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3076,46 +6569,43 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Item not found */
+            /** @description Question not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["QuestionNotFoundErrorResponse"];
                 };
             };
         };
     };
-    "ItemController.move": {
+    "QuestionController.flagQuestion": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                versionId: string;
-                moduleId: string;
-                sectionId: string;
-                itemId: string;
+                questionId: string;
             };
             cookie?: never;
         };
-        /** @description MoveItemBody */
+        /** @description FlagQuestionBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["MoveItemBody"];
+                "application/json": components["schemas"]["FlagQuestionBody"];
             };
         };
         responses: {
-            /** @description Item moved successfully */
+            /** @description Successful response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemDataResponse"];
+                    "application/json": unknown;
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Invalid question id or reason */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3124,40 +6614,52 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Item not found */
+            /** @description You do not have permission to flag this question */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForbiddenErrorResponse"];
+                };
+            };
+            /** @description Question not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ItemNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["QuestionNotFoundErrorResponse"];
                 };
             };
         };
     };
-    "EnrollmentController.enrollUser": {
+    "QuestionController.resolveFlag": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
+                flagId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        /** @description ResolveFlagBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ResolveFlagBody"];
+            };
+        };
         responses: {
-            /** @description User successfully enrolled in the course */
+            /** @description Successful response */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollUserResponseData"];
+                    "application/json": unknown;
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Invalid flag id or status */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3166,80 +6668,785 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Enrollment could not be created or found */
-            404: {
+            /** @description You do not have permission to resolve this flag */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["ForbiddenErrorResponse"];
                 };
             };
         };
     };
-    "EnrollmentController.unenrollUser": {
+    "QuizController.getAllQuestionBanks": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
+                quizId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description User successfully unenrolled from the course */
+            /** @description List of question banks */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollUserResponseData"] | components["schemas"]["EnrollUserResponseData"];
+                    "application/json": components["schemas"]["GetAllQuestionBanksResponse"];
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.addQuestionBank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        /** @description AddQuestionBankBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AddQuestionBankBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid request body or parameters */
             400: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"] | components["schemas"]["BadRequestErrorResponse"];
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Enrollment could not be found or already removed */
+            /** @description Quiz not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"] | components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
                 };
             };
         };
     };
-    "EnrollmentController.getUserEnrollments": {
+    "QuizController.editQuestionBank": {
         parameters: {
-            query?: {
-                page?: unknown;
-                limit?: unknown;
-            };
+            query?: never;
             header?: never;
             path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        /** @description EditQuestionBankBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EditQuestionBankBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid request body or parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.removeQuestionBank": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                questionBankId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Quiz or question bank not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getUserMetrices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
                 userId: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description List of user enrollments */
+            /** @description User quiz metrics */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollmentResponse"];
+                    "application/json": components["schemas"]["UserQuizMetricsResponse"];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizAttempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quiz attempt details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizAttemptResponse"];
+                };
+            };
+            /** @description Quiz or attempt not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizSubmission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quiz submission details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizSubmissionResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getAllSubmissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description List of submissions */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAllSubmissionsResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizDetails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quiz details */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizDetailsResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizAnalytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quiz analytics */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizAnalyticsResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizPerformance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Performance stats per question */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizPerformanceResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.getQuizResults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quiz results */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizResultsResponse"][];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.updateQuizSubmissionScore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                submissionId: string;
+                score: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid submission ID or score */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Submission not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.regradeSubmission": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description RegradeSubmissionBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RegradeSubmissionBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid submission ID or regrade data */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Submission not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.addFeedbackToQuestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                submissionId: string;
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description AddFeedbackBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AddFeedbackBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid submission ID or question ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Submission or question not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuizController.resetAvailableAttempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Invalid quiz ID or user ID */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuestionBankController.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CreateQuestionBankBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateQuestionBankBody"];
+            };
+        };
+        responses: {
+            /** @description Question bank created successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateQuestionBankResponse"];
+                };
+            };
+            /** @description Course or course version or some questions not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuestionBankController.getById": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionBankId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Question bank retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankResponse"];
+                };
+            };
+            /** @description Question bank not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuestionBankController.addQuestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionBankId: string;
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Question added to question bank successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankResponse"];
+                };
+            };
+            /** @description Question bank or question not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuestionBankController.removeQuestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionBankId: string;
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Question removed from question bank successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankResponse"];
+                };
+            };
+            /** @description Question bank or question not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "QuestionBankController.replaceQuestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                questionBankId: string;
+                questionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Question replaced with duplicate successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplaceQuestionResponse"];
+                };
+            };
+            /** @description Question bank or question not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuestionBankNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "AttemptController.attempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attempt created successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreateAttemptResponse"];
                 };
             };
             /** @description Bad Request */
@@ -3251,103 +7458,31 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-            /** @description Enrollments Not Found */
+            /** @description Quiz not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["EnrollmentNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["AttemptNotFoundErrorResponse"];
                 };
             };
         };
     };
-    "ProgressController.getUserProgress": {
+    "AttemptController.save": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
+                quizId: string;
+                attemptId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
-        responses: {
-            /** @description User progress retrieved successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProgressDataResponse"];
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-        };
-    };
-    "ProgressController.startItem": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
-            };
-            cookie?: never;
-        };
-        /** @description StartItemBody */
+        /** @description QuestionAnswersBody */
         requestBody?: {
             content: {
-                "application/json": components["schemas"]["StartItemBody"];
-            };
-        };
-        responses: {
-            /** @description Course item started successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["StartItemResponse"];
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-        };
-    };
-    "ProgressController.stopItem": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
-            };
-            cookie?: never;
-        };
-        /** @description StopItemBody */
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["StopItemBody"];
+                "application/json": components["schemas"]["QuestionAnswersBody"];
             };
         };
         responses: {
@@ -3360,7 +7495,7 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Bad Request Error */
+            /** @description Bad Request */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3369,120 +7504,350 @@ export interface operations {
                     "application/json": components["schemas"]["BadRequestErrorResponse"];
                 };
             };
-        };
-    };
-    "ProgressController.updateProgress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
-            };
-            cookie?: never;
-        };
-        /** @description UpdateProgressBody */
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["UpdateProgressBody"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-        };
-    };
-    "ProgressController.resetProgress": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                userId: string;
-                courseId: string;
-                courseVersionId: string;
-            };
-            cookie?: never;
-        };
-        /** @description ResetCourseProgressBody */
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["ResetCourseProgressBody"];
-            };
-        };
-        responses: {
-            /** @description Successful response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-        };
-    };
-    "UserController.getUserByFirebaseUID": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                firebaseUID: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description User found successfully */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["UserByFirebaseUIDResponse"];
-                };
-            };
-            /** @description Bad Request Error */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["BadRequestErrorResponse"];
-                };
-            };
-            /** @description User not found */
+            /** @description Attempt or Quiz not found */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UserNotFoundErrorResponse"];
+                    "application/json": components["schemas"]["AttemptNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "AttemptController.submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        /** @description QuestionAnswersBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["QuestionAnswersBody"];
+            };
+        };
+        responses: {
+            /** @description Attempt submitted successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitAttemptResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Attempt or Quiz not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "AttemptController.getAttempt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quizId: string;
+                attemptId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Attempt retrieved successfully */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GetAttemptResponse"];
+                };
+            };
+            /** @description Attempy does not belong to user or quiz */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BadRequestErrorResponse"];
+                };
+            };
+            /** @description Attempt not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptNotFoundErrorResponse"];
+                };
+            };
+        };
+    };
+    "GenAIVideoController.generateTranscript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "GenAIVideoController.segmentTranscript": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "GenAIVideoController.generateQuestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "GenAIVideoController.generateCourseItemsFromVideo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": unknown;
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "CourseSettingsController.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CreateCourseSettingsBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateCourseSettingsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "CourseSettingsController.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "CourseSettingsController.updateCourseSettings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description AddCourseProctoringBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AddCourseProctoringBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "UserSettingsController.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description CreateUserSettingsBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["CreateUserSettingsBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "UserSettingsController.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studentId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    "UserSettingsController.updateUserSettings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                studentId: string;
+                courseId: string;
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        /** @description AddUserProctoringBody */
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["AddUserProctoringBody"];
+            };
+        };
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
         };

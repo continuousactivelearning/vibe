@@ -26,7 +26,7 @@ export function useLogin(): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("post", "/auth/verify", {});
+  const result = api.useQuery("post", "/api/auth/login", {});
 
   return {
     data: result.data,
@@ -49,7 +49,7 @@ export function useLoginWithGoogle(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/auth/google");
+  const result = api.useMutation("post", "/api/auth/signup/google");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Google login failed') : null
@@ -69,7 +69,7 @@ export function useSignup(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/auth/signup");
+  const result = api.useMutation("post", "/api/auth/signup");
   return {
     ...result,
     error: result.error ? (result.error) : null
@@ -109,7 +109,7 @@ export function useChangePassword(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/auth/change-password");
+  const result = api.useMutation("patch", "/api/auth/change-password");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Password change failed') : null
@@ -120,8 +120,8 @@ export function useChangePassword(): {
 
 // POST /courses/
 export function useCreateCourse(): {
-  mutate: (variables: { body: components['schemas']['CreateCourseBody'] }) => void,
-  mutateAsync: (variables: { body: components['schemas']['CreateCourseBody'] }) => Promise<components['schemas']['CourseDataResponse']>,
+  mutate: (variables: { body: components['schemas']['CourseBody'] }) => void,
+  mutateAsync: (variables: { body: components['schemas']['CourseBody'] }) => Promise<components['schemas']['CourseDataResponse']>,
   data: components['schemas']['CourseDataResponse'] | undefined,
   error: string | null,
   isPending: boolean,
@@ -131,7 +131,7 @@ export function useCreateCourse(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/courses/");
+  const result = api.useMutation("post", "/api/courses/");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Course creation failed') : null
@@ -145,8 +145,8 @@ export function useCourseById(id: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/courses/{id}", {
-    params: { path: { id } }
+  const result = api.useQuery("get", "/api/courses/{courseId}", {
+    params: { path: { courseId: id } }
   }, { enabled: !!id });
 
   return {
@@ -159,8 +159,8 @@ export function useCourseById(id: string): {
 
 // PUT /courses/{id}
 export function useUpdateCourse(): {
-  mutate: (variables: { params: { path: { id: string } }, body: components['schemas']['UpdateCourseBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { id: string } }, body: components['schemas']['UpdateCourseBody'] }) => Promise<components['schemas']['CourseDataResponse']>,
+  mutate: (variables: { params: { path: { courseId: string } }, body: components['schemas']['CourseBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string } }, body: components['schemas']['CourseBody'] }) => Promise<components['schemas']['CourseDataResponse']>,
   data: components['schemas']['CourseDataResponse'] | undefined,
   error: string | null,
   isPending: boolean,
@@ -170,7 +170,7 @@ export function useUpdateCourse(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/{id}");
+  const result = api.useMutation("put", "/api/courses/{courseId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Course update failed') : null
@@ -179,8 +179,8 @@ export function useUpdateCourse(): {
 
 // DELETE /courses/{id}
 export function useDeleteCourse(): {
-  mutate: (variables: { params: { path: { id: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { id: string } } }) => Promise<void>,
+  mutate: (variables: { params: { path: { courseId: string } } }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string } } }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -190,11 +190,11 @@ export function useDeleteCourse(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/courses/{id}");
+  const result = api.useMutation("delete", "/api/courses/{courseId}");
 
   return {
     ...result,
-    error: result.error ? (result.error || 'Failed to delete course') : null
+    error: result.error ? (result.error.message || 'Failed to delete course') : null
   };
 }
 
@@ -214,7 +214,7 @@ export function useCreateCourseVersion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/courses/{id}/versions");
+  const result = api.useMutation("post", "/api/courses/{courseId}/versions");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Course version creation failed') : null
@@ -228,7 +228,7 @@ export function useCourseVersionById(id: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/courses/versions/{id}", {
+  const result = api.useQuery("get", "/api/courses/versions/{id}", {
     params: { path: { id } }
   }, { enabled: !!id }
   );
@@ -254,7 +254,7 @@ export function useDeleteCourseVersion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/courses/{courseId}/versions/{versionId}");
+  const result = api.useMutation("delete", "/api/courses/{courseId}/versions/{versionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Course version deletion failed') : null
@@ -276,7 +276,7 @@ export function useCreateModule(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/courses/versions/{versionId}/modules");
+  const result = api.useMutation("post", "/api/courses/versions/{versionId}/modules");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Module creation failed') : null
@@ -296,7 +296,7 @@ export function useUpdateModule(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Module update failed') : null
@@ -316,7 +316,7 @@ export function useDeleteModule(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/courses/versions/{versionId}/modules/{moduleId}");
+  const result = api.useMutation("delete", "/api/courses/versions/{versionId}/modules/{moduleId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Module deletion failed') : null
@@ -336,7 +336,7 @@ export function useMoveModule(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}/move");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}/move");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Module move failed') : null
@@ -358,7 +358,7 @@ export function useCreateSection(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/courses/versions/{versionId}/modules/{moduleId}/sections");
+  const result = api.useMutation("post", "/api/courses/versions/{versionId}/modules/{moduleId}/sections");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Section creation failed') : null
@@ -378,7 +378,7 @@ export function useUpdateSection(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Section update failed') : null
@@ -398,7 +398,7 @@ export function useDeleteSection(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}");
+  const result = api.useMutation("delete", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Section deletion failed') : null
@@ -418,7 +418,7 @@ export function useMoveSection(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/move");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/move");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Section move failed') : null
@@ -434,7 +434,7 @@ export function useItemsBySectionId(versionId: string, moduleId: string, section
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items", {
+  const result = api.useQuery("get", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items", {
     params: { path: { versionId, moduleId, sectionId } }
   }, { enabled: !!versionId && !!moduleId && !!sectionId });
 
@@ -459,7 +459,7 @@ export function useCreateItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items");
+  const result = api.useMutation("post", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Item creation failed') : null
@@ -473,7 +473,7 @@ export function useItemById(courseId: string, versionId: string, itemId: string)
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/courses/{courseId}/versions/{versionId}/item/{itemId}", {
+  const result = api.useQuery("get", "/api/courses/{courseId}/versions/{versionId}/item/{itemId}", {
     params: { path: { courseId, versionId, itemId } }
   }, { enabled: !!courseId && !!versionId && !!itemId }
   );
@@ -499,7 +499,7 @@ export function useUpdateItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Item update failed') : null
@@ -519,7 +519,7 @@ export function useDeleteItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/courses/itemGroups/{itemsGroupId}/items/{itemId}");
+  const result = api.useMutation("delete", "/api/courses/itemGroups/{itemsGroupId}/items/{itemId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Item deletion failed') : null
@@ -539,7 +539,7 @@ export function useMoveItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}/move");
+  const result = api.useMutation("put", "/api/courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}/move");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Item move failed') : null
@@ -561,7 +561,7 @@ export function useEnrollUser(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/users/enrollments/courses/{courseId}/versions/{courseVersionId}");
+  const result = api.useMutation("post", "/api/users/{userId}/enrollments/courses/{courseId}/versions/{versionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'User enrollment failed') : null
@@ -581,7 +581,7 @@ export function useUnenrollUser(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/users/{userId}/enrollments/courses/{courseId}/versions/{courseVersionId}/unenroll");
+  const result = api.useMutation("post", "/api/users/{userId}/enrollments/courses/{courseId}/versions/{versionId}/unenroll");
   return {
     ...result,
     error: result.error ? (result.error.message || 'User unenrollment failed') : null
@@ -595,7 +595,7 @@ export function useUserEnrollments(page?: number, limit?: number, enabled: boole
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/enrollments", {
+  const result = api.useQuery("get", "/api/users/enrollments", {
     params: {
       query: { page, limit }
     },
@@ -617,12 +617,15 @@ export function useCourseVersionEnrollments(courseId: string | undefined, course
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/enrollments/courses/{courseId}/versions/{courseVersionId}", {
+  if (!courseId || !courseVersionId) {
+    throw new Error("courseId and courseVersionId must be defined");
+  }
+  const result = api.useQuery("get", "/api/users/enrollments/courses/{courseId}/versions/{versionId}", {
     params: {
-      path: { courseId, courseVersionId },
+      path: { courseId, versionId: courseVersionId },
       query: { page, limit }
     },
-    enabled: enabled && !!courseId && !!courseVersionId
+    enabled: enabled
   });
   return {
     data: result.data,
@@ -641,8 +644,8 @@ export function useUserProgress(courseId: string, courseVersionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/progress/courses/{courseId}/versions/{courseVersionId}/", {
-    params: { path: { courseId, courseVersionId } }
+  const result = api.useQuery("get", "/api/users/progress/courses/{courseId}/versions/{versionId}/", {
+    params: { path: { courseId, versionId: courseVersionId } }
   }, { enabled: !!courseId && !!courseVersionId }
   );
 
@@ -666,8 +669,8 @@ export function useUserProgressPercentage(courseId: string, courseVersionId: str
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/progress/courses/{courseId}/versions/{courseVersionId}/percentage", {
-    params: { path: { courseId, courseVersionId } }
+  const result = api.useQuery("get", "/api/users/progress/courses/{courseId}/versions/{versionId}/percentage", {
+    params: { path: { courseId, versionId: courseVersionId } }
   }, { enabled: !!courseId && !!courseVersionId }
   );
 
@@ -697,13 +700,12 @@ export function useUserProgressPercentageByUserId(
 } {
   const result = api.useQuery(
     "get",
-    "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/percentage",
+    "/api/users/progress/courses/{courseId}/versions/{versionId}/percentage",
     {
       params: {
         path: {
-          userId,
           courseId,
-          courseVersionId
+          versionId: courseVersionId
         }
       }
     },
@@ -733,7 +735,7 @@ export function useStartItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/users/progress/courses/{courseId}/versions/{courseVersionId}/start");
+  const result = api.useMutation("post", "/api/users/progress/courses/{courseId}/versions/{versionId}/start");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to start item') : null
@@ -753,7 +755,7 @@ export function useStopItem(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/users/progress/courses/{courseId}/versions/{courseVersionId}/stop");
+  const result = api.useMutation("post", "/api/users/progress/courses/{courseId}/versions/{versionId}/stop");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to stop item') : null
@@ -773,7 +775,7 @@ export function useResetProgress(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/reset");
+  const result = api.useMutation("patch", "/api/users/{userId}/progress/courses/{courseId}/versions/{versionId}/reset");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to reset progress') : null
@@ -786,7 +788,7 @@ export function useProctoringSettings(courseId: string, versionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/setting/course-setting/{courseId}/{versionId}", {
+  const result = api.useQuery("get", "/api/setting/course-setting/{courseId}/{versionId}", {
     params: { path: { courseId, versionId } }
   },
     { enabled: !!courseId && !!versionId }
@@ -860,7 +862,7 @@ export function useInviteUsers(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/notifications/invite/courses/{courseId}/versions/{courseVersionId}");
+  const result = api.useMutation("post", "/api/notifications/invite/courses/{courseId}/versions/{versionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to invite users') : null
@@ -873,8 +875,8 @@ export function useCourseInvites(courseId: string, courseVersionId: string, enab
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/notifications/invite/courses/{courseId}/versions/{courseVersionId}", {
-    params: { path: { courseId, courseVersionId } },
+  const result = api.useQuery("get", "/api/notifications/invite/courses/{courseId}/versions/{versionId}", {
+    params: { path: { courseId, versionId: courseVersionId } },
     enabled: enabled
   });
 
@@ -898,7 +900,7 @@ export function useResendInvite(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/notifications/invite/resend/{inviteId}");
+  const result = api.useMutation("post", "/api/notifications/invite/resend/{inviteId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to resend invite') : null
@@ -917,7 +919,7 @@ export function useCancelInvite(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/notifications/invite/cancel/{inviteId}");
+  const result = api.useMutation("post", "/api/notifications/invite/cancel/{inviteId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to cancel invite') : null
@@ -931,8 +933,8 @@ export function useWatchTimeByItemId(userId: string, courseId: string, courseVer
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/{id}/watchTime/course/{courseId}/version/{courseVersionId}/item/{itemId}/type/{type}", {
-    params: { path: { id: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type: type } },
+  const result = api.useQuery("get", "/api/users/{userId}/watchTime/item/{itemId}/", {
+    params: { path: { userId: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type: type } },
   }, { enabled: !!userId && !!itemId && !!type },);
 
   return {
@@ -955,7 +957,7 @@ export function useEditUser(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/users/edit");
+  const result = api.useMutation("patch", "/api/users/edit");
 
   return {
     ...result,
@@ -969,7 +971,7 @@ export function useWatchtimeTotal(): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/users/watchTime/total");
+  const result = api.useQuery("get", "/users/watchTime/total", {});
 
   return {
     data: result.data,
@@ -1249,7 +1251,7 @@ export function useAttemptQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/{quizId}/attempt")
+  const result = api.useMutation("post", "/api/quizzes/{quizId}/attempt");
   return {
     mutate: result.mutate,
     mutateAsync: result.mutateAsync,
@@ -1276,7 +1278,7 @@ export function useFlagQuestion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/questions/{questionId}/flag");
+  const result = api.useMutation("post", "/api/quizzes/questions/{questionId}/flag");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to flag question') : null
@@ -1296,7 +1298,7 @@ export function useSaveQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/{quizId}/attempt/{attemptId}/save");
+  const result = api.useMutation("post", "/api/quizzes/{quizId}/attempt/{attemptId}/save");
   return {
     mutate: result.mutate,
     mutateAsync: result.mutateAsync,
@@ -1323,7 +1325,7 @@ export function useSubmitQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/{quizId}/attempt/{attemptId}/submit");
+  const result = api.useMutation("post", "/api/quizzes/{quizId}/attempt/{attemptId}/submit");
   return {
     mutate: result.mutate,
     mutateAsync: result.mutateAsync,
@@ -1361,7 +1363,7 @@ export function useUserQuizMetrics(quizId: string, userId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/user/{userId}", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/user/{userId}", {
     params: { path: { quizId, userId } }
   }, { enabled: !!quizId && !!userId });
 
@@ -1380,7 +1382,7 @@ export function useQuizSubmission(quizId: string, submissionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions/{submissionId}", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/submissions/{submissionId}", {
     params: { path: { quizId, submissionId } }
   }, { enabled: !!quizId && !!submissionId }
   );
@@ -1401,7 +1403,7 @@ export function useQuestionById(questionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/questions/{questionId}", {
+  const result = api.useQuery("get", "/api/quizzes/questions/{questionId}", {
     params: { path: { questionId } }
   }, { enabled: !!questionId });
 
@@ -1426,7 +1428,7 @@ export function useUpdateQuestion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("put", "/quizzes/questions/{questionId}");
+  const result = api.useMutation("put", "/api/quizzes/questions/{questionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Question update failed') : null
@@ -1446,7 +1448,7 @@ export function useDeleteQuestion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/quizzes/questions/{questionId}");
+  const result = api.useMutation("delete", "/api/quizzes/questions/{questionId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Question deletion failed') : null
@@ -1469,7 +1471,7 @@ export function useResolveFlaggedQuestion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/questions/flags/{flagId}/resolve");
+  const result = api.useMutation("post", "/api/quizzes/questions/flags/{flagId}/resolve");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to resolve flagged question') : null
@@ -1491,7 +1493,7 @@ export function useCreateQuestionBank(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/question-bank");
+  const result = api.useMutation("post", "/api/quizzes/question-bank/");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Question bank creation failed') : null
@@ -1505,7 +1507,7 @@ export function useQuestionBankById(questionBankId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/question-bank/{questionBankId}", {
+  const result = api.useQuery("get", "/api/quizzes/question-bank/{questionBankId}", {
     params: { path: { questionBankId } }
   }, { enabled: !!questionBankId });
 
@@ -1530,7 +1532,7 @@ export function useAddQuestionToBank(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/quizzes/question-bank/{questionBankId}/questions/{questionId}/add");
+  const result = api.useMutation("patch", "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/add");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to add question to bank') : null
@@ -1550,7 +1552,7 @@ export function useRemoveQuestionFromBank(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/quizzes/question-bank/{questionBankId}/questions/{questionId}/remove");
+  const result = api.useMutation("patch", "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/remove");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to remove question from bank') : null
@@ -1570,7 +1572,7 @@ export function useReplaceQuestionWithDuplicate(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/quizzes/question-bank/{questionBankId}/questions/{questionId}/replace-duplicate");
+  const result = api.useMutation("patch", "/api/quizzes/question-bank/{questionBankId}/questions/{questionId}/replace-duplicate");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to replace question with duplicate') : null
@@ -1592,7 +1594,7 @@ export function useAddQuestionBankToQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/quiz/{quizId}/bank");
+  const result = api.useMutation("post", "/api/quizzes/quiz/{quizId}/bank");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to add question bank to quiz') : null
@@ -1653,7 +1655,7 @@ export function useRemoveQuestionBankFromQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/quizzes/quiz/{quizId}/bank/{questionBankId}");
+  const result = api.useMutation("delete", "/api/quizzes/quiz/{quizId}/bank/{questionBankId}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to remove question bank from quiz') : null
@@ -1673,7 +1675,7 @@ export function useEditQuestionBankInQuiz(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("patch", "/quizzes/quiz/{quizId}/bank");
+  const result = api.useMutation("patch", "/api/quizzes/quiz/{quizId}/bank");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to edit question bank configuration') : null
@@ -1687,7 +1689,7 @@ export function useGetAllQuestionBanksForQuiz(quizId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/bank", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/bank", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
@@ -1712,7 +1714,7 @@ export function useUpdateQuizSubmissionScore(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/quiz/{quizId}/submission/{submissionId}/score/{score}");
+  const result = api.useMutation("post", "/api/quizzes/quiz/{quizId}/submission/{submissionId}/score/{score}");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to update submission score') : null
@@ -1732,7 +1734,7 @@ export function useRegradeQuizSubmission(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/quiz/{quizId}/submission/{submissionId}/regrade");
+  const result = api.useMutation("post", "/api/quizzes/quiz/{quizId}/submission/{submissionId}/regrade");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to regrade submission') : null
@@ -1752,7 +1754,7 @@ export function useAddFeedbackToQuizQuestion(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/quiz/{quizId}/submission/{submissionId}/question/{questionId}/feedback");
+  const result = api.useMutation("post", "/api/quizzes/quiz/{quizId}/submission/{submissionId}/question/{questionId}/feedback");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to add feedback to question') : null
@@ -1772,7 +1774,7 @@ export function useResetUserQuizAttempts(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("post", "/quizzes/quiz/{quizId}/user/{userId}/reset-attempts");
+  const result = api.useMutation("post", "/api/quizzes/quiz/{quizId}/user/{userId}/reset-attempts");
   return {
     ...result,
     error: result.error ? (result.error.message || 'Failed to reset user quiz attempts') : null
@@ -1783,12 +1785,12 @@ export function useResetUserQuizAttempts(): {
 
 // GET /quizzes/{quizId}/attempt/{attemptId}
 export function useGetAttemptDetails(quizId: string, attemptId: string): {
-  data: components['schemas']['IAttempt'] | undefined,
+  data: components['schemas']['AttemptDetails'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/attempt/{attemptId}", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/attempts/{attemptId}", {
     params: { path: { quizId, attemptId } }
   }, { enabled: !!quizId && !!attemptId });
 
@@ -1802,12 +1804,12 @@ export function useGetAttemptDetails(quizId: string, attemptId: string): {
 
 // GET /quizzes/{quizId}/analytics
 export function useQuizAnalytics(quizId: string): {
-  data: components['schemas']['QuizAnalytics'] | undefined,
+  data: components['schemas']['QuizAnalyticsResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/analytics", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/analytics", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
@@ -1826,7 +1828,7 @@ export function useQuizDetails(quizId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/details", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/details", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
@@ -1840,12 +1842,12 @@ export function useQuizDetails(quizId: string): {
 
 // GET /quizzes/{quizId}/performance
 export function useQuizPerformance(quizId: string): {
-  data: components['schemas']['QuizPerformance'] | undefined,
+  data: components['schemas']['QuizPerformanceResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/performance", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/performance", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
@@ -1859,12 +1861,12 @@ export function useQuizPerformance(quizId: string): {
 
 // Get /quizzes/{quizId}/results
 export function useQuizResults(quizId: string): {
-  data: components['schemas']['QuizResults'] | undefined,
+  data: components['schemas']['QuizResultsResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/results", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/results", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
@@ -1882,7 +1884,7 @@ export function useQuizSubmissions(quizId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions", {
+  const result = api.useQuery("get", "/api/quizzes/quiz/{quizId}/submissions", {
     params: { path: { quizId } }
   }, { enabled: !!quizId });
 
