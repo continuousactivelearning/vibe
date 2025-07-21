@@ -21,7 +21,7 @@ import { InviteBody, InviteResponse, MessageResponse } from '@/types/invite.type
 
 // POST /auth/verify
 export function useLogin(): {
-  data: components['schemas']['TokenVerificationResponse'] | undefined,
+  data: undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -29,7 +29,7 @@ export function useLogin(): {
   const result = api.useQuery("post", "/api/auth/login", {});
 
   return {
-    data: result.data,
+    data: undefined,
     isLoading: result.isLoading,
     error: result.error ? (result.error.message || 'Login failed') : null,
     refetch: result.refetch
@@ -40,7 +40,7 @@ export function useLogin(): {
 export function useLoginWithGoogle(): {
   mutate: (variables: { body: { lastName: string, firstName: string, email: string } }) => void,
   mutateAsync: (variables: { body: { lastName: string, firstName: string, email: string } }) => Promise<components['schemas']['SignUpResponse']>,
-  data: components['schemas']['TokenVerificationResponse'] | undefined,
+  data: components['schemas']['SignUpResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -190,11 +190,24 @@ export function useDeleteCourse(): {
   reset: () => void,
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
-  const result = api.useMutation("delete", "/api/courses/{courseId}");
+  const result = api.useMutation("delete", "/api/courses/{courseId}") as ReturnType<
+    () => {
+      mutate: (variables: { params: { path: { courseId: string } } }) => void;
+      mutateAsync: (variables: { params: { path: { courseId: string } } }) => Promise<void>;
+      data: void | undefined;
+      error: string | null;
+      isPending: boolean;
+      isSuccess: boolean;
+      isError: boolean;
+      isIdle: boolean;
+      reset: () => void;
+      status: "idle" | "pending" | "success" | "error";
+    }
+  >;
 
   return {
     ...result,
-    error: result.error ? (result.error.message || 'Failed to delete course') : null
+    error: result.error ? (result.error || 'Failed to delete course') : null
   };
 }
 
@@ -203,9 +216,9 @@ export function useDeleteCourse(): {
 
 // POST /courses/{id}/versions
 export function useCreateCourseVersion(): {
-  mutate: (variables: { params: { path: { id: string } }, body: components['schemas']['CreateCourseVersionBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { id: string } }, body: components['schemas']['CreateCourseVersionBody'] }) => Promise<components['schemas']['CreateCourseVersionResponse']>,
-  data: components['schemas']['CreateCourseVersionResponse'] | undefined,
+  mutate: (variables: { params: { path: { courseId: string } }, body: components['schemas']['CreateCourseVersionBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string } }, body: components['schemas']['CreateCourseVersionBody'] }) => Promise<components['schemas']['CourseVersion']>,
+  data: components['schemas']['CourseVersion'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -223,7 +236,7 @@ export function useCreateCourseVersion(): {
 
 // GET /courses/versions/{id}
 export function useCourseVersionById(id: string): {
-  data: components['schemas']['CourseVersionDataResponse'] | undefined,
+  data: components['schemas']['CourseVersion'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -244,8 +257,8 @@ export function useCourseVersionById(id: string): {
 // DELETE /courses/{courseId}/versions/{versionId}
 export function useDeleteCourseVersion(): {
   mutate: (variables: { params: { path: { courseId: string, versionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } } }) => Promise<components['schemas']['DeleteCourseVersionParams']>,
-  data: components['schemas']['DeleteCourseVersionParams'] | undefined,
+  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } } }) => Promise<components['schemas']['DeleteCourseVersionResponse']>,
+  data: components['schemas']['DeleteCourseVersionResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -348,8 +361,8 @@ export function useMoveModule(): {
 // POST /courses/versions/{versionId}/modules/{moduleId}/sections
 export function useCreateSection(): {
   mutate: (variables: { params: { path: { versionId: string, moduleId: string } }, body: components['schemas']['CreateSectionBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string } }, body: components['schemas']['CreateSectionBody'] }) => Promise<components['schemas']['SectionDataResponse']>,
-  data: components['schemas']['SectionDataResponse'] | undefined,
+  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string } }, body: components['schemas']['CreateSectionBody'] }) => Promise<components['schemas']['CourseVersion']>,
+  data: components['schemas']['CourseVersion'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -368,8 +381,8 @@ export function useCreateSection(): {
 // PUT /courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}
 export function useUpdateSection(): {
   mutate: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['UpdateSectionBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['UpdateSectionBody'] }) => Promise<components['schemas']['SectionDataResponse']>,
-  data: components['schemas']['SectionDataResponse'] | undefined,
+  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['UpdateSectionBody'] }) => Promise<components['schemas']['CourseVersion']>,
+  data: components['schemas']['CourseVersion'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -408,8 +421,8 @@ export function useDeleteSection(): {
 // PUT /courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/move
 export function useMoveSection(): {
   mutate: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['MoveSectionBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['MoveSectionBody'] }) => Promise<components['schemas']['SectionDataResponse']>,
-  data: components['schemas']['SectionDataResponse'] | undefined,
+  mutateAsync: (variables: { params: { path: { versionId: string, moduleId: string, sectionId: string } }, body: components['schemas']['MoveSectionBody'] }) => Promise<components['schemas']['CourseVersion']>,
+  data: components['schemas']['CourseVersion'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -468,7 +481,7 @@ export function useCreateItem(): {
 
 // GET /courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}
 export function useItemById(courseId: string, versionId: string, itemId: string): {
-  data: components['schemas']['ItemDataResponse'] | undefined,
+  data: components['schemas']['GetItemResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -548,11 +561,11 @@ export function useMoveItem(): {
 
 // Enrollment hooks
 
-// POST /users/enrollments/courses/{courseId}/versions/{courseVersionId}
+// POST /users/{userId}/enrollments/courses/{courseId}/versions/{versionId}
 export function useEnrollUser(): {
-  mutate: (variables: { params: { path: { courseId: string, courseVersionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, courseVersionId: string } } }) => Promise<components['schemas']['EnrollUserResponseData']>,
-  data: components['schemas']['EnrollUserResponseData'] | undefined,
+  mutate: (variables: { params: { path: { userId: string, courseId: string, versionId: string } } }) => void,
+  mutateAsync: (variables: { params: { path: { userId: string, courseId: string, versionId: string } } }) => Promise<components['schemas']['EnrollUserResponse']>,
+  data: components['schemas']['EnrollUserResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -570,9 +583,9 @@ export function useEnrollUser(): {
 
 // POST /users/{userId}/enrollments/courses/{courseId}/versions/{courseVersionId}/unenroll
 export function useUnenrollUser(): {
-  mutate: (variables: { params: { path: { userId: string, courseId: string, courseVersionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { userId: string, courseId: string, courseVersionId: string } } }) => Promise<components['schemas']['EnrollUserResponseData']>,
-  data: components['schemas']['EnrollUserResponseData'] | undefined,
+  mutate: (variables: { params: { path: { userId: string, courseId: string, versionId: string } } }) => void,
+  mutateAsync: (variables: { params: { path: { userId: string, courseId: string, versionId: string } } }) => Promise<components['schemas']['EnrollUserResponse']>,
+  data: components['schemas']['EnrollUserResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -722,10 +735,10 @@ export function useUserProgressPercentageByUserId(
   };
 }
 
-// POST /users/progress/courses/{courseId}/versions/{courseVersionId}/start
+// POST /users/progress/courses/{courseId}/versions/{versionId}/start
 export function useStartItem(): {
-  mutate: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: components['schemas']['StartItemBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: components['schemas']['StartItemBody'] }) => Promise<components['schemas']['StartItemResponse']>,
+  mutate: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['StartItemBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['StartItemBody'] }) => Promise<components['schemas']['StartItemResponse']>,
   data: components['schemas']['StartItemResponse'] | undefined,
   error: string | null,
   isPending: boolean,
@@ -742,10 +755,10 @@ export function useStartItem(): {
   };
 }
 
-// POST /users/progress/courses/{courseId}/versions/{courseVersionId}/stop
+// POST /users/progress/courses/{courseId}/versions/{versionId}/stop
 export function useStopItem(): {
-  mutate: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: components['schemas']['StopItemBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: components['schemas']['StopItemBody'] }) => Promise<unknown>,
+  mutate: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['StopItemBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['StopItemBody'] }) => Promise<unknown>,
   data: unknown | undefined,
   error: string | null,
   isPending: boolean,
@@ -762,10 +775,10 @@ export function useStopItem(): {
   };
 }
 
-// PATCH /users/{userid}/progress/courses/{courseId}/versions/{courseVersionId}/reset
+// PATCH /users/{userid}/progress/courses/{courseId}/versions/{versionId}/reset
 export function useResetProgress(): {
-  mutate: (variables: { params: { path: { userId: string, courseId: string, courseVersionId: string } }, body: components['schemas']['ResetCourseProgressBody'] }) => void,
-  mutateAsync: (variables: { params: { path: { userId: string, courseId: string, courseVersionId: string } }, body: components['schemas']['ResetCourseProgressBody'] }) => Promise<unknown>,
+  mutate: (variables: { params: { path: { userId: string, courseId: string, versionId: string } }, body: components['schemas']['ResetCourseProgressBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { userId: string, courseId: string, versionId: string } }, body: components['schemas']['ResetCourseProgressBody'] }) => Promise<unknown>,
   data: unknown | undefined,
   error: string | null,
   isPending: boolean,
@@ -851,9 +864,9 @@ export function useEditProctoringSettings() {
 }
 
 export function useInviteUsers(): {
-  mutate: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: InviteBody }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, courseVersionId: string } }, body: InviteBody }) => Promise<InviteResponse>,
-  data: InviteResponse | undefined,
+  mutate: (variables: { params: { path: { courseId: string, versionId: string } }, body: InviteBody }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } }, body: InviteBody }) => Promise<components['schemas']['InviteResponse']>,
+  data: components['schemas']['InviteResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -870,7 +883,7 @@ export function useInviteUsers(): {
 }
 
 export function useCourseInvites(courseId: string, courseVersionId: string, enabled: boolean = true): {
-  data: InviteResponse | undefined,
+  data: components['schemas']['InviteResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -928,7 +941,7 @@ export function useCancelInvite(): {
 
 // GET /users/{id}/watchTime/item/itemId
 export function useWatchTimeByItemId(userId: string, courseId: string, courseVersionId: string, itemId: string, type: string): {
-  data: undefined,
+  data: components["schemas"]["WatchTimeResponse"][] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -946,8 +959,8 @@ export function useWatchTimeByItemId(userId: string, courseId: string, courseVer
 }
 
 export function useEditUser(): {
-  mutate: (variables: { body: { firstName?: string; lastName?: string } }) => void,
-  mutateAsync: (variables: { body: { firstName?: string; lastName?: string } }) => Promise<void>,
+  mutate: (variables: { body: { firstName: string; lastName: string } }) => void,
+  mutateAsync: (variables: { body: { firstName: string; lastName: string } }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -1235,14 +1248,8 @@ export interface QuestionAnswersBody {
 // Quiz hooks
 export function useAttemptQuiz(): {
   mutate: (variables: { params: { path: { quizId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string } } }) => Promise<{
-    attemptId: string,
-    questionRenderViews: QuestionRenderView[]
-  }>,
-  data: {
-    attemptId: string,
-    questionRenderViews: QuestionRenderView[]
-  } | undefined,
+  mutateAsync: (variables: { params: { path: { quizId: string } } }) => Promise<components['schemas']['CreateAttemptResponse']>,
+  data: components['schemas']['CreateAttemptResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1287,8 +1294,8 @@ export function useFlagQuestion(): {
 
 
 export function useSaveQuiz(): {
-  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => Promise<void>,
+  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: components['schemas']['QuestionAnswersBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: components['schemas']['QuestionAnswersBody'] }) => Promise<void>,
   data: void,
   error: string | null,
   isPending: boolean,
@@ -1314,9 +1321,9 @@ export function useSaveQuiz(): {
 }
 
 export function useSubmitQuiz(): {
-  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => SubmitQuizResponse,
-  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => Promise<SubmitQuizResponse>,
-  data: SubmitQuizResponse | undefined,
+  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => components['schemas']['SubmitAttemptResponse'],
+  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => Promise<components['schemas']['SubmitAttemptResponse']>,
+  data: components['schemas']['SubmitAttemptResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1343,17 +1350,6 @@ export function useSubmitQuiz(): {
 interface IAttemptDetails {
   attemptId: string | ObjectId;
   submissionResultId?: string | ObjectId;
-}
-
-interface UserQuizMetricsResponse {
-  _id?: string;
-  quizId: string;
-  userId: string;
-  latestAttemptStatus: 'ATTEMPTED' | 'SUBMITTED';
-  latestAttemptId?: string;
-  latestSubmissionResultId?: string;
-  remainingAttempts: number;
-  attempts: IAttemptDetails[];
 }
 
 // GET /quizzes/{quizId}/user/{userId}
@@ -1390,7 +1386,7 @@ export function useQuizSubmission(quizId: string, submissionId: string): {
   return {
     data: result.data,
     isLoading: result.isLoading,
-    error: result.error ? (result.error.message ? result.error.message : "Cannot fetch Quiz submission details.") : null,
+    error: result.error ? (result.error ? result.error : "Cannot fetch Quiz submission details.") : null,
     refetch: result.refetch
   };
 }
@@ -1417,9 +1413,9 @@ export function useQuestionById(questionId: string): {
 
 // PUT /quizzes/questions/{questionId}
 export function useUpdateQuestion(): {
-  mutate: (variables: { params: { path: { questionId: string } }, body: QuestionBody }) => void,
-  mutateAsync: (variables: { params: { path: { questionId: string } }, body: QuestionBody }) => Promise<QuestionResponse>,
-  data: QuestionResponse | undefined,
+  mutate: (variables: { params: { path: { questionId: string } }, body: components['schemas']['QuestionBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { questionId: string } }, body: components['schemas']['QuestionBody'] }) => Promise<components['schemas']['QuestionResponse']>,
+  data: components['schemas']['QuestionResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1482,8 +1478,8 @@ export function useResolveFlaggedQuestion(): {
 
 // POST /quizzes/question-bank
 export function useCreateQuestionBank(): {
-  mutate: (variables: { body: CreateQuestionBankBody }) => void,
-  mutateAsync: (variables: { body: CreateQuestionBankBody }) => Promise<CreateQuestionBankResponse>,
+  mutate: (variables: { body: components['schemas']['CreateQuestionBankBody'] }) => void,
+  mutateAsync: (variables: { body: components['schemas']['CreateQuestionBankBody'] }) => Promise<components['schemas']['CreateQuestionBankResponse']>,
   data: CreateQuestionBankResponse | undefined,
   error: string | null,
   isPending: boolean,
@@ -1502,7 +1498,7 @@ export function useCreateQuestionBank(): {
 
 // GET /quizzes/question-bank/{questionBankId}
 export function useQuestionBankById(questionBankId: string): {
-  data: QuestionBankResponse | undefined,
+  data: components['schemas']['QuestionBankResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1522,8 +1518,8 @@ export function useQuestionBankById(questionBankId: string): {
 // PATCH /quizzes/question-bank/{questionBankId}/questions/{questionId}/add
 export function useAddQuestionToBank(): {
   mutate: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<QuestionBankResponse>,
-  data: QuestionBankResponse | undefined,
+  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<components['schemas']['QuestionBankResponse']>,
+  data: components['schemas']['QuestionBankResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1542,8 +1538,8 @@ export function useAddQuestionToBank(): {
 // PATCH /quizzes/question-bank/{questionBankId}/questions/{questionId}/remove
 export function useRemoveQuestionFromBank(): {
   mutate: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<QuestionBankResponse>,
-  data: QuestionBankResponse | undefined,
+  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<components['schemas']['QuestionBankResponse']>,
+  data: components['schemas']['QuestionBankResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1583,8 +1579,8 @@ export function useReplaceQuestionWithDuplicate(): {
 
 // POST /quizzes/quiz/{quizId}/bank
 export function useAddQuestionBankToQuiz(): {
-  mutate: (variables: { params: { path: { quizId: string } }, body: AddQuestionBankBody }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string } }, body: AddQuestionBankBody }) => Promise<void>,
+  mutate: (variables: { params: { path: { quizId: string } }, body: components['schemas']['AddQuestionBankBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { quizId: string } }, body: components['schemas']['AddQuestionBankBody'] }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -1664,8 +1660,8 @@ export function useRemoveQuestionBankFromQuiz(): {
 
 // PATCH /quizzes/quiz/{quizId}/bank
 export function useEditQuestionBankInQuiz(): {
-  mutate: (variables: { params: { path: { quizId: string } }, body: EditQuestionBankBody }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string } }, body: EditQuestionBankBody }) => Promise<void>,
+  mutate: (variables: { params: { path: { quizId: string } }, body: components['schemas']['EditQuestionBankBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { quizId: string } }, body: components['schemas']['EditQuestionBankBody'] }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -1684,7 +1680,7 @@ export function useEditQuestionBankInQuiz(): {
 
 // GET /quizzes/quiz/{quizId}/bank
 export function useGetAllQuestionBanksForQuiz(quizId: string): {
-  data: GetAllQuestionBanksResponse | undefined,
+  data: components['schemas']['GetAllQuestionBanksResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1723,8 +1719,8 @@ export function useUpdateQuizSubmissionScore(): {
 
 // POST /quizzes/quiz/{quizId}/submission/{submissionId}/regrade
 export function useRegradeQuizSubmission(): {
-  mutate: (variables: { params: { path: { quizId: string, submissionId: string } }, body: RegradeSubmissionBody }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string, submissionId: string } }, body: RegradeSubmissionBody }) => Promise<void>,
+  mutate: (variables: { params: { path: { quizId: string, submissionId: string } }, body: components['schemas']['RegradeSubmissionBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { quizId: string, submissionId: string } }, body: components['schemas']['RegradeSubmissionBody'] }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -1743,8 +1739,8 @@ export function useRegradeQuizSubmission(): {
 
 // POST /quizzes/quiz/{quizId}/submission/{submissionId}/question/{questionId}/feedback
 export function useAddFeedbackToQuizQuestion(): {
-  mutate: (variables: { params: { path: { quizId: string, submissionId: string, questionId: string } }, body: AddFeedbackBody }) => void,
-  mutateAsync: (variables: { params: { path: { quizId: string, submissionId: string, questionId: string } }, body: AddFeedbackBody }) => Promise<void>,
+  mutate: (variables: { params: { path: { quizId: string, submissionId: string, questionId: string } }, body: components['schemas']['AddFeedbackBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { quizId: string, submissionId: string, questionId: string } }, body: components['schemas']['AddFeedbackBody'] }) => Promise<void>,
   data: void | undefined,
   error: string | null,
   isPending: boolean,
@@ -1785,7 +1781,7 @@ export function useResetUserQuizAttempts(): {
 
 // GET /quizzes/{quizId}/attempt/{attemptId}
 export function useGetAttemptDetails(quizId: string, attemptId: string): {
-  data: components['schemas']['AttemptDetails'] | undefined,
+  data: components['schemas']['GetAttemptResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1823,7 +1819,7 @@ export function useQuizAnalytics(quizId: string): {
 
 // GET /quizzes/{quizId}/details
 export function useQuizDetails(quizId: string): {
-  data: components['schemas']['QuizDetails'] | undefined,
+  data: components['schemas']['QuizDetailsResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1842,7 +1838,7 @@ export function useQuizDetails(quizId: string): {
 
 // GET /quizzes/{quizId}/performance
 export function useQuizPerformance(quizId: string): {
-  data: components['schemas']['QuizPerformanceResponse'] | undefined,
+  data: components['schemas']['QuizPerformanceResponse'][] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1861,7 +1857,7 @@ export function useQuizPerformance(quizId: string): {
 
 // Get /quizzes/{quizId}/results
 export function useQuizResults(quizId: string): {
-  data: components['schemas']['QuizResultsResponse'] | undefined,
+  data: components['schemas']['QuizResultsResponse'][] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1879,7 +1875,7 @@ export function useQuizResults(quizId: string): {
 }
 
 export function useQuizSubmissions(quizId: string): {
-  data: components['schemas']['QuizSubmissionResponse'][] | undefined,
+  data: components['schemas']['GetAllSubmissionsResponse'][] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
