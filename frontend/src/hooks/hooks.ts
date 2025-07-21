@@ -8,14 +8,14 @@ import { api } from '../lib/openapi';
 import { components } from '../types/schema';
 import { useState } from 'react';
 
-import type { QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
-import type {
-  NewAnomalyData,
-  AnomalyData,
-  DeleteAnomalyBody
-} from '@/types/reportanomaly.types';
-import type { ProctoringSettings } from '@/types/video.types';
-import { InviteBody, InviteResponse, MessageResponse } from '@/types/invite.types';
+// import type { QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
+// import type {
+//   NewAnomalyData,
+//   AnomalyData,
+//   DeleteAnomalyBody
+// } from '@/types/reportanomaly.types';
+// import type { ProctoringSettings } from '@/types/video.types';
+// import { InviteBody, InviteResponse, MessageResponse } from '@/types/invite.types';
 
 // Auth hooks
 
@@ -864,8 +864,8 @@ export function useEditProctoringSettings() {
 }
 
 export function useInviteUsers(): {
-  mutate: (variables: { params: { path: { courseId: string, versionId: string } }, body: InviteBody }) => void,
-  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } }, body: InviteBody }) => Promise<components['schemas']['InviteResponse']>,
+  mutate: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['InviteBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { courseId: string, versionId: string } }, body: components['schemas']['InviteBody'] }) => Promise<components['schemas']['InviteResponse']>,
   data: components['schemas']['InviteResponse'] | undefined,
   error: string | null,
   isPending: boolean,
@@ -903,8 +903,8 @@ export function useCourseInvites(courseId: string, courseVersionId: string, enab
 
 export function useResendInvite(): {
   mutate: (variables: { params: { path: { inviteId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { inviteId: string } } }) => Promise<MessageResponse>,
-  data: MessageResponse | undefined,
+  mutateAsync: (variables: { params: { path: { inviteId: string } } }) => Promise<components['schemas']['MessageResponse']>,
+  data: components['schemas']['MessageResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -922,8 +922,8 @@ export function useResendInvite(): {
 
 export function useCancelInvite(): {
   mutate: (variables: { params: { path: { inviteId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { inviteId: string } } }) => Promise<MessageResponse>,
-  data: MessageResponse | undefined,
+  mutateAsync: (variables: { params: { path: { inviteId: string } } }) => Promise<components['schemas']['MessageResponse']>,
+  data: components['schemas']['MessageResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1321,8 +1321,8 @@ export function useSaveQuiz(): {
 }
 
 export function useSubmitQuiz(): {
-  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => components['schemas']['SubmitAttemptResponse'],
-  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: { answers: SaveQuestion[] } }) => Promise<components['schemas']['SubmitAttemptResponse']>,
+  mutate: (variables: { params: { path: { quizId: string, attemptId: string } }, body: components['schemas']['QuestionAnswersBody'] }) => components['schemas']['SubmitAttemptResponse'],
+  mutateAsync: (variables: { params: { path: { quizId: string, attemptId: string } }, body: components['schemas']['QuestionAnswersBody'] }) => Promise<components['schemas']['SubmitAttemptResponse']>,
   data: components['schemas']['SubmitAttemptResponse'] | undefined,
   error: string | null,
   isPending: boolean,
@@ -1347,14 +1347,9 @@ export function useSubmitQuiz(): {
   };
 }
 
-interface IAttemptDetails {
-  attemptId: string | ObjectId;
-  submissionResultId?: string | ObjectId;
-}
-
 // GET /quizzes/{quizId}/user/{userId}
 export function useUserQuizMetrics(quizId: string, userId: string): {
-  data: UserQuizMetrics | undefined,
+  data: components['schemas']['UserQuizMetricsResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1373,7 +1368,7 @@ export function useUserQuizMetrics(quizId: string, userId: string): {
 
 // GET /quiz/{quizId}/submissions/{submissionId}
 export function useQuizSubmission(quizId: string, submissionId: string): {
-  data: QuizSubmissionResponse | undefined,
+  data: components['schemas']['QuizSubmissionResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1394,7 +1389,7 @@ export function useQuizSubmission(quizId: string, submissionId: string): {
 
 // GET /quizzes/questions/{questionId}
 export function useQuestionById(questionId: string): {
-  data: QuestionResponse | undefined,
+  data: components['schemas']['QuestionResponse'] | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
@@ -1480,7 +1475,7 @@ export function useResolveFlaggedQuestion(): {
 export function useCreateQuestionBank(): {
   mutate: (variables: { body: components['schemas']['CreateQuestionBankBody'] }) => void,
   mutateAsync: (variables: { body: components['schemas']['CreateQuestionBankBody'] }) => Promise<components['schemas']['CreateQuestionBankResponse']>,
-  data: CreateQuestionBankResponse | undefined,
+  data: components['schemas']['CreateQuestionBankResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
@@ -1558,8 +1553,8 @@ export function useRemoveQuestionFromBank(): {
 // PATCH /quizzes/question-bank/{questionBankId}/questions/{questionId}/replace-duplicate
 export function useReplaceQuestionWithDuplicate(): {
   mutate: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => void,
-  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<ReplaceQuestionResponse>,
-  data: ReplaceQuestionResponse | undefined,
+  mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<components['schemas']['ReplaceQuestionResponse']>,
+  data: components['schemas']['ReplaceQuestionResponse'] | undefined,
   error: string | null,
   isPending: boolean,
   isSuccess: boolean,
