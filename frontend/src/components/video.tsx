@@ -38,6 +38,9 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(100);
+
+  const isSeekingRef = useRef(false);
+
   // Use the stored playback rate from the player store
   const { playbackRate, setPlaybackRate } = usePlayerStore();
   const [maxTime, setMaxTime] = useState(0);
@@ -307,6 +310,8 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       interval = setInterval(() => {
         const player = playerRef.current;
         if (player && player.getCurrentTime) {
+           if (isSeekingRef.current) return;
+
           const time = player.getCurrentTime();
           setCurrentTime(time);
           setDuration(player.getDuration());
@@ -372,7 +377,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
           const speedTolerance = playbackRate * 1.0;
           const timeDifference = time - maxTime;
 
-          if (timeDifference > speedTolerance + 1.0 && time <= endTimeSeconds) {
+          if (!isSeekingRef.current && timeDifference > speedTolerance + 1.0 && time <= endTimeSeconds) {
             if (!player) return;
             player.seekTo(maxTime, true);
           } else if (time >= startTimeSeconds && time <= endTimeSeconds) {
@@ -410,7 +415,8 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <div style={{
+      <div 
+       style={{
         width: '100%',
         height: '100%',
         maxWidth: '100%',
@@ -672,11 +678,21 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
             min={startTimeSeconds}
             max={endTimeSeconds > 0 ? endTimeSeconds : duration}
             step={0.1}
-            onValueChange={() => {
-              // Disabled - no seeking allowed
-            }}
-            className="w-full pointer-events-none"
-            disabled
+             onValueChange={(val) => {
+              isSeekingRef.current = true;
+              setCurrentTime(val[0]);
+             }}
+             onValueCommit={(val) => {
+              const newTime = val[0];
+              playerRef.current?.seekTo(newTime, true);
+              setCurrentTime(newTime);
+              setMaxTime(newTime);
+              setTimeout(() => {
+                isSeekingRef.current = false; 
+              }, 800); 
+             }}
+            className="w-full"
+            disabled={!endTimeSeconds}
           />
         </div>
 

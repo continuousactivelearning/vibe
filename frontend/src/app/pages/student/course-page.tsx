@@ -181,6 +181,8 @@ export default function CoursePage() {
     shouldFetchItem ? VERSION_ID : '',
     shouldFetchItem ? selectedItemId! : ''
   );
+
+
   // State to track previous valid item for reverting
   const [previousValidItem, setPreviousValidItem] = useState<{
     moduleId: string;
