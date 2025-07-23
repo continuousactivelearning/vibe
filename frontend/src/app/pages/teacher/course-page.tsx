@@ -788,7 +788,7 @@ function VersionCard({
           onClose={() => setShowProctoringModal(false)}
           courseId={courseId}
           courseVersionId={versionId}
-          isNew={false}
+          studentId={null}
         />
 
       </CardContent>

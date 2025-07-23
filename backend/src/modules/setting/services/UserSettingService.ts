@@ -1,10 +1,10 @@
-import {injectable, inject} from 'inversify';
-import {BaseService} from '#shared/classes/BaseService.js';
-import {GLOBAL_TYPES} from '#root/types.js';
-import {ISettingRepository} from '#root/shared/database/interfaces/ISettingRepository.js';
-import {UserSetting} from '../../setting/classes/transformers/UserSetting.js';
-import {ProctoringComponent} from '#root/shared/database/interfaces/ISettingRepository.js';
-import {NotFoundError, InternalServerError} from 'routing-controllers';
+import { injectable, inject } from 'inversify';
+import { BaseService } from '#shared/classes/BaseService.js';
+import { GLOBAL_TYPES } from '#root/types.js';
+import { ISettingRepository } from '#root/shared/database/interfaces/ISettingRepository.js';
+import { UserSetting } from '../../setting/classes/transformers/UserSetting.js';
+import { ProctoringComponent } from '#root/shared/database/interfaces/ISettingRepository.js';
+import { NotFoundError, InternalServerError } from 'routing-controllers';
 import {
   ICourseRepository,
   IUserRepository,
@@ -13,6 +13,8 @@ import {
 import {
   DetectorOptionsDto,
   DetectorSettingsDto,
+  ProctoringSettingsDto,
+  SettingsDto,
 } from '#root/modules/setting/classes/index.js';
 
 @injectable()
@@ -159,9 +161,23 @@ class UserSettingService extends BaseService {
       );
 
       if (!userSettings) {
-        throw new NotFoundError(
-          `User settings for student ID ${studentId}, course ID ${courseId} and version ID ${courseVersionId} not found.`,
-        );
+        const settings = new SettingsDto();
+        settings.proctors = new ProctoringSettingsDto();
+        settings.proctors.detectors = detectors;
+
+        const result = await this.createUserSettings(new UserSetting({
+          studentId,
+          courseVersionId,
+          courseId,
+          settings: settings
+        }))
+
+        if (!result) {
+          throw new InternalServerError(
+            'Failed to create course settings. Please try again later.',
+          );
+        }
+        return result._id ? true : false;
       }
 
       const result = await this.settingsRepo.updateUserSettings(
@@ -225,4 +241,4 @@ class UserSettingService extends BaseService {
   */
 }
 
-export {UserSettingService};
+export { UserSettingService };

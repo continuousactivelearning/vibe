@@ -800,7 +800,12 @@ export function useProctoringSettings(courseId: string, versionId: string): {
   };
 }
 
-export function useEditProctoringSettings() {
+export enum FetchProctoringType {
+  COURSE = 'course',
+  USER = 'user',
+}
+
+export function useEditProctoringSettings(fetchProctoringType: FetchProctoringType) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -808,14 +813,16 @@ export function useEditProctoringSettings() {
     courseId: string,
     versionId: string,
     detectors: { name: string; enabled: boolean }[],
-    isNew: boolean
+    studentId: string | null,
   ) => {
     setLoading(true);
     setError(null);
 
     try {
       const method = 'PUT';
-      const url = `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${versionId}/proctoring`;
+      const url = fetchProctoringType == FetchProctoringType.COURSE
+        ? `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${versionId}/proctoring`
+        : `${import.meta.env.VITE_BASE_URL}/setting/user-setting/${studentId}/${courseId}/${versionId}/proctoring`;
 
       const body =
       {
@@ -1599,8 +1606,8 @@ export function useAddQuestionBankToQuiz(): {
   };
 }
 
-export function useGetProcotoringSettings(): {
-  getSettings: (courseId: string, courseVersionId: string) => Promise<any>;
+export function useGetProcotoringSettings(fetchProctoringType: FetchProctoringType): {
+  getSettings: (courseId: string, courseVersionId: string, studentId: string | null) => Promise<any>;
   settingLoading: boolean;
   settingError: string | null;
 } {
@@ -1609,14 +1616,17 @@ export function useGetProcotoringSettings(): {
 
   const getSettings = async (
     courseId: string,
-    courseVersionId: string
+    courseVersionId: string,
+    studentId: string | null
   ): Promise<any> => {
     setSettingLoading(true);
     setSettingError(null);
 
     try {
       const method = 'GET';
-      const url = `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${courseVersionId}/`;
+      const url = fetchProctoringType == FetchProctoringType.COURSE
+        ? `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${courseVersionId}/`
+        : `${import.meta.env.VITE_BASE_URL}/setting/user-setting/${studentId}/${courseId}/${courseVersionId}/`
 
       const res = await fetch(url, {
         method,

@@ -1,4 +1,4 @@
-"use client"  
+"use client"
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "@tanstack/react-router"
@@ -26,6 +26,7 @@ import {
 } from "@/hooks/hooks"
 import { useCourseStore } from "@/store/course-store"
 import type { EnrolledUser } from "@/types/course.types"
+import { ProctoringModal } from "@/components/EditProctoringModal"
 
 // Types for quiz functionality
 interface IAttemptDetails {
@@ -158,6 +159,8 @@ export default function CourseEnrollments() {
   const [selectedViewItem, setSelectedViewItem] = useState<string>("")
   const [selectedViewItemType, setSelectedViewItemType] = useState<string>("")
   const [selectedViewItemName, setSelectedViewItemName] = useState<string>("")
+  const [showProctoringModal, setShowProctoringModal] = useState(false)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   // Fetch enrollments data
   const {
@@ -264,7 +267,7 @@ export default function CourseEnrollments() {
         await unenrollMutation.mutateAsync({
           params: {
             path: {
-              userId: userToRemove.id ,
+              userId: userToRemove.id,
               courseId: courseId,
               courseVersionId: versionId,
             },
@@ -574,7 +577,7 @@ export default function CourseEnrollments() {
                   </TableHeader>
                   <TableBody>
                     {sortedUsers.map((enrollment) => (
-                      <TableRow
+                      <><TableRow
                         key={enrollment._id}
                         className="border-border hover:bg-muted/20 transition-colors duration-200 group"
                       >
@@ -675,9 +678,32 @@ export default function CourseEnrollments() {
                               )}
                               Remove
                             </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedStudentId(enrollment.user.userId);
+                                setShowProctoringModal(true)
+                              }}
+                              className="h-8 cursor-pointer"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              Settings
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
+                        {courseId && versionId && (
+                          <ProctoringModal
+                            open={showProctoringModal}
+                            onClose={() => setShowProctoringModal(false)}
+                            courseId={courseId}
+                            courseVersionId={versionId}
+                            studentId={selectedStudentId}
+                          />
+                        )}
+                      </>
                     ))}
                   </TableBody>
                 </Table>

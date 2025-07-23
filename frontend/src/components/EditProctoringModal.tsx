@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useEditProctoringSettings, useGetProcotoringSettings } from "@/hooks/hooks"
+import { FetchProctoringType, useEditProctoringSettings, useGetProcotoringSettings } from "@/hooks/hooks"
 import { useEffect, useState } from "react"
 
 enum ProctoringComponent {
@@ -36,16 +36,16 @@ export function ProctoringModal({
   onClose,
   courseId,
   courseVersionId,
-  isNew,
+  studentId,
 }: {
   open: boolean
   onClose: () => void
   courseId: string
   courseVersionId: string
-  isNew: boolean
+  studentId: string | null
 }) {
-  const { editSettings, loading, error } = useEditProctoringSettings()
-  const { getSettings, settingLoading, settingError } = useGetProcotoringSettings();
+  const { editSettings, loading, error } = useEditProctoringSettings(studentId == null ? FetchProctoringType.COURSE : FetchProctoringType.USER)
+  const { getSettings, settingLoading, settingError } = useGetProcotoringSettings(studentId == null ? FetchProctoringType.COURSE : FetchProctoringType.USER);
 
   const allComponents = Object.values(ProctoringComponent)
   const [detectors, setDetectors] = useState(
@@ -55,7 +55,7 @@ export function ProctoringModal({
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const settings = await getSettings(courseId, courseVersionId);
+        const settings = await getSettings(courseId, courseVersionId, studentId);
         console.log(settings);
         setDetectors(settings?.settings.proctors.detectors.map((d: any) => ({ name: d.detectorName, enabled: d.settings.enabled })))
       } catch (err) {
@@ -77,7 +77,7 @@ export function ProctoringModal({
   }
 
   const handleSubmit = async () => {
-    const result = await editSettings(courseId, courseVersionId, detectors, isNew)
+    const result = await editSettings(courseId, courseVersionId, detectors, studentId)
     console.log("Proctoring settings updated:", result)
     if(result != undefined) {
       onClose()

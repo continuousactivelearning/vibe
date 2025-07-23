@@ -10,7 +10,7 @@ import { BadRequestErrorResponse } from '#root/shared/index.js';
 @OpenAPI({
   tags: ['Course Setting'],
 })
-@JsonController('/setting/course-setting')
+@JsonController('/setting/user-setting')
 @injectable()
 export class UserSettingController {
   constructor(
