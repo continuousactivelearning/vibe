@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState, useCallback, JSX} from 'react';
+import React, { useRef, useEffect, useState, useCallback, JSX } from 'react';
 import ReactDOM from 'react-dom';
-import { ChevronUp, ChevronDown, PictureInPicture2, SquareArrowOutDownLeft} from 'lucide-react';
+import { ChevronUp, ChevronDown, PictureInPicture2, SquareArrowOutDownLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GestureDetector from './ai/GestureDetector';
 import BlurDetection from './ai/BlurDetector';
@@ -13,6 +13,8 @@ import { useCourseStore } from '@/store/course-store';
 
 import type { FloatingVideoProps } from '@/types/video.types';
 import { useReportAnomalyAudio, useReportAnomalyImage } from '@/hooks/hooks';
+import { checkAuth } from '@/utils/auth';
+import { AnomalyType } from '@/types/reportanomaly.types';
 
 let flag = 0;
 function FloatingVideo({
@@ -38,9 +40,10 @@ function FloatingVideo({
   const [isPoppedOut, setIsPoppedOut] = useState(false);
   const [anomaly, setAnomaly] = useState(false);
   const [anomalyType, setAnomalyType] = useState("");
-   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
+
 
 
   // Original aspect ratio (maintain the initial component ratio)
@@ -50,7 +53,7 @@ function FloatingVideo({
   const [isBlur, setIsBlur] = useState("No");
   const [isSpeaking, setIsSpeaking] = useState("No");
   const [gesture, setGesture] = useState("No Gesture Detected ❌");
-  const [isFocused, setIsFocused] = useState(true); 
+  const [isFocused, setIsFocused] = useState(true);
   const [facesCount, setFacesCount] = useState(0);
   const [recognizedFaces, setRecognizedFaces] = useState<any[]>([]);
   const [penaltyPoints, setPenaltyPoints] = useState(-90);
@@ -67,11 +70,11 @@ function FloatingVideo({
   // Helper function to check if a specific proctoring component is enabled
   const isComponentEnabled = useCallback((componentName: string): boolean => {
     if (!settings?.settings?.proctors?.detectors) return true;
-    
+
     const detector = settings.settings.proctors.detectors.find(
       (detector) => detector.detectorName === componentName
     );
-    
+
     return detector?.settings?.enabled ?? true;
   }, [settings]);
 
@@ -203,12 +206,97 @@ function FloatingVideo({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mediaRecorder, audioChunks, audioStream]);
 
-  // Image anomaly reporting (unchanged)
+
+
+  // Image anomaly reporting
   useEffect(() => {
-    if (anomaly && anomalyType !== "voiceDetection") {
-      
+    const handleImageAnomaly=async()=>{
+      if (anomaly && anomalyType !== "voiceDetection") {
+        const video = videoRef.current;
+        if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+          console.log("Video not ready for screenshot");
+          return;
+        }
+  
+  
+        function dataURLtoFile(dataurl: string, filename: string) {
+          const arr = dataurl.split(',');
+          const match = arr[0].match(/:(.*?);/);
+          const mime = match ? match[1] : "image/png";
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          return new File([u8arr], filename, { type: mime });
+        }
+  
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+        const screenshot = canvas.toDataURL("image/png");
+        const imageFile = dataURLtoFile(screenshot, "anomaly.png");
+  
+        // // Log for debugging
+        console.log("Screenshot base64 string(image blob):", imageFile);
+        console.log('%c ', `font-size:1px; padding:40px 80px; background:url(${screenshot}); background-size:contain; background-repeat:no-repeat;`);
+        console.log("anomalyType", anomalyType, "====", "anamoly=", anomaly);
+        console.log("courseId", courseStore.currentCourse?.courseId);
+        console.log("versionId", courseStore.currentCourse?.versionId);
+        console.log("itemId", courseStore.currentCourse?.itemId);
+  
+        // Using Hook
+        try {
+          const response=await reportImage.mutateAsync({
+          body: {
+            type: anomalyType as AnomalyType,
+            courseId: courseStore.currentCourse?.courseId || "",
+            versionId: courseStore.currentCourse?.versionId || "",
+            itemId: courseStore.currentCourse?.itemId || "",
+          },
+          file: imageFile,
+        });
+
+        console.log("Post response",response);
+          
+        } catch (error) {
+          console.log("Error while reporting image anomaly:", error);
+        }
+
+        // Direct fetch method
+        // const formData = new FormData();
+        // formData.append('type', "BLUR_DETECTION" as AnomalyType);
+        // formData.append('courseId', courseStore.currentCourse?.courseId || "");
+        // formData.append('versionId', courseStore.currentCourse?.versionId || "");
+        // formData.append('itemId', courseStore.currentCourse?.itemId || "");
+        // formData.append('image', imageFile);
+
+        // const base_url=import.meta.env.VITE_BASE_URL;
+        // const token=checkAuth();
+        // const response = await fetch(`http://localhost:4001/api/anomalies/record/image`, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Authorization': `Bearer ${token}`,
+        //   },
+        //   body: formData
+        // });
+
+        // const result = await response.json();
+        
+        // if (!response.ok) {
+        //   throw new Error(`API Error: ${response.status} - ${JSON.stringify(result)}`);
+        // }
+
+        // console.log("Upload successful:", result);
+      }
     }
-  }, [anomaly, anomalyType, courseStore.currentCourse?.courseId, courseStore.currentCourse?.itemId, courseStore.currentCourse?.moduleId, courseStore.currentCourse?.sectionId, courseStore.currentCourse?.versionId, reportImage]);
+    handleImageAnomaly();// your mutation or image-posting logic
+  }, [anomaly, anomalyType, courseStore.currentCourse?.courseId, courseStore.currentCourse?.itemId, courseStore.currentCourse?.moduleId, courseStore.currentCourse?.sectionId, courseStore.currentCourse?.versionId]);
 
   // Function to restart video stream
   const restartVideo = useCallback(async () => {
@@ -315,8 +403,8 @@ function FloatingVideo({
         // setAnomalies([]);
         setPenaltyPoints((prevPoints) => prevPoints + newPenaltyPoints);
         setPenaltyType(newPenaltyType);
-        setAnomalyType(newPenaltyType === "Focus" ? "focus": newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" :  "faceRecognition");
-        
+        setAnomalyType(newPenaltyType === "Focus" ? "focus" : newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" : "faceRecognition");
+
         // Increment contiguous anomaly points
         setContiguousAnomalyPoints(prev => {
           const newContiguous = prev + newPenaltyPoints;
@@ -340,16 +428,16 @@ function FloatingVideo({
           setPauseVid(false);  // Resume video when anomalies are cleared
         }
         // Reset contiguous anomaly points when no anomalies are detected
-        if(contiguousAnomalyPoints>0) setContiguousAnomalyPoints(0);
+        if (contiguousAnomalyPoints > 0) setContiguousAnomalyPoints(0);
       }
     }, 100); // Update every second
 
     return () => clearInterval(interval);
   }, [
-    isSpeaking, 
-    facesCount, 
-    isBlur, 
-    isFocused, 
+    isSpeaking,
+    facesCount,
+    isBlur,
+    isFocused,
     // reportAnomaly,
     courseStore.currentCourse,
     isVoiceDetectionEnabled,
@@ -369,14 +457,14 @@ function FloatingVideo({
   // Random thumbs-up challenge system - only run if gesture detection is enabled
   useEffect(() => {
     if (!isHandGestureDetectionEnabled) return;
-    
+
     const checkForChallenge = () => {
       const now = Date.now();
       const timeSinceLastChallenge = now - lastChallengeTime;
 
       // Only trigger if no active challenge and enough time has passed (2-5 minutes randomly)
       if (!isThumbsUpChallenge && timeSinceLastChallenge > 30000) { // Minimum 30 seconds for testing
-        const randomInterval = Math.random() * (max-min) + min; // 2-5 minutes
+        const randomInterval = Math.random() * (max - min) + min; // 2-5 minutes
 
         if (timeSinceLastChallenge > randomInterval) {
           // Check if user is already showing thumbs-up when challenge starts
@@ -429,13 +517,13 @@ function FloatingVideo({
   // Check for thumbs-up gesture during challenge - only run if gesture detection is enabled
   useEffect(() => {
     if (!isHandGestureDetectionEnabled || !isThumbsUpChallenge || !gesture) return;
-    
+
     const gestureText = gesture.toLowerCase();
     console.log(`[Challenge] Current gesture detected: "${gesture}" (normalized: "${gestureText}")`);
-    
+
     // Check for various thumbs-up patterns that MediaPipe might return
     const isThumbsUp = gestureText.includes("thumb_up") || gestureText === "thumb_up";
-    
+
     if (isThumbsUp) {
       console.log("[Challenge] ✅ Thumbs-up detected! Challenge passed.");
       setDoGesture(false);
@@ -446,11 +534,11 @@ function FloatingVideo({
   }, [gesture, isThumbsUpChallenge, isHandGestureDetectionEnabled, setDoGesture]);
 
   // Check if any anomalies are detected - only consider enabled detectors
-  const isAnomaliesDetected = (isSpeaking === "Yes" && isVoiceDetectionEnabled) || 
-                              (facesCount !== 1 && isFaceCountDetectionEnabled) || 
-                              (isBlur === "Yes" && isBlurDetectionEnabled) || 
-                              (!isFocused && isFocusEnabled) ||
-                              (isThumbsUpChallenge && isHandGestureDetectionEnabled);
+  const isAnomaliesDetected = (isSpeaking === "Yes" && isVoiceDetectionEnabled) ||
+    (facesCount !== 1 && isFaceCountDetectionEnabled) ||
+    (isBlur === "Yes" && isBlurDetectionEnabled) ||
+    (!isFocused && isFocusEnabled) ||
+    (isThumbsUpChallenge && isHandGestureDetectionEnabled);
 
 
   // Smart overlay positioning based on face detection
@@ -665,7 +753,7 @@ function FloatingVideo({
               className="h-6 w-6 p-0 text-white hover:bg-green-700 hover:text-white flex-shrink-0"
               title={isCollapsed ? 'Expand' : 'Collapse'}
             >
-              {isCollapsed ? <ChevronUp className="h-3 w-3" />: <ChevronDown className="h-3 w-3" /> }
+              {isCollapsed ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
             <Button
               variant="ghost"
@@ -703,7 +791,7 @@ function FloatingVideo({
               className="h-6 w-6 p-0 text-white hover:bg-green-700 hover:text-white"
               title={isCollapsed ? 'Expand' : 'Collapse'}
             >
-              {isCollapsed ? <ChevronUp className="h-3 w-3" /> :<ChevronDown className="h-3 w-3" />}
+              {isCollapsed ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
             <Button
               variant="ghost"
@@ -942,31 +1030,31 @@ function FloatingVideo({
       {/* AI Components - Only render if enabled in proctoring settings */}
       <div className="hidden">
         {isBlurDetectionEnabled && (
-          <BlurDetection 
+          <BlurDetection
             key={`blur-${aiComponentsKey}`}
-            videoRef={videoRef} 
+            videoRef={videoRef}
             setIsBlur={setIsBlur}
           />
         )}
         {isVoiceDetectionEnabled && (
-          <SpeechDetector 
+          <SpeechDetector
             key={`speech-${aiComponentsKey}`}
             setIsSpeaking={setIsSpeaking}
           />
         )}
         {isHandGestureDetectionEnabled && (
-          <GestureDetector 
+          <GestureDetector
             key={`gesture-${aiComponentsKey}`}
-            videoRef={videoRef} 
+            videoRef={videoRef}
             setGesture={setGesture}
             trigger={true}
           />
         )}
         {(isFaceCountDetectionEnabled || isFaceRecognitionEnabled || isFocusEnabled) && (
-          <FaceDetectors 
+          <FaceDetectors
             key={`face-${faceDetectorsKey}`}
-            faces={faces} 
-            setIsFocused={()=>{}} // CHANGE THIS LATER.
+            faces={faces}
+            setIsFocused={() => { }} // CHANGE THIS LATER.
             videoRef={videoRef}
             onRecognitionResult={handleFaceRecognitionResult}
             // onDebugInfoUpdate={handleFaceRecognitionDebugUpdate}
