@@ -17,8 +17,6 @@ const GAMIFICATION_TYPES = {
 };
 
 const QUIZZES_TYPES = {
-  SubmissionRepo: Symbol.for('SubmissionRepository')
+  SubmissionRepo: Symbol.for('SubmissionRepository'),
 };
-export {GAMIFICATION_TYPES,QUIZZES_TYPES};
-
-
+export {GAMIFICATION_TYPES, QUIZZES_TYPES};

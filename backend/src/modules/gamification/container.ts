@@ -9,11 +9,11 @@ import {
   metricTriggerService,
   eventService,
   ruleService,
-  ScoringService
+  ScoringService,
 } from './services/index.js';
 import {GamifyLayerController} from './controllers/GamifyLayerController.js';
-import { ScoreController } from '#root/modules/gamification/controllers/ScoreController.js';
-import { SubmissionRepository } from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
+import {ScoreController} from '#root/modules/gamification/controllers/ScoreController.js';
+import {SubmissionRepository} from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
 export const GamificationContainerModule = new ContainerModule(options => {
   // Service
   options.bind(GAMIFICATION_TYPES.MetricService).to(metricService);
@@ -29,14 +29,20 @@ export const GamificationContainerModule = new ContainerModule(options => {
     .to(metricTriggerService);
   options.bind(GAMIFICATION_TYPES.EventService).to(eventService);
   options.bind(GAMIFICATION_TYPES.RuleService).to(ruleService);
-   options.bind(GAMIFICATION_TYPES.ScoringService).to(ScoringService).inSingletonScope();
+  options
+    .bind(GAMIFICATION_TYPES.ScoringService)
+    .to(ScoringService)
+    .inSingletonScope();
 
   // controllers
   options.bind(GamifyEngineController).toSelf().inSingletonScope();
   options.bind(GamifyLayerController).toSelf().inSingletonScope();
-   options.bind(ScoreController).toSelf().inSingletonScope();
+  options.bind(ScoreController).toSelf().inSingletonScope();
 
   // Repositories
 
-   options.bind(QUIZZES_TYPES.SubmissionRepo).to(SubmissionRepository).inSingletonScope();
+  options
+    .bind(QUIZZES_TYPES.SubmissionRepo)
+    .to(SubmissionRepository)
+    .inSingletonScope();
 });

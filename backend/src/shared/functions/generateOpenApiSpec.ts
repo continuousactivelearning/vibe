@@ -261,7 +261,7 @@ export function generateOpenAPISpec(
       },
       {
         name: 'Gamification',
-        tags: ['GamifyEngine', 'GamifyLayer'],
+        tags: ['GamifyEngine', 'GamifyLayer', 'Score'],
       },
       {
         name: 'Data Models',

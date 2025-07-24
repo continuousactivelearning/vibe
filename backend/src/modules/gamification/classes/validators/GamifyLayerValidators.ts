@@ -175,10 +175,9 @@ export class RuleBody implements IRule {
   @IsString()
   ruleDescription: string;
   @JSONSchema({
-    title: 'Rule Description',
-    description: 'Description of the rule',
-    example:
-      'Quick Learner Rule awarded for completing a quiz in under 5 minutes',
+    title: 'Event ID',
+    description: 'ID of the event this rule is associated with',
+    example: '60d5ec49b3f1c8e4a8f8b8c1',
     type: 'string',
   })
   @IsMongoId()
@@ -320,7 +319,7 @@ export class EventTriggerBody {
     type: 'string',
   })
   @IsMongoId()
-  eventId: string ;
+  eventId: string;
 
   @JSONSchema({
     title: 'Event Payload',
@@ -334,5 +333,3 @@ export class EventTriggerBody {
   @IsObject()
   eventPayload: Record<string, any>;
 }
-
-

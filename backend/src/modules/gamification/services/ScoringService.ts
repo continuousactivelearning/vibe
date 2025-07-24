@@ -1,15 +1,21 @@
-import { IQuizAttempt, IScoringResponse, IScoreBreakdown, IScoringWeights, IQuestionGrade } from '#gamification/interfaces/scoring.js';
-import { ObjectId } from 'mongodb';
+import {
+  IQuizAttempt,
+  IScoringResponse,
+  IScoreBreakdown,
+  IScoringWeights,
+  IQuestionGrade,
+} from '#gamification/interfaces/scoring.js';
+import {ObjectId} from 'mongodb';
 import {GLOBAL_TYPES} from '#root/types.js';
-import { injectable, inject } from 'inversify';
-import { GAMIFICATION_TYPES, QUIZZES_TYPES } from '#gamification/types.js';
-import { ScoringWeightsRepository } from '#shared/database/providers/mongo/repositories/WeightsRepository.js';
-import { BaseService } from '#root/shared/classes/BaseService.js';
-import { MongoDatabase } from '#shared/database/providers/mongo/MongoDatabase.js';
-import { SubmissionRepository } from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
-import { UserGameMetricsService } from './UserGameMetricsService.js';
-import { UserGameMetric } from '#gamification/classes/index.js';
-import { NotFoundError, InternalServerError } from 'routing-controllers';
+import {injectable, inject} from 'inversify';
+import {GAMIFICATION_TYPES, QUIZZES_TYPES} from '#gamification/types.js';
+import {ScoringWeightsRepository} from '#shared/database/providers/mongo/repositories/WeightsRepository.js';
+import {BaseService} from '#root/shared/classes/BaseService.js';
+import {MongoDatabase} from '#shared/database/providers/mongo/MongoDatabase.js';
+import {SubmissionRepository} from '#quizzes/repositories/providers/mongodb/SubmissionRepository.js';
+import {userGameMetricsService} from './UserGameMetricsService.js';
+import {UserGameMetric} from '#gamification/classes/index.js';
+import {NotFoundError, InternalServerError} from 'routing-controllers';
 
 @injectable()
 export class ScoringService extends BaseService {
@@ -28,9 +34,9 @@ export class ScoringService extends BaseService {
     @inject(QUIZZES_TYPES.SubmissionRepo)
     private submissionRepo: SubmissionRepository,
     @inject(GAMIFICATION_TYPES.UserGameMetricsService)
-    private userGameMetricsService: UserGameMetricsService,
+    private userGameMetricsService: userGameMetricsService,
     @inject(GLOBAL_TYPES.Database)
-    private mongoDatabase: MongoDatabase
+    private mongoDatabase: MongoDatabase,
   ) {
     super(mongoDatabase);
   }
@@ -39,44 +45,59 @@ export class ScoringService extends BaseService {
     return this.weightsRepo.get();
   }
 
-  private async getBasePoints(quizId: string, userId: string, attemptId: string): Promise<number> {
-    const submission = await this.submissionRepo.get(
-      quizId, 
-      userId, 
-      attemptId
-    );
-    
+  private async getBasePoints(
+    quizId: string,
+    userId: string,
+    attemptId: string,
+  ): Promise<number> {
+    const submission = await this.submissionRepo.get(quizId, userId, attemptId);
+
     if (!submission?.gradingResult?.totalScore) {
       throw new NotFoundError('Submission not found or not graded yet');
     }
     return submission.gradingResult.totalScore;
   }
 
-  public async calculateScore(attempt: IQuizAttempt): Promise<IScoringResponse> {
+  public async calculateScore(
+    attempt: IQuizAttempt,
+  ): Promise<IScoringResponse> {
     return this._withTransaction(async session => {
       const weights = await this.getWeights();
       const basePoints = await this.getBasePoints(
         attempt.quizId.toString(),
         attempt.userId.toString(),
-        attempt.attemptId.toString()
+        attempt.attemptId.toString(),
       );
 
       // Calculate bonus components
-      const confidenceScore = this.calculateConfidenceScore(attempt.grades, weights);
+      const confidenceScore = this.calculateConfidenceScore(
+        attempt.grades,
+        weights,
+      );
       const totalHintPenalty = attempt.hintCount * weights.hintPenalty;
       const streakBonusTotal = attempt.streaks * weights.streakBonus;
-      const timeBonus = (attempt.idealTime - attempt.timeTaken) * weights.timeWeight;
-      const totalAttemptPenalty = (attempt.attemptCount - 1) * weights.attemptPenalty;
+      const timeBonus =
+        (attempt.idealTime - attempt.timeTaken) * weights.timeWeight;
+      const totalAttemptPenalty =
+        (attempt.attemptCount - 1) * weights.attemptPenalty;
 
       // Calculate total bonus
-      const bonus = confidenceScore + totalHintPenalty + streakBonusTotal + timeBonus + totalAttemptPenalty;
+      const bonus =
+        confidenceScore +
+        totalHintPenalty +
+        streakBonusTotal +
+        timeBonus +
+        totalAttemptPenalty;
 
       // Get current user points
       let currentPoints = 0;
       try {
-        const existingMetrics = await this.userGameMetricsService.readUserGameMetrics(attempt.userId.toString());
-        const existingMetric = existingMetrics.find(metric => 
-          metric.metricId.toString() === attempt.metricId.toString()
+        const existingMetrics =
+          await this.userGameMetricsService.readUserGameMetrics(
+            attempt.userId.toString(),
+          );
+        const existingMetric = existingMetrics.find(
+          metric => metric.metricId.toString() === attempt.metricId.toString(),
         );
         currentPoints = existingMetric ? existingMetric.value : 0;
       } catch (error) {
@@ -93,7 +114,8 @@ export class ScoringService extends BaseService {
       // Apply scoring logic based on attempt count
       if (attempt.attemptCount === 1) {
         // First attempt: use base points + bonus
-        finalPoints = currentPoints+Math.max(0, Math.floor(basePoints + bonus));
+        finalPoints =
+          currentPoints + Math.max(0, Math.floor(basePoints + bonus));
         pointsAdded = Math.max(0, Math.floor(basePoints + bonus));
       } else {
         // Subsequent attempts: add only bonus to current points
@@ -113,9 +135,12 @@ export class ScoringService extends BaseService {
 
       // Update user game metric with final score
       try {
-        const existingMetrics = await this.userGameMetricsService.readUserGameMetrics(attempt.userId.toString());
-        const existingMetric = existingMetrics.find(metric => 
-          metric.metricId.toString() === attempt.metricId.toString()
+        const existingMetrics =
+          await this.userGameMetricsService.readUserGameMetrics(
+            attempt.userId.toString(),
+          );
+        const existingMetric = existingMetrics.find(
+          metric => metric.metricId.toString() === attempt.metricId.toString(),
         );
 
         if (existingMetric) {
@@ -124,7 +149,7 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date()
+            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.updateUserGameMetric(updatedMetric);
         } else {
@@ -133,7 +158,7 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date()
+            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.createUserGameMetric(newMetric);
         }
@@ -144,7 +169,7 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date()
+            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.createUserGameMetric(newMetric);
         } else {
@@ -160,7 +185,10 @@ export class ScoringService extends BaseService {
     });
   }
 
-  private calculateConfidenceScore(grades: IQuestionGrade[], weights: IScoringWeights): number {
+  private calculateConfidenceScore(
+    grades: IQuestionGrade[],
+    weights: IScoringWeights,
+  ): number {
     let countHighCorrect = 0;
     let countHighWrong = 0;
     let countLowCorrect = 0;
@@ -176,10 +204,10 @@ export class ScoringService extends BaseService {
     }
 
     return (
-      (countHighCorrect * weights.highWeight) -
-      (countHighWrong * weights.highWeight) +
-      (countLowCorrect * weights.lowWeight) -
-      (countLowWrong * weights.lowWeight)
+      countHighCorrect * weights.highWeight -
+      countHighWrong * weights.highWeight +
+      countLowCorrect * weights.lowWeight -
+      countLowWrong * weights.lowWeight
     );
   }
 
@@ -187,10 +215,11 @@ export class ScoringService extends BaseService {
     return this.getWeights();
   }
 
-  public async updateWeights(newWeights: Partial<IScoringWeights>): Promise<IScoringWeights> {
+  public async updateWeights(
+    newWeights: Partial<IScoringWeights>,
+  ): Promise<IScoringWeights> {
     return this._withTransaction(async session => {
       return this.weightsRepo.update(newWeights);
     });
   }
-
 }

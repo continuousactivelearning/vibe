@@ -26,8 +26,6 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
 
   private initialized = false;
 
-  
-
   private async init() {
     if (!this.initialized) {
       this.eventsCollection = await this.db.getCollection<Events>('events');
@@ -37,13 +35,16 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
       try {
         // rules: index for retrieving rules based on event
         await this.rulesCollection.createIndex(
-          { eventId: 1 },
-          { name: 'eventId_rules', background: true }
+          {eventId: 1},
+          {name: 'eventId_rules', background: true},
         );
 
         console.log('GamifyLayerRepository indexes created successfully');
       } catch (error) {
-        console.error('Error creating indexes in GamifyLayerRepository:', error);
+        console.error(
+          'Error creating indexes in GamifyLayerRepository:',
+          error,
+        );
       }
 
       this.initialized = true;
@@ -73,12 +74,10 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
   async readEvents(session?: ClientSession): Promise<IEvents[] | null> {
     await this.init();
 
-    const events = await this.eventsCollection
-      .find({}, { session })
-      .toArray();
+    const events = await this.eventsCollection.find({}, {session}).toArray();
 
     return events.length > 0 ? events : null;
-}
+  }
   async readEvent(
     eventId: ObjectId,
     session?: ClientSession,
@@ -100,32 +99,31 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
     eventId: ObjectId,
     event: Partial<IEvents>,
     session?: ClientSession,
-): Promise<UpdateResult | null> {
+  ): Promise<UpdateResult | null> {
     await this.init();
 
     const result = await this.eventsCollection.updateOne(
-      { _id: eventId },
-      { $set: event },
-      { session },
+      {_id: eventId},
+      {$set: event},
+      {session},
     );
 
     return result;
-}
-
+  }
 
   async deleteEvent(
     eventId: ObjectId,
     session?: ClientSession,
   ): Promise<DeleteResult | null> {
-      await this.init();
+    await this.init();
 
-      const result = await this.eventsCollection.deleteOne(
-        { _id: eventId },
-        { session },
-      );
+    const result = await this.eventsCollection.deleteOne(
+      {_id: eventId},
+      {session},
+    );
 
-      return result;
-}
+    return result;
+  }
 
   async createRule(
     rule: IRule,
@@ -205,11 +203,8 @@ export class GamifyLayerRepository implements IGamifyLayerRepository {
   ): Promise<DeleteResult | null> {
     await this.init();
 
-    const result = await this.rulesCollection.deleteMany(
-      { eventId },
-      { session },
-    );
+    const result = await this.rulesCollection.deleteMany({eventId}, {session});
 
     return result;
-}
+  }
 }

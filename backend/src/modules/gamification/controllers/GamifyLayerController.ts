@@ -58,7 +58,7 @@ export class GamifyLayerController {
     return createdEvent;
   }
 
-    @Authorized(['admin', 'instructor'])
+  @Authorized(['admin', 'instructor'])
   @Get('/events')
   async readEvents(): Promise<Events[]> {
     const events = await this.eventService.readEvents();
@@ -67,8 +67,6 @@ export class GamifyLayerController {
     }
     return events;
   }
-
-
 
   @Authorized(['admin', 'instructor'])
   @Get('/events/:eventId')
@@ -84,16 +82,16 @@ export class GamifyLayerController {
   @Put('/events/:eventId')
   async updateEvent(
     @Params() params: ReadEventParams,
-    @Body() body: EventsBody
-  ): Promise<{ status: boolean }> {
+    @Body() body: EventsBody,
+  ): Promise<{status: boolean}> {
     const eventInstance = new Events(body);
     const status = await this.eventService.updateEvent(
       params.eventId,
-      eventInstance 
+      eventInstance,
     );
-    
-    return { status };
-}
+
+    return {status};
+  }
 
   @Authorized(['admin', 'instructor'])
   @HttpCode(204)
@@ -183,11 +181,13 @@ export class GamifyLayerController {
   @Authorized(['admin', 'instructor'])
   @HttpCode(204)
   @Delete('/rules/:eventId')
-  async deleteRulesByEventId(@Params() params: ReadRulesParams): Promise<boolean> {
+  async deleteRulesByEventId(
+    @Params() params: ReadRulesParams,
+  ): Promise<boolean> {
     const result = await this.ruleService.deleteRulesByEventId(params.eventId);
     if (!result) {
       throw new NotFoundError(`No rules found for event ID ${params.eventId}`);
     }
     return result;
-} 
+  }
 }

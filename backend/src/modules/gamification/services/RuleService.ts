@@ -95,7 +95,11 @@ export class ruleService extends BaseService {
       const eventId = new ObjectId(id);
       const rules = await this.gamifyLayerRepo.readRules(eventId, session);
 
-      return rules ? rules.map(rule => plainToInstance(Rule, rule)) : null;
+      if (!rules) {
+        throw new NotFoundError(`No rules found for event ID ${id}`);
+      }
+
+      return rules.map(rule => plainToInstance(Rule, rule));
     });
   }
 
@@ -146,19 +150,17 @@ export class ruleService extends BaseService {
   }
 
   async deleteRulesByEventId(eventId: string): Promise<boolean> {
-  return this._withTransaction(async session => {
-    const objectId = new ObjectId(eventId);
-    const deleteResult = await this.gamifyLayerRepo.deleteRulesByEventId(
-      objectId,
-      session,
-    );
-
-    if (!deleteResult) {
-      throw new NotFoundError(
-        `Error deleting rules for event ID ${eventId}`,
+    return this._withTransaction(async session => {
+      const objectId = new ObjectId(eventId);
+      const deleteResult = await this.gamifyLayerRepo.deleteRulesByEventId(
+        objectId,
+        session,
       );
-    }
-    return deleteResult.deletedCount > 0;
-  });
+
+      if (!deleteResult) {
+        throw new NotFoundError(`Error deleting rules for event ID ${eventId}`);
+      }
+      return deleteResult.deletedCount > 0;
+    });
   }
 }

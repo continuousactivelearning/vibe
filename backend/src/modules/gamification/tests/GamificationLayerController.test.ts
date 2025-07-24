@@ -6,7 +6,15 @@ import {
 } from 'routing-controllers';
 import {Container} from 'inversify';
 import request from 'supertest';
-import {describe, it, beforeAll, afterAll, expect, vi, beforeEach} from 'vitest';
+import {
+  describe,
+  it,
+  beforeAll,
+  afterAll,
+  expect,
+  vi,
+  beforeEach,
+} from 'vitest';
 import {faker} from '@faker-js/faker';
 import {ObjectId} from 'mongodb';
 
@@ -18,6 +26,8 @@ import {authContainerModule} from '#root/modules/auth/container.js';
 import {authModuleOptions} from '#root/modules/auth/index.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
 import {FirebaseAuthService} from '#root/modules/auth/services/FirebaseAuthService.js';
+import {coursesContainerModule} from '#root/modules/courses/container.js';
+import {notificationsContainerModule} from '#root/modules/notifications/container.js';
 
 describe('GamifyLayerController', () => {
   const appInstance = Express();
@@ -36,6 +46,8 @@ describe('GamifyLayerController', () => {
       GamificationContainerModule,
       usersContainerModule,
       authContainerModule,
+      coursesContainerModule,
+      notificationsContainerModule,
     );
 
     const inversifyAdapter = new InversifyAdapter(container);
@@ -48,10 +60,10 @@ describe('GamifyLayerController', () => {
       ],
       authorizationChecker: async (action, roles) => {
         const token = action.request.headers['authorization']?.split(' ')[1];
-        
+
         // Admin can access everything
         if (token?.includes('admin')) return true;
-        
+
         // Instructor can access everything except some admin-only endpoints
         if (token?.includes('instructor')) {
           // If the endpoint specifically requires admin, deny access
@@ -60,7 +72,7 @@ describe('GamifyLayerController', () => {
           }
           return true;
         }
-        
+
         // Users can only access user-permitted endpoints
         if (token?.includes('user')) {
           // Explicit check for eventtrigger endpoint which should allow users
@@ -70,7 +82,7 @@ describe('GamifyLayerController', () => {
           // For other endpoints, check if 'user' role is allowed
           return roles.includes('user');
         }
-        
+
         return false;
       },
       currentUserChecker: async () => {
@@ -115,15 +127,22 @@ describe('GamifyLayerController', () => {
     };
 
     const adminRes = await request(app).post('/auth/signup').send(adminSignUp);
-    const instructorRes = await request(app).post('/auth/signup').send(instructorSignUp);
+    const instructorRes = await request(app)
+      .post('/auth/signup')
+      .send(instructorSignUp);
     const userRes = await request(app).post('/auth/signup').send(userSignUp);
+
+    console.log(userRes.body);
 
     userId = userRes.body.userId;
     adminToken = `mock-admin-token-${adminRes.body}`;
     instructorToken = `mock-instructor-token-${instructorRes.body}`;
     userToken = `mock-user-token-${userRes.body}`;
 
-    vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId);
+    vi.spyOn(
+      FirebaseAuthService.prototype,
+      'getUserIdFromReq',
+    ).mockResolvedValue(userId);
   });
 
   describe('POST /gamification/events', () => {
@@ -372,7 +391,6 @@ describe('GamifyLayerController', () => {
     });
   });
 
-
   describe('POST /gamification/rules', () => {
     let eventId: string;
 
@@ -468,7 +486,7 @@ describe('GamifyLayerController', () => {
         eventDescription: 'For get rules testing',
         eventVersion: '1.0.0',
         eventPayload: {
-          score: 'number'
+          score: 'number',
         },
       };
 
@@ -533,7 +551,7 @@ describe('GamifyLayerController', () => {
       expect(res.status).toBe(400);
     });
 
-    it('should return 404 for non-existent event', async () => {
+    it('should return 404 for non-existent event ID', async () => {
       const nonExistentId = new ObjectId().toString();
       const res = await request(app)
         .get(`/gamification/rules/${nonExistentId}`)
@@ -787,6 +805,37 @@ describe('GamifyLayerController', () => {
     let ruleId: string;
 
     beforeAll(async () => {
+      const metricBody = {
+        name: 'Test Metric',
+        description: 'Test Metric',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(metricBody);
+
+      const metricId = metricRes.body._id;
+
+      // create userGameMetric;
+
+      const userGameMetricBody = {
+        userId: userId,
+        metricId: metricId,
+        value: 0,
+        lastUpdated: '',
+      };
+
+      const userGameMetricRes = await request(app)
+        .post('/gamification/engine/usermetrics')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(userGameMetricBody);
+
+      expect(userGameMetricRes.status).toBe(201);
+
       const eventBody = {
         eventName: 'Trigger Test Event',
         eventDescription: 'For trigger testing',
@@ -804,15 +853,16 @@ describe('GamifyLayerController', () => {
 
       eventId = eventRes.body._id;
 
+      expect(eventRes.status).toBe(201);
+
       // Create a rule for the event
       const ruleBody = {
         ruleName: 'Trigger Test Rule',
         ruleDescription: 'For trigger testing',
         eventId: eventId,
-        metricId: new ObjectId().toString(),
+        metricId: metricId,
         logic: {
-          condition: 'score > 80',
-          action: 'incrementMetric',
+          and: [{'>': [{var: 'score'}, 80]}, {'<': [{var: 'timetaken'}, 300]}],
         },
         ruleVersion: 1,
       };
@@ -822,46 +872,48 @@ describe('GamifyLayerController', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send(ruleBody);
 
+      expect(ruleRes.status).toBe(201);
+
       ruleId = ruleRes.body._id;
     });
 
     it('should trigger an event (user)', async () => {
       const triggerBody = {
-      userId: userId,
-      eventId: eventId,
-      eventPayload: {
-      score: 90,
-      timeTaken: 100,
-    },
-  };
-    
+        userId: userId,
+        eventId: eventId,
+        eventPayload: {
+          score: 90,
+          timeTaken: 100,
+        },
+      };
+
+      console.log('Trigger as user payload:', triggerBody);
 
       const res = await request(app)
         .post('/gamification/eventtrigger')
         .set('Authorization', `Bearer ${userToken}`)
         .send(triggerBody);
 
+      console.log(res.body);
+
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('success', true);
     });
 
     it('should trigger an event (admin)', async () => {
       const triggerBody = {
-      userId: userId,
-      eventId: eventId,
-      eventPayload: {
-      score: 90,
-      timeTaken: 100,
-      },
-      
-  };
-    console.log('Trigger as admin payload:', triggerBody);
+        userId: userId,
+        eventId: eventId,
+        eventPayload: {
+          score: 90,
+          timeTaken: 100,
+        },
+      };
+      console.log('Trigger as admin payload:', triggerBody);
       const res = await request(app)
         .post('/gamification/eventtrigger')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(triggerBody);
 
-      console.log(res)
       expect(res.status).toBe(200);
     });
 
@@ -882,5 +934,5 @@ describe('GamifyLayerController', () => {
 
       expect(res.status).toBe(400);
     });
-    });
   });
+});

@@ -641,7 +641,6 @@ describe('GamificationEngineController', () => {
       expect(Array.isArray(res.body)).toBe(true);
     });
 
-
     it('should return 400 for invalid user ID', async () => {
       const res = await request(app).get(
         '/gamification/engine/usermetrics/invalidUserId',

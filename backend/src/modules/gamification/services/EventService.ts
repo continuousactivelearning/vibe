@@ -1,5 +1,9 @@
 import {injectable, inject} from 'inversify';
-import {NotFoundError, BadRequestError, InternalServerError} from 'routing-controllers';
+import {
+  NotFoundError,
+  BadRequestError,
+  InternalServerError,
+} from 'routing-controllers';
 import {
   BaseService,
   MongoDatabase,
@@ -46,11 +50,13 @@ export class eventService extends BaseService {
       return plainToInstance(Events, createdEvent);
     });
   }
-  
+
   async readEvents(): Promise<Events[] | null> {
     return this._withTransaction(async session => {
       const events = await this.gamifyLayerRepo.readEvents(session);
-      return events ? events.map(event => plainToInstance(Events, event)) : null;
+      return events
+        ? events.map(event => plainToInstance(Events, event))
+        : null;
     });
   }
 
@@ -61,7 +67,7 @@ export class eventService extends BaseService {
       return event ? plainToInstance(Events, event) : null;
     });
   }
-  
+
   async updateEvent(eventId: string, eventInstance: Events): Promise<boolean> {
     if (!ObjectId.isValid(eventId)) {
       throw new BadRequestError('Invalid Event ID');
@@ -70,7 +76,10 @@ export class eventService extends BaseService {
     return this._withTransaction(async session => {
       const objectId = new ObjectId(eventId);
 
-      const existingEvent = await this.gamifyLayerRepo.readEvent(objectId, session);
+      const existingEvent = await this.gamifyLayerRepo.readEvent(
+        objectId,
+        session,
+      );
       if (!existingEvent) {
         throw new NotFoundError(`Event with ID ${eventId} not found`);
       }
@@ -78,13 +87,12 @@ export class eventService extends BaseService {
       const updateResult = await this.gamifyLayerRepo.updateEvent(
         objectId,
         eventInstance,
-        session
+        session,
       );
 
       return updateResult.modifiedCount > 0;
     });
   }
-
 
   async deleteEvent(eventId: string): Promise<boolean> {
     if (!ObjectId.isValid(eventId)) {
@@ -99,18 +107,16 @@ export class eventService extends BaseService {
         throw new NotFoundError(`Event with ID ${eventId} not found`);
       }
 
-      await this.gamifyLayerRepo.deleteRulesByEventId(objectId,session);
-      
+      await this.gamifyLayerRepo.deleteRulesByEventId(objectId, session);
+
       const deleteEventResult = await this.gamifyLayerRepo.deleteEvent(
         objectId,
-        session
+        session,
       );
 
       return deleteEventResult?.deletedCount > 0;
     });
   }
-
-
 
   async eventTrigger(trigger: EventTrigger): Promise<MetricTriggerResponse> {
     // This method triggers an event for a user with the given payload.
@@ -141,9 +147,9 @@ export class eventService extends BaseService {
       //   eventValues.includes(typeof value),
       // );
       const isValueValid = payloadKeys.every(key => {
-      const expectedType = event.eventPayload[key];
-      return typeof eventPayload[key] === expectedType;
-    });
+        const expectedType = event.eventPayload[key];
+        return typeof eventPayload[key] === expectedType;
+      });
 
       if (!isKeysValid || !isValueValid) {
         throw new Error(

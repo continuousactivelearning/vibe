@@ -7,22 +7,31 @@ import {
   Put,
   Authorized,
 } from 'routing-controllers';
-import { OpenAPI, ResponseSchema } from 'routing-controllers-openapi';
-import { inject, injectable } from 'inversify';
-import { ScoringService } from '#gamification/services/ScoringService.js';
-import { IScoringResponse, IScoringWeights } from '#gamification/interfaces/scoring.js';
-import { GAMIFICATION_TYPES } from '#gamification/types.js';
-import { QuizAttemptValidator,ScoringWeightsValidator } from '#gamification/classes/validators/ScoringValidators.js';
-import { validateOrReject } from 'class-validator';
-import { QuizAttempt, ScoringWeights,ScoringResponse } from '#gamification/classes/transformers/ScoringTransformer.js';
+import {OpenAPI, ResponseSchema} from 'routing-controllers-openapi';
+import {inject, injectable} from 'inversify';
+import {ScoringService} from '#gamification/services/ScoringService.js';
+import {
+  IScoringResponse,
+  IScoringWeights,
+} from '#gamification/interfaces/scoring.js';
+import {GAMIFICATION_TYPES} from '#gamification/types.js';
+import {
+  QuizAttemptValidator,
+  ScoringWeightsValidator,
+} from '#gamification/classes/validators/ScoringValidators.js';
+import {
+  QuizAttempt,
+  ScoringWeights,
+  ScoringResponse,
+} from '#gamification/classes/transformers/ScoringTransformer.js';
 
-@OpenAPI({ tags: ['Gamification'] })
+@OpenAPI({tags: ['Score']})
 @injectable()
 @JsonController('/gamification')
 export class ScoreController {
   constructor(
     @inject(GAMIFICATION_TYPES.ScoringService)
-    private scoringService: ScoringService
+    private scoringService: ScoringService,
   ) {}
 
   @Post('/score')
@@ -35,7 +44,9 @@ export class ScoreController {
   @ResponseSchema(ScoringResponse, {
     description: 'Score calculation successful',
   })
-  async calculateScore(@Body() body: QuizAttemptValidator): Promise<IScoringResponse> {
+  async calculateScore(
+    @Body() body: QuizAttemptValidator,
+  ): Promise<IScoringResponse> {
     const attempt = new QuizAttempt(body);
     return this.scoringService.calculateScore(attempt);
   }
@@ -64,7 +75,9 @@ export class ScoreController {
   @ResponseSchema(ScoringWeights, {
     description: 'Weights updated successfully',
   })
-  async updateWeights(@Body() body: ScoringWeightsValidator): Promise<IScoringWeights> {
+  async updateWeights(
+    @Body() body: ScoringWeightsValidator,
+  ): Promise<IScoringWeights> {
     const weights = new ScoringWeights(body);
     return this.scoringService.updateWeights(weights);
   }
