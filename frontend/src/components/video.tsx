@@ -6,7 +6,8 @@ import { Play, Pause, SkipBack, Volume2, ChevronRight } from 'lucide-react';
 import { useStartItem, useStopItem } from '../hooks/hooks';
 import { useAuthStore } from '../store/auth-store';
 import { useCourseStore } from '../store/course-store';
-import { usePlayerStore } from '../store/player-store'; // Import the new store
+import { usePlayerStore } from '../store/player-store'; 
+import { useVolumeStore } from '@/store/volume-store';
 import type { VideoProps, YTPlayerInstance } from '@/types/video.types';
 import { on } from 'events';
 
@@ -37,7 +38,9 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
   const [playing, setPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(100);
+  // Use Zustand store for volume
+  const volume = useVolumeStore((state) => state.volume);
+  const setVolume = useVolumeStore((state) => state.setVolume);
   // Use the stored playback rate from the player store
   const { playbackRate, setPlaybackRate } = usePlayerStore();
   const [maxTime, setMaxTime] = useState(0);
@@ -47,6 +50,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
   const { currentCourse, setWatchItemId } = useCourseStore();
   const startItem = useStartItem();
   const stopItem = useStopItem();
+  
 
   // Parse start and end times
   const startTimeSeconds = parseTimeToSeconds(startTime || '0');
@@ -67,7 +71,11 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
 
   useEffect(() => {
     playerRef.current?.setPlaybackRate(playbackRate);
-  }, [playbackRate, playerRef, videoId, iframeRef, playerReady, currentTime]);
+    // Sync player volume with Zustand volume when volume changes
+    if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
+      playerRef.current.setVolume(volume);
+    }
+  }, [playbackRate, playerRef, videoId, iframeRef, playerReady, currentTime, volume]);
 
   // Control handlers
   const handlePlayPause = useCallback(() => {
@@ -207,12 +215,16 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
         events: {
           onReady: (event: { target: YTPlayerInstance }) => {
             const dur = event.target.getDuration();
+            const player = event.target;
             setPlayerReady(true);
             setDuration(dur);
-            setVolume(event.target.getVolume());
+            player.setVolume(volume); // Use Zustand value
             setMaxTime(startTimeSeconds);
             event.target.seekTo(startTimeSeconds, true);
             onDurationChange?.(dur);
+            setTimeout(() => {
+              player.setVolume(volume); // Use Zustand value
+            }, 300);
           },
           onStateChange: (event: { data: number; target: YTPlayerInstance }) => {
             if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
@@ -310,7 +322,9 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
           const time = player.getCurrentTime();
           setCurrentTime(time);
           setDuration(player.getDuration());
-          setVolume(player.getVolume());
+          // Sync Zustand store if player volume changed externally
+          const playerVol = player.getVolume();
+          if (playerVol !== volume) setVolume(playerVol);
 
           // Enforce startTime constraint
           if (time < startTimeSeconds) {
@@ -774,9 +788,8 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
                 min={0}
                 max={100}
                 onValueChange={(value) => {
-                  const v = value[0];
-                  setVolume(v);
-                  playerRef.current?.setVolume(v);
+                  setVolume(value[0]);
+                  playerRef.current?.setVolume(value[0]);
                 }}
                 className="w-[80px]"
               />
