@@ -694,20 +694,20 @@ export default function CourseEnrollments() {
                           </div>
                         </TableCell>
                       </TableRow>
-                        {courseId && versionId && (
-                          <ProctoringModal
-                            open={showProctoringModal}
-                            onClose={() => setShowProctoringModal(false)}
-                            courseId={courseId}
-                            courseVersionId={versionId}
-                            studentId={selectedStudentId}
-                          />
-                        )}
                       </>
                     ))}
                   </TableBody>
                 </Table>
               </div>
+            )}
+            {courseId && versionId && (
+              <ProctoringModal
+                open={showProctoringModal}
+                onClose={() => setShowProctoringModal(false)}
+                courseId={courseId}
+                courseVersionId={versionId}
+                studentId={selectedStudentId}
+              />
             )}
           </CardContent>
         </Card>
