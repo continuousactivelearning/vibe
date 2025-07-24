@@ -209,16 +209,17 @@ function FloatingVideo({
 
 
   // Image anomaly reporting
+
   useEffect(() => {
-    const handleImageAnomaly=async()=>{
+    const handleImageAnomaly = async () => {
       if (anomaly && anomalyType !== "voiceDetection") {
         const video = videoRef.current;
         if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
           console.log("Video not ready for screenshot");
           return;
         }
-  
-  
+
+
         function dataURLtoFile(dataurl: string, filename: string) {
           const arr = dataurl.split(',');
           const match = arr[0].match(/:(.*?);/);
@@ -231,68 +232,76 @@ function FloatingVideo({
           }
           return new File([u8arr], filename, { type: mime });
         }
-  
+
         const canvas = document.createElement("canvas");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  
+
         const screenshot = canvas.toDataURL("image/png");
         const imageFile = dataURLtoFile(screenshot, "anomaly.png");
-  
+
+        // report anomaly type checking 
+        let reportAnomaly;
+        if (anomalyType == "blurDetection") reportAnomaly = "BLUR_DETECTION";
+        if (anomalyType == "faceCountDetection") reportAnomaly = "MULTIPLE_FACES";
+
         // // Log for debugging
         console.log("Screenshot base64 string(image blob):", imageFile);
         console.log('%c ', `font-size:1px; padding:40px 80px; background:url(${screenshot}); background-size:contain; background-repeat:no-repeat;`);
-        console.log("anomalyType", anomalyType, "====", "anamoly=", anomaly);
+        console.log("anomalyType", reportAnomaly, "====", "anamoly=", anomaly);
         console.log("courseId", courseStore.currentCourse?.courseId);
         console.log("versionId", courseStore.currentCourse?.versionId);
         console.log("itemId", courseStore.currentCourse?.itemId);
-  
+
+
         // Using Hook
-        try {
-          const response=await reportImage.mutateAsync({
-          body: {
-            type: anomalyType as AnomalyType,
-            courseId: courseStore.currentCourse?.courseId || "",
-            versionId: courseStore.currentCourse?.versionId || "",
-            itemId: courseStore.currentCourse?.itemId || "",
-          },
-          file: imageFile,
-        });
 
-        console.log("Post response",response);
-          
-        } catch (error) {
-          console.log("Error while reporting image anomaly:", error);
-        }
+        // try {
+        //   const response = reportImage.mutateAsync({
+        //     body: {
+        //       type: reportAnomaly as AnomalyType,
+        //       courseId: courseStore.currentCourse?.courseId || "",
+        //       versionId: courseStore.currentCourse?.versionId || "",
+        //       itemId: courseStore.currentCourse?.itemId || "",
+        //     },
+        //     file: imageFile,
+        //   });
 
-        // Direct fetch method
-        // const formData = new FormData();
-        // formData.append('type', "BLUR_DETECTION" as AnomalyType);
-        // formData.append('courseId', courseStore.currentCourse?.courseId || "");
-        // formData.append('versionId', courseStore.currentCourse?.versionId || "");
-        // formData.append('itemId', courseStore.currentCourse?.itemId || "");
-        // formData.append('image', imageFile);
+        //   console.log("Post response", response);
 
-        // const base_url=import.meta.env.VITE_BASE_URL;
-        // const token=checkAuth();
-        // const response = await fetch(`http://localhost:4001/api/anomalies/record/image`, {
-        //   method: 'POST',
-        //   headers: {
-        //     'Authorization': `Bearer ${token}`,
-        //   },
-        //   body: formData
-        // });
-
-        // const result = await response.json();
-        
-        // if (!response.ok) {
-        //   throw new Error(`API Error: ${response.status} - ${JSON.stringify(result)}`);
+        // } catch (error) {
+        //   console.log("Error while reporting image anomaly:", error);
         // }
 
-        // console.log("Upload successful:", result);
+        
+        // Direct fetch method
+        const formData = new FormData();
+        formData.append('type', "BLUR_DETECTION" as AnomalyType);
+        formData.append('courseId', courseStore.currentCourse?.courseId || "");
+        formData.append('versionId', courseStore.currentCourse?.versionId || "");
+        formData.append('itemId', courseStore.currentCourse?.itemId || "");
+        formData.append('image', imageFile);
+
+        // const base_url=import.meta.env.VITE_BASE_URL;
+        const token=checkAuth();
+        const response = await fetch(`https://vibe-backend-staging-239934307367.asia-south1.run.app/api/anomalies/record/image`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} - ${JSON.stringify(result)}`);
+        }
+
+        console.log("Upload successful:", result);
       }
     }
     handleImageAnomaly();// your mutation or image-posting logic
