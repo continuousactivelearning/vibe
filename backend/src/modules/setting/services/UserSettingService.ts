@@ -1,10 +1,10 @@
-import {injectable, inject} from 'inversify';
-import {BaseService} from '#shared/classes/BaseService.js';
-import {GLOBAL_TYPES} from '#root/types.js';
-import {ISettingsRepository} from '#shared/database/interfaces/ISettingsRepository.js';
-import {UserSettings} from '../classes/transformers/UserSettings.js';
-import {ProctoringComponent} from '#shared/database/interfaces/ISettingsRepository.js';
-import {NotFoundError, InternalServerError} from 'routing-controllers';
+import { injectable, inject } from 'inversify';
+import { BaseService } from '#shared/classes/BaseService.js';
+import { GLOBAL_TYPES } from '#root/types.js';
+import { ISettingRepository } from '#root/shared/database/interfaces/ISettingRepository.js';
+import { UserSetting } from '../../setting/classes/transformers/UserSetting.js';
+import { ProctoringComponent } from '#root/shared/database/interfaces/ISettingRepository.js';
+import { NotFoundError, InternalServerError } from 'routing-controllers';
 import {
   ICourseRepository,
   IUserRepository,
@@ -13,13 +13,15 @@ import {
 import {
   DetectorOptionsDto,
   DetectorSettingsDto,
-} from '#settings/classes/index.js';
+  ProctoringSettingsDto,
+  SettingsDto,
+} from '#root/modules/setting/classes/index.js';
 
 @injectable()
-class UserSettingsService extends BaseService {
+class UserSettingService extends BaseService {
   constructor(
-    @inject(GLOBAL_TYPES.SettingsRepo)
-    private readonly settingsRepo: ISettingsRepository,
+    @inject(GLOBAL_TYPES.SettingRepo)
+    private readonly settingsRepo: ISettingRepository,
 
     @inject(GLOBAL_TYPES.UserRepo)
     private readonly userRepo: IUserRepository,
@@ -33,7 +35,7 @@ class UserSettingsService extends BaseService {
     super(mongoDatabase);
   }
 
-  async createUserSettings(userSettings: UserSettings): Promise<UserSettings> {
+  async createUserSettings(userSettings: UserSetting): Promise<UserSetting> {
     return this._withTransaction(async session => {
       // Check if the user is valid
 
@@ -105,7 +107,7 @@ class UserSettingsService extends BaseService {
     studentId: string,
     courseId: string,
     courseVersionId: string,
-  ): Promise<UserSettings | null> {
+  ): Promise<UserSetting | null> {
     return this._withTransaction(async session => {
       // Check if user settings exist for the student in the course version.
       const userSettings = await this.settingsRepo.readUserSettings(
@@ -129,17 +131,17 @@ class UserSettingsService extends BaseService {
           );
         }
         return Object.assign(
-          new UserSettings({
+          new UserSetting({
             studentId: studentId,
             courseId: courseId,
             courseVersionId: courseVersionId,
             settings: courseSettings.settings,
-          }) as UserSettings,
+          }) as UserSetting,
         );
       }
 
       // If user settings exist, we will return them.
-      return Object.assign(new UserSettings(), userSettings);
+      return Object.assign(new UserSetting(), userSettings);
     });
   }
 
@@ -159,9 +161,23 @@ class UserSettingsService extends BaseService {
       );
 
       if (!userSettings) {
-        throw new NotFoundError(
-          `User settings for student ID ${studentId}, course ID ${courseId} and version ID ${courseVersionId} not found.`,
-        );
+        const settings = new SettingsDto();
+        settings.proctors = new ProctoringSettingsDto();
+        settings.proctors.detectors = detectors;
+
+        const result = await this.createUserSettings(new UserSetting({
+          studentId,
+          courseVersionId,
+          courseId,
+          settings: settings
+        }))
+
+        if (!result) {
+          throw new InternalServerError(
+            'Failed to create course settings. Please try again later.',
+          );
+        }
+        return result._id ? true : false;
       }
 
       const result = await this.settingsRepo.updateUserSettings(
@@ -225,4 +241,4 @@ class UserSettingsService extends BaseService {
   */
 }
 
-export {UserSettingsService};
+export { UserSettingService };

@@ -26,6 +26,7 @@ import {
 } from "@/hooks/hooks"
 import { useCourseStore } from "@/store/course-store"
 import type { EnrolledUser } from "@/types/course.types"
+import { ProctoringModal } from "@/components/EditProctoringModal"
 
 // Types for quiz functionality
 interface IAttemptDetails {
@@ -163,6 +164,8 @@ export default function CourseEnrollments() {
   const [selectedViewItem, setSelectedViewItem] = useState<string>("")
   const [selectedViewItemType, setSelectedViewItemType] = useState<string>("")
   const [selectedViewItemName, setSelectedViewItemName] = useState<string>("")
+  const [showProctoringModal, setShowProctoringModal] = useState(false)
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   // Fetch enrollments data
   const {
@@ -579,7 +582,7 @@ export default function CourseEnrollments() {
                   </TableHeader>
                   <TableBody>
                     {sortedUsers.map((enrollment) => (
-                      <TableRow
+                      <><TableRow
                         key={enrollment._id}
                         className="border-border hover:bg-muted/20 transition-colors duration-200 group"
                       >
@@ -680,14 +683,37 @@ export default function CourseEnrollments() {
                               )}
                               Remove
                             </Button>
+                            {/* <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedStudentId(enrollment.user.userId);
+                                setShowProctoringModal(true)
+                              }}
+                              className="h-8 cursor-pointer"
+                            >
+                              <FileText className="h-3 w-3 mr-1" />
+                              Settings
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
+                      </>
                     ))}
                   </TableBody>
                 </Table>
               </div>
             )}
+            {/* {courseId && versionId && (
+              <ProctoringModal
+                open={showProctoringModal}
+                onClose={() => setShowProctoringModal(false)}
+                courseId={courseId}
+                courseVersionId={versionId}
+                studentId={selectedStudentId}
+              />
+            )} */}
           </CardContent>
         </Card>
 

@@ -8,7 +8,7 @@ import { api } from '../lib/openapi';
 import { components } from '../types/schema';
 import { useState } from 'react';
 
-import type {QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
+import type { QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
 import type {
   NewAnomalyData,
   AnomalyData,
@@ -751,8 +751,8 @@ export function useItemById(courseId: string, versionId: string, itemId: string)
 } {
   const result = api.useQuery("get", "/courses/{courseId}/versions/{versionId}/item/{itemId}", {
     params: { path: { courseId, versionId, itemId } }
-  }, {enabled: !!courseId && !!versionId && !!itemId}
-);
+  }, { enabled: !!courseId && !!versionId && !!itemId }
+  );
   // console.log("here", courseId , versionId , itemId);
   return {
     data: result.data,
@@ -946,7 +946,7 @@ export function useUserProgressPercentage(courseId: string, courseVersionId: str
     params: { path: { courseId, courseVersionId } }
   }, { enabled: !!courseId && !!courseVersionId }
   );
-  
+
   return {
     data: result.data,
     isLoading: result.isLoading,
@@ -957,8 +957,8 @@ export function useUserProgressPercentage(courseId: string, courseVersionId: str
 
 // Add this hook to your hooks file
 export function useUserProgressPercentageByUserId(
-  userId: string, 
-  courseId: string, 
+  userId: string,
+  courseId: string,
   courseVersionId: string
 ): {
   data: {
@@ -972,7 +972,7 @@ export function useUserProgressPercentageByUserId(
   refetch: () => void
 } {
   const result = api.useQuery(
-    "get", 
+    "get",
     "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/percentage",
     {
       params: {
@@ -1062,7 +1062,7 @@ export function useProctoringSettings(courseId: string, versionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/settings/users/{courseId}/{versionId}", {
+  const result = api.useQuery("get", "/setting/course-setting/{courseId}/{versionId}", {
     params: { path: { courseId, versionId } }
   },
     { enabled: !!courseId && !!versionId }
@@ -1076,22 +1076,51 @@ export function useProctoringSettings(courseId: string, versionId: string): {
   };
 }
 
-export function useEditProctoringSettings() {
+export enum FetchProctoringType {
+  COURSE = 'course',
+  USER = 'user',
+}
+
+export function useEditProctoringSettings(fetchProctoringType: FetchProctoringType) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const editSettings = async (
     courseId: string,
-    courseVersionId: string,
+    versionId: string,
     detectors: { name: string; enabled: boolean }[],
-    isNew: boolean
+    studentId: string | null,
   ) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const result = await updateProctoringSettings(courseId, courseVersionId, detectors, isNew);
-      return result;
+      const method = 'PUT';
+      const url = fetchProctoringType == FetchProctoringType.COURSE
+        ? `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${versionId}/proctoring`
+        : `${import.meta.env.VITE_BASE_URL}/setting/user-setting/${studentId}/${courseId}/${versionId}/proctoring`;
+
+      const body =
+      {
+        detectors: detectors.map((d) => ({
+          detectorName: d.name,
+          settings: { enabled: d.enabled },
+        })),
+      };
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+        body: JSON.stringify(body),
+      });
+
+      console.log('Proctoring settings response:', res);
+
+      if (!res.ok) {
+        throw new Error(`Failed to update settings: ${res.status}`);
+      }
+
+      return await res.json();
     } catch (err: any) {
       setError(err.message || 'Unknown error');
     } finally {
@@ -1179,14 +1208,14 @@ export function useCancelInvite(): {
 }
 
 // GET /users/{id}/watchTime/item/itemId
-export function useWatchTimeByItemId(userId: string, courseId: string, courseVersionId: string, itemId: string, type: string ): {
-  data:  undefined,
+export function useWatchTimeByItemId(userId: string, courseId: string, courseVersionId: string, itemId: string, type: string): {
+  data: undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
   const result = api.useQuery("get", "/users/{id}/watchTime/course/{courseId}/version/{courseVersionId}/item/{itemId}/type/{type}", {
-    params: { path: { id: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type:type} },
+    params: { path: { id: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type: type } },
   }, { enabled: !!userId && !!itemId && !!type },);
 
   return {
@@ -1597,7 +1626,7 @@ export function useUserQuizMetrics(quizId: string, userId: string): {
 } {
   const result = api.useQuery("get", "/quizzes/quiz/{quizId}/user/{userId}", {
     params: { path: { quizId, userId } }
-  }, {enabled: !!quizId && !!userId});
+  }, { enabled: !!quizId && !!userId });
 
   return {
     data: result.data,
@@ -1616,9 +1645,9 @@ export function useQuizSubmission(quizId: string, submissionId: string): {
 } {
   const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions/{submissionId}", {
     params: { path: { quizId, submissionId } }
-  }, {enabled: !!quizId && !!submissionId}
-);
-  
+  }, { enabled: !!quizId && !!submissionId }
+  );
+
   return {
     data: result.data,
     isLoading: result.isLoading,
@@ -1848,6 +1877,50 @@ export function useAddQuestionBankToQuiz(): {
     ...result,
     error: result.error ? (result.error.message || 'Failed to add question bank to quiz') : null
   };
+}
+
+export function useGetProcotoringSettings(fetchProctoringType: FetchProctoringType): {
+  getSettings: (courseId: string, courseVersionId: string, studentId: string | null) => Promise<any>;
+  settingLoading: boolean;
+  settingError: string | null;
+} {
+  const [settingLoading, setSettingLoading] = useState(false);
+  const [settingError, setSettingError] = useState<string | null>(null);
+
+  const getSettings = async (
+    courseId: string,
+    courseVersionId: string,
+    studentId: string | null
+  ): Promise<any> => {
+    setSettingLoading(true);
+    setSettingError(null);
+
+    try {
+      const method = 'GET';
+      const url = fetchProctoringType == FetchProctoringType.COURSE
+        ? `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${courseVersionId}/`
+        : `${import.meta.env.VITE_BASE_URL}/setting/user-setting/${studentId}/${courseId}/${courseVersionId}/`
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+      });
+
+      console.log(res);
+
+      if (!res.ok) {
+        throw new Error(`Failed to update settings: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      setSettingError(err.message || 'Unknown error');
+    } finally {
+      setSettingLoading(false);
+    }
+  };
+
+  return { getSettings, settingLoading, settingError };
 }
 
 // DELETE /quizzes/quiz/{quizId}/bank/{questionBankId}
