@@ -678,7 +678,7 @@ export default function CourseEnrollments() {
                               )}
                               Remove
                             </Button>
-                            <Button
+                            {/* <Button
                               variant="outline"
                               size="sm"
                               onClick={(e) => {
@@ -690,7 +690,7 @@ export default function CourseEnrollments() {
                             >
                               <FileText className="h-3 w-3 mr-1" />
                               Settings
-                            </Button>
+                            </Button> */}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -700,7 +700,7 @@ export default function CourseEnrollments() {
                 </Table>
               </div>
             )}
-            {courseId && versionId && (
+            {/* {courseId && versionId && (
               <ProctoringModal
                 open={showProctoringModal}
                 onClose={() => setShowProctoringModal(false)}
@@ -708,7 +708,7 @@ export default function CourseEnrollments() {
                 courseVersionId={versionId}
                 studentId={selectedStudentId}
               />
-            )}
+            )} */}
           </CardContent>
         </Card>
 
