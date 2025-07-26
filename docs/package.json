@@ -4,9 +4,8 @@
   "private": true,
   "scripts": {
     "docusaurus": "docusaurus",
-    "copy": "mkdir -p static/openapi && cd ../backend && pnpx ts-node -r tsconfig-paths/register scripts/generate-openapi.ts --output ../../docs/static/openapi/openapi.json",
     "start": "docusaurus start",
-    "build": "pnpm copy && docusaurus build",
+    "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "clear": "docusaurus clear",
