@@ -8,12 +8,15 @@ import { api } from '../lib/openapi';
 import { components, operations } from '../types/schema';
 import { useState } from 'react';
 
-import type {QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
+import type { QuestionRenderView, SaveQuestion, SubmitQuizResponse, QuizSubmissionResponse, FlaggedQuestionResponse, UserQuizMetrics, QuizDetails, QuizAnalytics, QuizPerformance, QuizResults } from '../types/quiz.types';
+
+
 import type {
   NewAnomalyData,
   AnomalyData,
   DeleteAnomalyBody
 } from '@/types/reportanomaly.types';
+
 import type { ProctoringSettings } from '@/types/video.types';
 import { InviteBody, InviteResponse, MessageResponse } from '@/types/invite.types';
 
@@ -125,6 +128,7 @@ export interface QuestionBankResponse {
   description: string;
 }
 
+
 export interface QuestionBankAndQuestionParams {
   questionBankId: string;
   questionId: string;
@@ -193,12 +197,12 @@ export interface AddFeedbackBody {
 }
 
 export interface GetAllQuestionBanksResponse extends Array<{
-    bankId: string;
-    count: number;
-    difficulty?: string[];
-    tags?: string[];
-    type?: string;
-  }> {}
+  bankId: string;
+  count: number;
+  difficulty?: string[];
+  tags?: string[];
+  type?: string;
+}> {}
 
 // Attempt types - matching backend validators
 export interface CreateAttemptParams {
@@ -412,6 +416,37 @@ export function useCreateCourse(): {
     ...result,
     error: result.error ? (result.error.message || 'Course creation failed') : null
   };
+}
+
+export async function useProcessInvites(inviteId: string): Promise<{
+  data: null,
+  isLoading: boolean,
+  error: string | null,
+  refetch: () => void
+}> {
+  let isLoading = true;
+  const method = 'GET';
+  const url = `${import.meta.env.VITE_BASE_URL}/notifications/invite/${inviteId}`;
+
+  const res = await fetch(url, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+  });
+
+  isLoading = false;
+
+  if (!res.ok) {
+    throw new Error(`Failed to update settings: ${res.status}`);
+  }
+
+  console.log(res);
+
+  return {
+    data: null,
+    isLoading: isLoading,
+    error: "",
+    refetch: () => { }
+  }
 }
 
 // GET /courses/{id}
@@ -751,8 +786,8 @@ export function useItemById(courseId: string, versionId: string, itemId: string)
 } {
   const result = api.useQuery("get", "/courses/{courseId}/versions/{versionId}/item/{itemId}", {
     params: { path: { courseId, versionId, itemId } }
-  }, {enabled: !!courseId && !!versionId && !!itemId}
-);
+  }, { enabled: !!courseId && !!versionId && !!itemId }
+  );
   // console.log("here", courseId , versionId , itemId);
   return {
     data: result.data,
@@ -946,7 +981,7 @@ export function useUserProgressPercentage(courseId: string, courseVersionId: str
     params: { path: { courseId, courseVersionId } }
   }, { enabled: !!courseId && !!courseVersionId }
   );
-  
+
   return {
     data: result.data,
     isLoading: result.isLoading,
@@ -957,8 +992,8 @@ export function useUserProgressPercentage(courseId: string, courseVersionId: str
 
 // Add this hook to your hooks file
 export function useUserProgressPercentageByUserId(
-  userId: string, 
-  courseId: string, 
+  userId: string,
+  courseId: string,
   courseVersionId: string
 ): {
   data: {
@@ -972,7 +1007,7 @@ export function useUserProgressPercentageByUserId(
   refetch: () => void
 } {
   const result = api.useQuery(
-    "get", 
+    "get",
     "/users/{userId}/progress/courses/{courseId}/versions/{courseVersionId}/percentage",
     {
       params: {
@@ -1062,7 +1097,7 @@ export function useProctoringSettings(courseId: string, versionId: string): {
   error: string | null,
   refetch: () => void
 } {
-  const result = api.useQuery("get", "/settings/users/{courseId}/{versionId}", {
+  const result = api.useQuery("get", "/setting/course-setting/{courseId}/{versionId}", {
     params: { path: { courseId, versionId } }
   },
     { enabled: !!courseId && !!versionId }
@@ -1082,16 +1117,38 @@ export function useEditProctoringSettings() {
 
   const editSettings = async (
     courseId: string,
-    courseVersionId: string,
+    versionId: string,
     detectors: { name: string; enabled: boolean }[],
     isNew: boolean
   ) => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const result = await updateProctoringSettings(courseId, courseVersionId, detectors, isNew);
-      return result;
+      const method = 'PUT';
+      const url = `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${versionId}/proctoring`;
+
+      const body =
+      {
+        detectors: detectors.map((d) => ({
+          detectorName: d.name,
+          settings: { enabled: d.enabled },
+        })),
+      };
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+        body: JSON.stringify(body),
+      });
+
+      console.log('Proctoring settings response:', res);
+
+      if (!res.ok) {
+        throw new Error(`Failed to update settings: ${res.status}`);
+      }
+
+      return await res.json();
     } catch (err: any) {
       setError(err.message || 'Unknown error');
     } finally {
@@ -1179,14 +1236,14 @@ export function useCancelInvite(): {
 }
 
 // GET /users/{id}/watchTime/item/itemId
-export function useWatchTimeByItemId(userId: string, courseId: string, courseVersionId: string, itemId: string, type: string ): {
-  data:  undefined,
+export function useWatchTimeByItemId(userId: string, courseId: string, courseVersionId: string, itemId: string, type: string): {
+  data: undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
   const result = api.useQuery("get", "/users/{id}/watchTime/course/{courseId}/version/{courseVersionId}/item/{itemId}/type/{type}", {
-    params: { path: { id: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type:type} },
+    params: { path: { id: userId, courseId: courseId, courseVersionId: courseVersionId, itemId: itemId, type: type } },
   }, { enabled: !!userId && !!itemId && !!type },);
 
   return {
@@ -1385,17 +1442,6 @@ export interface GetQuestionBankByIdParams {
   questionBankId: string;
 }
 
-export interface QuestionBankResponse {
-  _id: string;
-  name: string;
-  description?: string;
-  courseId: string;
-  courseVersionId: string;
-  questions: string[];
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface QuestionBankAndQuestionParams {
   questionBankId: string;
   questionId: string;
@@ -1577,17 +1623,6 @@ interface IAttemptDetails {
   submissionResultId?: string | ObjectId;
 }
 
-interface UserQuizMetricsResponse {
-  _id?: string;
-  quizId: string;
-  userId: string;
-  latestAttemptStatus: 'ATTEMPTED' | 'SUBMITTED';
-  latestAttemptId?: string;
-  latestSubmissionResultId?: string;
-  remainingAttempts: number;
-  attempts: IAttemptDetails[];
-}
-
 // GET /quizzes/{quizId}/user/{userId}
 export function useUserQuizMetrics(quizId: string, userId: string): {
   data: UserQuizMetricsResponse | undefined,
@@ -1597,7 +1632,7 @@ export function useUserQuizMetrics(quizId: string, userId: string): {
 } {
   const result = api.useQuery("get", "/quizzes/quiz/{quizId}/user/{userId}", {
     params: { path: { quizId, userId } }
-  }, {enabled: !!quizId && !!userId});
+  }, { enabled: !!quizId && !!userId });
 
   return {
     data: result.data,
@@ -1616,9 +1651,9 @@ export function useQuizSubmission(quizId: string, submissionId: string): {
 } {
   const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions/{submissionId}", {
     params: { path: { quizId, submissionId } }
-  }, {enabled: !!quizId && !!submissionId}
-);
-  
+  }, { enabled: !!quizId && !!submissionId }
+  );
+
   return {
     data: result.data,
     isLoading: result.isLoading,
@@ -1650,7 +1685,7 @@ export function useQuestionById(questionId: string): {
 // POST /quizzes/questions
 export function useCreateQuestion(): {
   mutate: (variables: { body: QuestionBody }) => void,
-  mutateAsync: (variables: { body: QuestionBody }) => Promise<{questionId: string}>,
+  mutateAsync: (variables: { body: QuestionBody }) => Promise<{ questionId: string }>,
   data: { questionId: string } | undefined,
   error: string | null,
   isPending: boolean,
@@ -1661,7 +1696,7 @@ export function useCreateQuestion(): {
   status: 'idle' | 'pending' | 'success' | 'error'
 } {
   const result = api.useMutation("post", "/quizzes/questions");
-  return {  
+  return {
     ...result,
     error: result.error ? (result.error.message || 'Question creation failed') : null
   };
@@ -1848,6 +1883,83 @@ export function useAddQuestionBankToQuiz(): {
     ...result,
     error: result.error ? (result.error.message || 'Failed to add question bank to quiz') : null
   };
+}
+
+export function useGetProcotoringSettings(): {
+  getSettings: (courseId: string, courseVersionId: string) => Promise<any>;
+  settingLoading: boolean;
+  settingError: string | null;
+} {
+  const [settingLoading, setSettingLoading] = useState(false);
+  const [settingError, setSettingError] = useState<string | null>(null);
+
+  const getSettings = async (
+    courseId: string,
+    courseVersionId: string
+  ): Promise<any> => {
+    setSettingLoading(true);
+    setSettingError(null);
+
+    try {
+      const method = 'GET';
+      const url = `${import.meta.env.VITE_BASE_URL}/setting/course-setting/${courseId}/${courseVersionId}/`;
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+      });
+
+      if (!res.ok) {
+        throw new Error(`Failed to update settings: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      setSettingError(err.message || 'Unknown error');
+    } finally {
+      setSettingLoading(false);
+    }
+  };
+
+  return { getSettings, settingLoading, settingError };
+}
+
+export function useInvites(): {
+  getInvites: () => Promise<any>;
+  loading: boolean;
+  error: string | null;
+} {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const getInvites = async (): Promise<any> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const method = 'GET';
+      const url = `${import.meta.env.VITE_BASE_URL}/notifications/invite/`;
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
+      });
+
+      console.log(res);
+
+      if (!res.ok) {
+        throw new Error(`Failed to update settings: ${res.status}`);
+      }
+
+      return await res.json();
+    } catch (err: any) {
+      setError(err.message || 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { getInvites, loading, error };
 }
 
 // DELETE /quizzes/quiz/{quizId}/bank/{questionBankId}

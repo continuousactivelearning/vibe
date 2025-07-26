@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
-  BookOpen, ChevronRight, FileText, VideoIcon, ListChecks, Plus, Pencil
+  BookOpen, ChevronRight, FileText, VideoIcon, ListChecks, Plus, Pencil, Wand2
 } from "lucide-react";
 
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Home, GraduationCap } from "lucide-react";
 
@@ -346,6 +346,7 @@ useEffect(()=>{
 setInitialModules(modules)
  }
 },[modules])
+  const navigate = useNavigate();
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -587,7 +588,26 @@ setInitialModules(modules)
                                     <option value="quiz">Quiz</option>
 
                                   </select>
-
+                                  <Button
+                                    size="icon"
+                                    variant="secondary"
+                                    className="ml-3 px-2 py-2 text-[11px] rounded flex items-center gap-1 shadow min-h-6 h-6"
+                                    style={{ minWidth: 'unset' }}
+                                    onClick={() => {
+                                      setCurrentCourse({
+                                        courseId,
+                                        versionId,
+                                        moduleId: module.moduleId,
+                                        sectionId: section.sectionId,
+                                        itemId: null,
+                                        watchItemId: null,
+                                      });
+                                      navigate({ to: '/teacher/ai-section' });
+                                    }}
+                                  >
+                                    <Wand2 className="h-3.5 w-3.5" />
+                                    <span className="pr-1">AI</span>
+                                  </Button>
                                 </div>
 
                               </SidebarMenuSub>

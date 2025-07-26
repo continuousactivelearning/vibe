@@ -22,6 +22,16 @@ export default defineConfig({
       "@": resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      // Proxy API requests to staging backend to avoid CORS issues
+      '/api': {
+        target: 'https://vibe-backend-staging-239934307367.asia-south1.run.app',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   build: {
     sourcemap: true,
     rollupOptions: {
