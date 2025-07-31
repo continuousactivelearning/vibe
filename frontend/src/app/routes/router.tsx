@@ -33,7 +33,7 @@ import InvitePage from '../pages/teacher/invite'
 import GenerateSectionPage from '@/app/pages/teacher/create-job'
 import AISectionPage from '@/app/pages/teacher/AISectionPage';
 import AISectionModal from '@/app/pages/teacher/components/AISectionModal';
-import FlaggedList from '../pages/teacher/FlaggedList'
+import FlaggedList from '../pages/teacher/FlaggedList/FlaggedList'
 
 
 // Root route with error and notFound handling
