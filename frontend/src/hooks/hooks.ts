@@ -19,7 +19,7 @@ import type {
 
 import type { ProctoringSettings } from '@/types/video.types';
 import { InviteBody, InviteResponse, MessageResponse } from '@/types/invite.types';
-import { EntityType, IReport, ReportStatus } from '@/types/flag.types';
+import { EntityType, FlagBody, IReport, ReportStatus } from '@/types/flag.types';
 
 // Add missing ObjectId type
 type ObjectId = string;
@@ -2286,7 +2286,7 @@ export function useQuizSubmissions(quizId: string,gradeStatus:GradingSystemStatu
 }
 
 export function useSubmitFlag(): {
-  mutate: (variables: { body: { courseId: string, versionId: string, entityId: string, entityType: EntityType, reason: string } }) => void,
+  mutate: (variables: { body: FlagBody }) => void,
   mutateAsync: (variables: { body: { courseId: string, versionId: string, entityId: string, entityType: EntityType, reason: string } }) => Promise<void>,
   error: string | null,
   isPending: boolean,

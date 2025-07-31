@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/auth-store";
 import { useUserEnrollments, useWatchtimeTotal } from "@/hooks/hooks";
 import { useNavigate } from "@tanstack/react-router";
-
-// Import new components
 import { StatCard } from "@/components/ui/StatCard";
 import { AnnouncementBanner } from "@/components/ui/AnnouncementBanner";
 import { CourseSection } from "@/components/course/CourseSection";
@@ -11,8 +9,11 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getGreeting } from "@/utils/helpers";
 import type { CoursePctCompletion } from '@/types/course.types';
+import { AuthStateHandler } from "./components/AuthStateHandler";
+import { UserStats } from "./components/UserStats";
+import { getTotalProgress } from "./helper/getTotalProgress";
 
-export default function Page() {
+export default function DashboardPage() {
   const { isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
 
@@ -24,55 +25,47 @@ export default function Page() {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50/50 flex items-center justify-center">
-        <div className="px-4 sm:px-6 lg:px-8 w-full max-w-md">
-          <EmptyState
-            title={!isAuthenticated ? "Authentication Required" : "Loading..."}
-            description={!isAuthenticated
-              ? "Please log in to view your dashboard"
-              : "Preparing your dashboard..."}
-            actionText={!isAuthenticated ? "Go to Login" : undefined}
-            onAction={!isAuthenticated ? () => navigate({ to: '/auth' }) : undefined}
-          />
-        </div>
-      </div>
-    );
-  }
-  return <DashboardContent/>;
+ return !isAuthenticated ? 
+        <AuthStateHandler 
+          isAuthenticated={isAuthenticated}
+        /> :
+        <DashboardContent/>
 }
 
 
 function DashboardContent() {
-  const { user } = useAuthStore();
-  const navigate = useNavigate();
-  const studentName = user?.name || 'Student';
+
+  // << Store >> 
+  const { token, user } = useAuthStore();
 
   // Greeting state & updater
   const [greeting, setGreeting] = useState(getGreeting());
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setGreeting(getGreeting());
-    }, 60000);
-    return () => clearInterval(intervalId);
-  }, []);
-  // Only fetch enrollments if user is authenticated (i.e., token is present)
-  const { token } = useAuthStore();
+
+  const navigate = useNavigate();
+  const studentName = user?.name || 'Student';
+
   const {
     data: enrollmentsData,
     isLoading: enrollmentsLoading,
     error: enrollmentsError
   } = useUserEnrollments(1, 5, !!token);
 
+  
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setGreeting(getGreeting());
+    }, 60000);
+
+    return () => clearInterval(intervalId);
+
+  }, []);
+
   const enrollments = enrollmentsData?.enrollments || [];
   const totalEnrollments = enrollmentsData?.totalDocuments || 0;
   const { data: watchtimeData } = useWatchtimeTotal();
   const filteredEnrollement = enrollments.filter(enrollment=>enrollment.role == "STUDENT");
   const [completion, setCompletion] = useState<CoursePctCompletion[]>([]);
-  const totalProgress = Math.round(
-    completion.reduce((acc, curr) => acc + (curr.completedItems || 0), 0) / completion.reduce((acc, curr) => acc + (curr.totalItems || 0), 0) * 100
-  ) || 0;
+  const totalProgress = getTotalProgress(completion);
   
   return (
     <>
@@ -88,11 +81,11 @@ function DashboardContent() {
           </p>
         </div>
         {/* Right: Stat Cards */}
-        <div className="flex flex-col sm:flex-row gap-4 items-center w-full sm:w-auto">
-          <StatCard icon="🏆" value={`${totalEnrollments}`} label="Enrolled Courses" />
-          <StatCard icon="⏱️" value={`${(watchtimeData / 3600 || 0).toFixed(2)}h`} label="Study Time" />
-          <StatCard icon="🎓" value={`${totalProgress}%`} label="Overall Progress" />
-        </div>
+        <UserStats 
+          totalEnrollments={totalEnrollments}
+          watchtimeData={watchtimeData}
+          totalProgress={totalProgress}
+        />
       </div>
       {/* Announcement Banner */}
       <div className="mb-2 px-4 sm:px-6 lg:px-8 xl:px-0 transition-all duration-300">

@@ -15,13 +15,12 @@ import { useEffect } from 'react'
 import AuthPage from '@/app/pages/auth-page'
 import TeacherLayout from '@/layouts/teacher-layout'
 import StudentLayout from '@/layouts/student-layout'
-import StudentDashboard from "@/app/pages/student/dashboard";
-import StudentCourses from "@/app/pages/student/courses";
-import StudentProfile from "@/app/pages/student/profile";
+import StudentDashboard from "@/app/pages/student/dashboard/dashboard";
+import StudentCourses from "@/app/pages/student/course/courses";
+import StudentProfile from "@/app/pages/student/profile/profile";
 import AddCoursePage from '@/app/pages/teacher/AddCoursePage';
 import TeacherProfile from "@/app/pages/teacher/profile";
 import { LiveQuiz } from '@/app/pages/teacher/live-quiz'
-import CoursePage from '@/app/pages/student/course-page'
 import Dashboard from '@/app/pages/teacher/dashboard'
 import TeacherCoursePage from "@/app/pages/teacher/teacher-course-page";
 import TeacherCoursesPage from '@/app/pages/teacher/course-page'
@@ -34,6 +33,7 @@ import GenerateSectionPage from '@/app/pages/teacher/create-job'
 import AISectionPage from '@/app/pages/teacher/AISectionPage';
 import AISectionModal from '@/app/pages/teacher/components/AISectionModal';
 import FlaggedList from '../pages/teacher/FlaggedList/FlaggedList'
+import CoursePage from '../pages/student/course-page/course-page'
 
 
 // Root route with error and notFound handling

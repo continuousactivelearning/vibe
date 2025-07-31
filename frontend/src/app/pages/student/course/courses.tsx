@@ -9,14 +9,19 @@ import { useAuthStore } from "@/store/auth-store";
 import { CourseCard } from "@/components/course/CourseCard";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { AuthErrorStates } from "./components/AuthErrorStates";
+import { LoadingCardSkeleton } from "./components/LoadingCardSkeleton";
 
 export default function StudentCourses() {
+
+  // << Store >> 
+  const { isAuthenticated } = useAuthStore();
+
+  // << State >>
   const [activeTab, setActiveTab] = useState("enrolled");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Get the current user from auth store
-  const { isAuthenticated } = useAuthStore();
-  
+  // << Hooks >>
   const { data: enrollmentsData, isLoading, error, refetch } = useUserEnrollments(
     currentPage,
   );
@@ -26,6 +31,7 @@ export default function StudentCourses() {
   const currentPageFromAPI = enrollmentsData?.currentPage || 1;
   const totalDocuments = enrollmentsData?.totalDocuments || 0;
   const filteredEnrollement = enrollments.filter(enrollment=>enrollment.role == "STUDENT");
+  
   // Filter enrollments based on completion status
   const activeEnrollments = useMemo(() => {
     return filteredEnrollement.filter(enrollment => !enrollment.completed);
@@ -57,36 +63,15 @@ export default function StudentCourses() {
     return <CourseCard enrollment={enrollment} index={index} variant="dashboard" />;
   };
 
-  // Add authentication check at the beginning of the render
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <EmptyState
-          title="Authentication Required"
-          description="Please log in to view your courses"
-          actionText="Go to Login"
-          onAction={() => window.location.href = '/auth'}
-        />
-      </div>
-    );
-  }
+  // Add authentication and enrollment check at the beginning of the render
+  const authError = AuthErrorStates({
+    isAuthenticated,
+    error,
+    onLogin: () => window.location.href = '/auth',
+    onRetry: refetch
+  });
 
-  if (error) {
-    return (
-      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-        <EmptyState
-          title="Error loading courses"
-          description={typeof error === 'string' ? error : "Failed to load your courses"}
-          actionText="Try Again"
-          onAction={() => refetch()}
-          variant="error"
-        />
-      </div>
-    );
-  }
-
-  // Check if progress data is still loading
-  const isProgressLoading = false;
+  if (authError) return authError;
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -148,7 +133,6 @@ export default function StudentCourses() {
 
           <TabsContent value="available" className="space-y-4">
             <EmptyState
-              icon={<BookOpen className="h-12 w-12 text-muted-foreground mb-4" />}
               title="Available courses coming soon"
               description="Browse and enroll in new courses"
               actionText="Coming Soon"
@@ -156,17 +140,10 @@ export default function StudentCourses() {
           </TabsContent>
 
           <TabsContent value="completed" className="space-y-4">
-            {isLoading ? (
+            {isLoading  ? (
               <div className="space-y-2">
                 {Array.from({ length: 4 }, (_, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-4">
-                      <div className="h-4 bg-muted rounded animate-pulse mb-2" />
-                      <div className="h-3 bg-muted rounded animate-pulse w-2/3 mb-4" />
-                      <div className="h-2 bg-muted rounded animate-pulse mb-4" />
-                      <div className="h-10 bg-muted rounded animate-pulse" />
-                    </CardContent>
-                  </Card>
+                 <LoadingCardSkeleton key={i}/>
                 ))}
               </div>
             ) : completedEnrollments.length > 0 ? (
@@ -177,7 +154,6 @@ export default function StudentCourses() {
               </div>
             ) : (
               <EmptyState
-                icon={<BookOpen className="h-12 w-12 text-muted-foreground mb-4" />}
                 title="No completed courses yet"
                 description="Complete your first course to see it here"
                 actionText="View Enrolled Courses"

@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useCourseVersionById, useUserProgress, useItemsBySectionId, useItemById, useProctoringSettings, useGetProcotoringSettings, useSubmitFlag } from "@/hooks/hooks";
+import { useCourseVersionById, useUserProgress, useItemsBySectionId, useItemById, useGetProcotoringSettings, useSubmitFlag } from "@/hooks/hooks";
 import { useAuthStore } from "@/store/auth-store";
 import { useCourseStore } from "@/store/course-store";
 import { Link, Navigate, useRouter } from "@tanstack/react-router";
@@ -24,16 +24,12 @@ import confetti from "canvas-confetti";
 import {
   ChevronRight,
   BookOpen,
-  Play,
-  FileText,
-  HelpCircle,
   Target,
   Home,
   GraduationCap,
   AlertCircle,
   ArrowLeft,
   CheckCircle,
-  FlagTriangleRight,
   FlagTriangleRightIcon
 } from "lucide-react";
 import FloatingVideo from "@/components/floating-video";
@@ -41,54 +37,93 @@ import type { itemref } from "@/types/course.types";
 import { logout } from "@/utils/auth";
 import { StudentProctoringSettings } from "@/types/video.types";
 import { FlagModal } from "@/components/FlagModal";
-import { EntityType, ReportEntityEntity } from "@/types/flag.types";
-import { toast } from "sonner";
-// Temporary IDs for development
-// const TEMP_USER_ID = "6831c13a7d17e06882be43ca";
-// const TEMP_COURSE_ID = "6831b9651f79c52d445c5d8b";
-// const TEMP_VERSION_ID = "6831b9651f79c52d445c5d8c";
-
-// Helper function to get icon for item type
-const getItemIcon = (type: string) => {
-  switch (type.toLowerCase()) {
-    case 'video':
-      return <Play className="h-3 w-3" />;
-    case 'blog':
-    case 'article':
-      return <FileText className="h-3 w-3" />;
-    case 'quiz':
-      return <HelpCircle className="h-3 w-3" />;
-    default:
-      return <FileText className="h-3 w-3" />;
-  }
-};
+import { getItemIcon } from "./helpers/getItemIcon";
+import { sortItemsByOrder } from "./helpers/sortItemsByOrder";
+import { updateCourseNavigation } from "./helpers/updateCourseNavigation";
+import { handleFlagSubmit } from "./helpers/submitFlag";
+import { CoursePageSkeleton } from "./components/CoursePageSkeleton";
+import ErrorCard from "./components/ErrorCard";
+import ProctorDeclarationDialog from "./components/ProctorDeclarationDialog";
+import GestureNotificationCard from "./components/GestureNotificationCard";
+import { AccessRestrictedCard } from "./components/ItemAccessError";
+import { QuizStatusCard } from "./components/QuizStatusCard";
+import { ReadyToLearnCard } from "./components/ReadyToLearnCard";
 
 
-// Helper function to sort items by order property
-const sortItemsByOrder = (items: any[]) => {
-  return [...items].sort((a, b) => {
-    const orderA = a.order || '';
-    const orderB = b.order || '';
-    return orderA.localeCompare(orderB);
-  });
-};
-export default function CoursePage() {
+export default function CoursePage() {  
 
-  const [attemptId, setAttemptId] = useState<string | null>(null);
-  // Dialog state for proctoring declaration
-  const [showProctorDialog, setShowProctorDialog] = useState(true);
+    // << Store >>
+  const { setCurrentCourse } = useCourseStore();
   const { user } = useAuthStore();
-  const router = useRouter();
   const COURSE_ID = useCourseStore.getState().currentCourse?.courseId || "";
   const VERSION_ID = useCourseStore.getState().currentCourse?.versionId || "";
-  const { getSettings, settingLoading: proctoringLoading, settingError } = useGetProcotoringSettings();
 
+
+  // << States >>
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [showProctorDialog, setShowProctorDialog] = useState(true);
   const [isFlagModalOpen, setIsFlagModalOpen] = useState(false);
   const [isFlagSubmitted,setIsFlagSubmitted] = useState(false);
-  const {mutateAsync:submitFlagAsyncMutate,isPending} = useSubmitFlag();
+  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [currentItem, setCurrentItem] = useState<Item | null>(null);
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [doGesture, setDoGesture] = useState<boolean>(false);
+  const [isItemForbidden, setIsItemForbidden] = useState<boolean>(false);
+  const [isNavigatingToNext, setIsNavigatingToNext] = useState<boolean>(false);
+  const [rewindVid, setRewindVid] = useState<boolean>(false);
+  const [pauseVid, setPauseVid] = useState<boolean>(false);
+  const [quizPassed, setQuizPassed] = useState(2);
+  const [anomalies, setAnomalies] = useState<string[]>([]);
+   // State to store all fetched section items
+  const [sectionItems, setSectionItems] = useState<Record<string, itemref[]>>({});
+  // Track which section to fetch items for
+  const [activeSectionInfo, setActiveSectionInfo] = useState<{
+    moduleId: string;
+    sectionId: string;
+  } | null>(null);
+ // Fetch proctoring settings for the course (fetched once when component loads)
+  const [proctoringData, setProctoringData] = useState<StudentProctoringSettings | null>(null);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [previousValidItem, setPreviousValidItem] = useState<{
+    moduleId: string;
+    sectionId: string;
+    itemId: string;
+  } | null>(null);
 
+
+  // << Ref >>
+  const itemContainerRef = useRef<ItemContainerRef>(null);
+  const selectedItemRef = useRef<HTMLAnchorElement  | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  
+
+
+  // << Router >>
+  const router = useRouter();
+
+  // << Hooks >> 
+  const { getSettings, settingLoading: proctoringLoading } = useGetProcotoringSettings();
+  const {mutateAsync:submitFlagAsyncMutate, isPending} = useSubmitFlag();
+  const { data: courseVersionData, isLoading: versionLoading, error: versionError } =
+    useCourseVersionById(VERSION_ID);
+  const { data: progressData, isLoading: progressLoading, error: progressError } =
+    useUserProgress(COURSE_ID, VERSION_ID);
+    
+  const shouldFetchItems = Boolean(activeSectionInfo?.moduleId && activeSectionInfo?.sectionId);
+  const sectionModuleId = activeSectionInfo?.moduleId ?? '';
+  const sectionId = activeSectionInfo?.sectionId ?? '';
+
+    const {
+    data: currentSectionItems,
+    isLoading: itemsLoading
+  } = useItemsBySectionId(
+    shouldFetchItems ? VERSION_ID : '',
+     sectionModuleId ,
+     sectionId 
+  )
+
   // Check for microphone and camera access, otherwise redirect to dashboard
     useEffect(() => {
         async function checkMediaPermissions() {
@@ -110,7 +145,6 @@ export default function CoursePage() {
         checkMediaPermissions();
       }
       return () => {
-      // Clean up media tracks on unmount or navigation
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
         streamRef.current = null;
@@ -120,75 +154,6 @@ export default function CoursePage() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showProctorDialog]);
 
-  // Get the setCurrentCourse function from the store
-  const { setCurrentCourse } = useCourseStore();
-
-  // ✅ Add the missing ref declaration
-  const itemContainerRef = useRef<ItemContainerRef>(null);
-
-  // Ref for autoscroll to selected sidebar item
-  const selectedItemRef = useRef<HTMLButtonElement | null>(null);
-
-  // Helper function to update course store navigation state
-  const updateCourseNavigation = useCallback((moduleId: string, sectionId: string, itemId: string) => {
-    const currentCourse = useCourseStore.getState().currentCourse;
-    if (currentCourse) {
-      setCurrentCourse({
-        ...currentCourse,
-        moduleId,
-        sectionId,
-        itemId
-      });
-    }
-  }, [setCurrentCourse]);
-
-  // State for tracking selected module, section, and item
-  const [selectedModuleId, setSelectedModuleId] = useState<string | null>(null);
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [currentItem, setCurrentItem] = useState<Item | null>(null);
-  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-  const [doGesture, setDoGesture] = useState<boolean>(false);
-  const [isItemForbidden, setIsItemForbidden] = useState<boolean>(false);
-  const [isNavigatingToNext, setIsNavigatingToNext] = useState<boolean>(false);
-  const [rewindVid, setRewindVid] = useState<boolean>(false);
-  const [pauseVid, setPauseVid] = useState<boolean>(false);
-  const [quizPassed, setQuizPassed] = useState(2);
-  const [anomalies, setAnomalies] = useState<string[]>([]);
-
-  // State to store all fetched section items
-  const [sectionItems, setSectionItems] = useState<Record<string, itemref[]>>({});
-
-  // Track which section to fetch items for
-  const [activeSectionInfo, setActiveSectionInfo] = useState<{
-    moduleId: string;
-    sectionId: string;
-  } | null>(null);
-
-  // Fetch course version data
-  const { data: courseVersionData, isLoading: versionLoading, error: versionError } =
-    useCourseVersionById(VERSION_ID);
-
-  // Fetch user progress
-  const { data: progressData, isLoading: progressLoading, error: progressError } =
-    useUserProgress(COURSE_ID, VERSION_ID);
-
-  // Fetch proctoring settings for the course (fetched once when component loads)
-  const [proctoringData, setProctoringData] = useState<StudentProctoringSettings | null>(null);
-
-  const shouldFetchItems = Boolean(activeSectionInfo?.moduleId && activeSectionInfo?.sectionId);
-  const sectionModuleId = activeSectionInfo?.moduleId ?? '';
-  const sectionId = activeSectionInfo?.sectionId ?? '';
-
-  const {
-    data: currentSectionItems,
-    isLoading: itemsLoading
-  } = useItemsBySectionId(
-    shouldFetchItems ? VERSION_ID : '',
-    shouldFetchItems ? sectionModuleId : '6831b98e1f79c52d445c5db5',
-    shouldFetchItems ? sectionId : '6831b98e1f79c52d445c5db6'
-  )
 
   // Fetch individual item details when an item is selected
   const shouldFetchItem = Boolean(selectedItemId && COURSE_ID && VERSION_ID);
@@ -201,12 +166,7 @@ export default function CoursePage() {
     shouldFetchItem ? VERSION_ID : '',
     shouldFetchItem ? selectedItemId! : ''
   );
-  // State to track previous valid item for reverting
-  const [previousValidItem, setPreviousValidItem] = useState<{
-    moduleId: string;
-    sectionId: string;
-    itemId: string;
-  } | null>(null);
+
 
   // Separate effect for handling item errors - prevents circular dependencies
   useEffect(() => {
@@ -235,7 +195,8 @@ export default function CoursePage() {
         updateCourseNavigation(
           previousValidItem.moduleId,
           previousValidItem.sectionId,
-          previousValidItem.itemId
+          previousValidItem.itemId,
+          setCurrentCourse
         );
       }
 
@@ -248,9 +209,10 @@ export default function CoursePage() {
     }
   }, [itemError, selectedItemId, previousValidItem, updateCourseNavigation]);
 
-  useEffect(() => {
-    console.log('Current item data:', itemData);
-  }, [itemData]);
+  // useEffect(() => {
+  //   console.log('Current item data:', itemData);
+  // }, [itemData]);
+
 
   // Log proctoring settings when loaded (only logs once when data is available)
   useEffect(() => {
@@ -288,8 +250,6 @@ export default function CoursePage() {
   useEffect(() => {
     if (quizPassed !== 2) setTimeout(() => setQuizPassed(2), 5000);
   }, [quizPassed]);
-  // Add a flag to track if initial load from progress is complete
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Effect to initialize based on user progress ONLY ON INITIAL LOAD
   useEffect(() => {
@@ -313,7 +273,7 @@ export default function CoursePage() {
       });
 
       // Update the course store with the current progress
-      updateCourseNavigation(moduleId, sectionId, itemId);
+      updateCourseNavigation(moduleId, sectionId, itemId,setCurrentCourse);
 
       // Mark initial load as complete so it doesn't run again
       setInitialLoadComplete(true);
@@ -334,32 +294,18 @@ export default function CoursePage() {
   }, [itemData, itemLoading]);
 
 
-  // Flag handling function
-  const handleFlagSubmit = async (reason: string) => {
-    try {
-      if(!currentItem){
-        console.warn("Current item not founded",currentItem);
-        return;
-      }
-      const submitFlagBody = {
-        courseId:COURSE_ID,
-        versionId:VERSION_ID,
-        entityId:currentItem._id,
-        entityType:currentItem.type as EntityType,
-        reason,
-      }
-      await submitFlagAsyncMutate({body:submitFlagBody})
-      toast.success("Flag submitted successfully", {position: 'top-right'})
-    } catch(error:any){
-      toast.error(error?.message || "Failed to submit flag", { position: 'top-right' });
-    } finally{
-      setIsFlagSubmitted(true);
-      setIsFlagModalOpen(false);
-    }
-  };
+const onSubmitFlag = (reason: string) => {
+  handleFlagSubmit({
+    courseId: COURSE_ID,
+    versionId: VERSION_ID,
+    currentItem,
+    reason,
+    submitFlagAsyncMutate,
+    setIsFlagSubmitted,
+    setIsFlagModalOpen,
+  });
+};
 
-
-  // Handle item selection
   // Handle item selection - simplified and more robust
   const handleSelectItem = (moduleId: string, sectionId: string, itemId: string) => {
     // Set loading state when changing items from sidebar - same as with Next button
@@ -402,7 +348,7 @@ export default function CoursePage() {
         setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
 
         // Update the course store with the new navigation state
-        updateCourseNavigation(moduleId, sectionId, itemId);
+        updateCourseNavigation(moduleId, sectionId, itemId,setCurrentCourse);
       }, 50); // Small delay to ensure cleanup completes
     } else {
       // Set loading state even without a ref
@@ -438,7 +384,7 @@ export default function CoursePage() {
       setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
 
       // Update the course store with the new navigation state
-      updateCourseNavigation(moduleId, sectionId, itemId);
+      updateCourseNavigation(moduleId, sectionId, itemId, setCurrentCourse);
     }
   };
 
@@ -623,7 +569,7 @@ export default function CoursePage() {
       }
 
       // Update the course store with the next item
-      updateCourseNavigation(moduleId, sectionId, itemId);
+      updateCourseNavigation(moduleId, sectionId, itemId,setCurrentCourse);
     } catch (error) {
       console.error('Error navigating to next item:', error);
       // Clear loading state on error
@@ -784,7 +730,7 @@ export default function CoursePage() {
       }
 
       // Update the course store with the previous video item
-      updateCourseNavigation(moduleId, sectionId, itemId);
+      updateCourseNavigation(moduleId, sectionId, itemId,setCurrentCourse);
     } catch (error) {
       console.error('Error navigating to previous video:', error);
       // Clear loading state on error
@@ -817,72 +763,30 @@ export default function CoursePage() {
   }, [selectedItemId]);
 
   if (versionLoading || progressLoading || proctoringLoading) {
-    return (
-      <div className="flex h-[80vh] items-center justify-center">
-        <div className="flex items-center space-x-4">
-          <Skeleton className="h-12 w-12 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]" />
-          </div>
-        </div>
-      </div>
-    );
+    return <CoursePageSkeleton/>
   }
 
-  // Show proctoring declaration dialog before requesting permissions
-  // Render the dialog overlay above the main content, not as a return branch
-
   if (versionError || progressError) {
-
-    return (
-      <Card className="mx-auto max-w-md">
-        <CardContent className="flex h-64 items-center justify-center">
-          <div className="text-center">
-            <div className="text-destructive mb-2">
-              <Target className="h-8 w-8 mx-auto"></Target>
-            </div>
-            <p className="text-destructive font-medium">Error loading course data</p>
-            <p className="text-muted-foreground text-sm mt-1">Please try again later</p>
-            <Button asChild className="mt-4">
-              <Link to="/student">Go to Dashboard</Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <ErrorCard/>
   }
 
   const modules = (courseVersionData as any)?.modules || [];
 
   return (
     <>
-      <Dialog open={showProctorDialog}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-extrabold">Declaration</DialogTitle>
-          </DialogHeader>
-          <ul className="text-base text-foreground mb-4 list-disc pl-6 space-y-2">
-            <li>
-              I understand that my camera and microphone will be used for proctoring during this exam.
-            </li>
-            <li>
-              I agree that images from my webcam may be captured at various points if unusual activity is detected.
-            </li>
-            <li>
-              I acknowledge that the microphone is used for monitoring purposes only, and that no audio or video will be recorded or stored elsewhere.
-            </li>
-          </ul>
-          <div className="w-full flex justify-end">
-            <Button onClick={() => { setShowProctorDialog(false) }} className="w-full">ACCEPT</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+
+     {/* Proctoring Declaration */}
+      <ProctorDeclarationDialog
+        open={showProctorDialog}
+        onAccept={() => setShowProctorDialog(false)}
+        onClose={() => setShowProctorDialog(false)}
+      />
       
       <SidebarProvider defaultOpen={true}>
+
         <div className="flex h-screen w-full">
-          {/* Enhanced Course Navigation Sidebar */}
-          <Sidebar variant="inset" className="border-r border-border/40 bg-sidebar/50 backdrop-blur-sm">
+
+         <Sidebar variant="inset" className="border-r border-border/40 bg-sidebar/50 backdrop-blur-sm">
             <SidebarHeader className="border-b border-border/40 bg-gradient-to-b from-sidebar/80 to-sidebar/60">
               {/* Vibe Logo and Brand */}
               <div className="flex items-center gap-3">
@@ -902,21 +806,6 @@ export default function CoursePage() {
               </div>
 
               <Separator className="opacity-50" />
-
-              {/* Course Info */}
-              {/* <div className="flex items-center gap-2 px-4 py-3">
-                <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary/15 to-primary/5">
-                  <BookOpen className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-semibold text-foreground truncate">
-                    {courseVersionData?.name || "Course Content"}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {modules.length} modules • Learning Progress
-                  </p>
-                </div>
-              </div> */}
             </SidebarHeader>
 
             <SidebarContent className="bg-card/50 pl-2 shadow-sm border border-border/30">
@@ -990,8 +879,7 @@ export default function CoursePage() {
                                                 onClick={() => handleSelectItem(moduleId, sectionId, itemId)}
                                                 isActive={isCurrentItem}
                                                 className="group relative h-8 px-3 w-full rounded-md transition-all duration-200 hover:bg-accent/10 data-[state=active]:bg-primary/10 data-[state=active]:text-primary justify-start"
-                                                // Assign ref only to the selected item for autoscroll
-                                                ref={isCurrentItem ? selectedItemRef : undefined}
+                                                ref={isCurrentItem ? selectedItemRef : null}
                                               >
                                                 <div className="flex items-center gap-2 w-full min-w-0">
                                                   <div className={`p-0.5 rounded transition-colors flex-shrink-0 ${isCurrentItem
@@ -1126,7 +1014,6 @@ export default function CoursePage() {
             </SidebarFooter>
           </Sidebar>
 
-          {/* Main Content Area */}
           <SidebarInset className="flex-1 bg-gradient-to-br from-background via-background to-background/95">
             <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/20 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-4">
               <SidebarTrigger className="-ml-1 h-8 w-8 rounded-md hover:bg-accent/10 transition-colors" />
@@ -1155,111 +1042,35 @@ export default function CoursePage() {
 
               {/* Notification Stack */}
               <div className="fixed top-6 right-6 z-50 flex flex-col gap-2 w-90">
-                {/* ✅ Item Access Error Notification */}
-                {isItemForbidden && (
-                  <Card className="border border-red-400/40 bg-red-600/95 text-red-50 shadow-lg backdrop-blur-md animate-in slide-in-from-right-3 duration-300">
-                    <CardContent className="flex items-center gap-3 px-4 py-0">
-                      <div className="flex h-22 w-22 items-center justify-center rounded-l border-red-50/30 bg-red-50/10 text-4xl p-4">
-                        <AlertCircle className="h-16 w-16" />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <Badge variant="outline" className="border-red-50/30 bg-red-50/10 text-red-50 text-lg font-bold">
-                          Access Restricted
-                        </Badge>
-                        <p className="text-md font-medium leading-relaxed">
-                          {previousValidItem
-                            ? "Returning to previous valid content."
-                            : "Complete current item first to access this content."
-                          }
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setIsItemForbidden(false)}
-                        className="h-6 w-6 p-0 text-red-50 hover:bg-red-50/10"
-                      >
-                        ×
-                      </Button>
-                    </CardContent>
-                  </Card>
+
+                {!isItemForbidden && (
+                <AccessRestrictedCard 
+                  previousValidItem={previousValidItem} 
+                  onDismiss={() => setIsItemForbidden(false)}
+                />
                 )}
 
                 {/* Gesture Notification */}
                 {doGesture && currentItem?.type !== 'VIDEO' && (
-                  <Card className="border border-amber-400/20 bg-amber-600/90 text-amber-50 shadow-lg backdrop-blur-md animate-in slide-in-from-right-3 duration-300">
-                    <CardContent className="flex items-center gap-3 px-4 py-0">
-                      <div className="flex h-22 w-22 items-center justify-center rounded-lg bg-white text-4xl p-4">
-                        <img src="https://em-content.zobj.net/source/microsoft/309/thumbs-up_1f44d.png" className="w-auto h-full" />
-                      </div>
-                      <div className="flex-1 space-y-1 py-3">
-                        <Badge variant="outline" className="border-amber-50/30 bg-amber-50/10 text-amber-50 text-xl font-bold">
-                          Gesture Required
-                        </Badge>
-                        <p className="text-lg font-medium leading-relaxed m-1">
-                          Show a <strong>thumbs up</strong>!
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <GestureNotificationCard/>
                 )}
 
                 {/* Quiz Passed/Failed */}
                 {quizPassed !== 2 && (
-                  <Card className={`border shadow-lg backdrop-blur-md animate-in slide-in-from-right-3 duration-300 ${quizPassed === 1
-                    ? "border-green-400/40 bg-green-500/95 text-green-50"
-                    : "border-red-400/40 bg-red-500/95 text-red-50"
-                    }`}>
-                    <CardContent className="flex items-center gap-3 px-4 py-0">
-                      <div className={`flex h-22 w-22 items-center justify-center rounded-l ${quizPassed === 1
-                        ? "border-green-50/30 bg-green-50/10"
-                        : "border-red-50/30 bg-red-50/10"
-                        } text-4xl p-4`}>
-                        {quizPassed === 1 ? (
-                          <CheckCircle className="h-16 w-16" />
-                        ) : (
-                          // Use XCircle for fail/cross icon
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-                            <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <Badge variant="outline" className={`text-lg font-bold ${quizPassed === 1
-                          ? "border-green-50/30 bg-green-50/10 text-green-50"
-                          : "border-red-50/30 bg-red-50/10 text-red-50"
-                          }`}>
-                          {quizPassed === 1 ? "Quiz Passed" : "Quiz Failed"}
-                        </Badge>
-                        <p className="text-md font-medium leading-relaxed">
-                          {quizPassed === 1
-                            ? "Congratulations! You passed the quiz."
-                            : "Redirecting to the previous video..."}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setQuizPassed(2)}
-                        className={`h-6 w-6 p-0 ${quizPassed === 1
-                          ? "text-green-50 hover:bg-green-50/10"
-                          : "text-red-50 hover:bg-red-50/10"
-                          }`}
-                      >
-                        ×
-                      </Button>
-                    </CardContent>
-                  </Card>
+                <QuizStatusCard
+                  status={quizPassed === 1 ? "passed" : quizPassed === 0 ? "failed" : "hidden"}
+                  onDismiss={() => setQuizPassed(2)}
+                />
                 )}
+
               </div>
                 <FlagModal
                   open={isFlagModalOpen}
                   onOpenChange={setIsFlagModalOpen}
-                  onSubmit={handleFlagSubmit}
+                  onSubmit={onSubmitFlag}
                   isSubmitting={isPending}
                 />
+
               {currentItem ? (
                 <div className="relative z-10 h-full flex flex-col mb-2  sm:mb-1">
                 {!isFlagSubmitted &&
@@ -1295,29 +1106,11 @@ export default function CoursePage() {
 
                 </div>
               ) : (
-                <div className="h-full flex items-center justify-center relative z-10">
-                  <div className="text-center max-w-md">
-                    <div className="relative mb-6">
-                      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 rounded-full blur-xl opacity-60" />
-                      <div className="relative p-6 rounded-full bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20">
-                        <BookOpen className="h-12 w-12 text-primary mx-auto" />
-                      </div>
-                    </div>
-                    <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                      Ready to Learn?
-                    </h3>
-                    <p className="text-muted-foreground mb-6 leading-relaxed">
-                      Select an item from the course navigation to begin your learning journey and unlock new knowledge.
-                    </p>
-                    <Button
-                      variant="outline"
-                      className="transition-all duration-200 hover:bg-gradient-to-r hover:from-accent/10 hover:to-accent/5 hover:border-accent/30 hover:shadow-lg hover:shadow-accent/10"
-                    >
-                      <Target className="h-4 w-4 mr-2" />
-                      Browse Content
-                    </Button>
-                  </div>
-                </div>
+                <ReadyToLearnCard 
+                  onButtonClick={() => {
+                    console.log("Browse content");
+                  }}
+                />
               )}
             </div>
           </SidebarInset>

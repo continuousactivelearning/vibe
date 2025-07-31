@@ -48,3 +48,11 @@ export interface IReport {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface FlagBody {
+    courseId: string,
+    versionId: string,
+    entityId: string,
+    entityType: EntityType,
+    reason: string
+}
