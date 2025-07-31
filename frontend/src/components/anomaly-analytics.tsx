@@ -1,18 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AlertTriangle, X, Filter, Calendar, User, BarChart3, TrendingUp } from 'lucide-react'
-import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts'
+import { AlertTriangle, Filter, Calendar, User, BarChart3, TrendingUp } from 'lucide-react'
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts'
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 import { useCourseAnomalies, useUserAnomalies } from "@/hooks/hooks"
-import type { AnomalyData, AnomalyType } from "@/types/reportanomaly.types"
-import type { EnrolledUser } from "@/types/course.types"
+import type { AnomalyData } from "@/types/reportanomaly.types"
 
 interface AnomalyAnalyticsProps {
   isOpen: boolean
@@ -27,7 +25,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'
 export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, studentEnrollments }: AnomalyAnalyticsProps) {
   // Filter states
   const [selectedStudentFilter, setSelectedStudentFilter] = useState<string>("all")
-  const [selectedAnomalyTypeFilter, setSelectedAnomalyTypeFilter] = useState<string>("all")
+  // const [selectedAnomalyTypeFilter, setSelectedAnomalyTypeFilter] = useState<string>("all")
   const [selectedTimeRangeFilter, setSelectedTimeRangeFilter] = useState<string>("all")
 
   // State to store organized student anomaly data
@@ -46,23 +44,23 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
   // Debug: Check if individual student anomalies are properly scoped
   useEffect(() => {
     if (selectedStudentFilter !== "all" && userAnomalies) {
-      console.log('=== Individual Student Anomalies Debug ===')
-      console.log('Selected student ID:', selectedStudentFilter)
-      console.log('Course ID:', courseId)
-      console.log('Version ID:', versionId)
-      console.log('User anomalies data:', userAnomalies)
-      console.log('User anomalies count:', userAnomalies.length)
+      // console.log('=== Individual Student Anomalies Debug ===')
+      // console.log('Selected student ID:', selectedStudentFilter)
+      // console.log('Course ID:', courseId)
+      // console.log('Version ID:', versionId)
+      // console.log('User anomalies data:', userAnomalies)
+      // console.log('User anomalies count:', userAnomalies.length)
       
       // Check if all anomalies belong to the current course/version
       const anomaliesFromOtherCourses = userAnomalies.filter(anomaly => 
         anomaly.courseId !== courseId || anomaly.versionId !== versionId
       )
       
-      if (anomaliesFromOtherCourses.length > 0) {
-        console.warn('Found anomalies from other courses/versions:', anomaliesFromOtherCourses)
-      } else {
-        console.log('All anomalies are correctly scoped to current course/version')
-      }
+      // if (anomaliesFromOtherCourses.length > 0) {
+      //   // console.warn('Found anomalies from other courses/versions:', anomaliesFromOtherCourses)
+      // } else {
+      //   console.log('All anomalies are correctly scoped to current course/version')
+      // }
     }
   }, [selectedStudentFilter, userAnomalies, courseId, versionId])
 
@@ -136,9 +134,9 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
     // No need to filter by student here since we're using different hooks
     
     // Filter by anomaly type
-    if (selectedAnomalyTypeFilter !== "all") {
-      filtered = filtered.filter(anomaly => anomaly.type === selectedAnomalyTypeFilter)
-    }
+    // if (selectedAnomalyTypeFilter !== "all") {
+    //   filtered = filtered.filter(anomaly => anomaly.type === selectedAnomalyTypeFilter)
+    // }
     
     // Filter by time range
     if (selectedTimeRangeFilter !== "all") {
@@ -159,13 +157,13 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
           cutoffDate = new Date(0)
       }
       
-      console.log('Cutoff date:', cutoffDate)
+      // console.log('Cutoff date:', cutoffDate)
       const beforeTimeFilter = filtered.length
       filtered = filtered.filter(anomaly => {
         const anomalyDate = new Date(anomaly.createdAt)
         const matches = anomalyDate >= cutoffDate
         if (!matches) {
-          console.log('Time filter mismatch:', anomalyDate, 'vs', cutoffDate)
+          // console.log('Time filter mismatch:', anomalyDate, 'vs', cutoffDate)
         }
         return matches
       })
@@ -203,38 +201,38 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
   }
 
   // Get anomaly type timeline data with student count for bar click
-  const getAnomalyTypeTimelineData = () => {
-    if (selectedAnomalyTypeFilter === "all") return []
-    
-    const filtered = getFilteredAnomalies().filter(anomaly => anomaly.type === selectedAnomalyTypeFilter)
-    const timelineData: { [date: string]: { count: number, students: Set<string> } } = {}
-    
-    filtered.forEach(anomaly => {
-      const date = new Date(anomaly.createdAt).toLocaleDateString()
-      if (!timelineData[date]) {
-        timelineData[date] = { count: 0, students: new Set() }
-      }
-      timelineData[date].count += 1
-      timelineData[date].students.add(anomaly.userId)
-    })
-    
-    return Object.entries(timelineData)
-      .map(([date, data]) => ({ 
-        date, 
-        count: data.count, 
-        studentCount: data.students.size,
-        students: Array.from(data.students)
-      }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  }
+  // const getAnomalyTypeTimelineData = () => {
+  //   if (selectedAnomalyTypeFilter === "all") return []
+  //   
+  //   const filtered = getFilteredAnomalies().filter(anomaly => anomaly.type === selectedAnomalyTypeFilter)
+  //   const timelineData: { [date: string]: { count: number, students: Set<string> } } = {}
+  //   
+  //   filtered.forEach(anomaly => {
+  //     const date = new Date(anomaly.createdAt).toLocaleDateString()
+  //     if (!timelineData[date]) {
+  //       timelineData[date] = { count: 0, students: new Set() }
+  //     }
+  //     timelineData[date].count += 1
+  //     timelineData[date].students.add(anomaly.userId)
+  //   })
+  //   
+  //   return Object.entries(timelineData)
+  //     .map(([date, data]) => ({ 
+  //       date, 
+  //       count: data.count, 
+  //       studentCount: data.students.size,
+  //       students: Array.from(data.students)
+  //     }))
+  //     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  // }
 
   // Handle bar click to show student count
-  const handleAnomalyTypeBarClick = (data: any) => {
-    if (data && data.payload) {
-      const { date, count, studentCount, students } = data.payload
-      alert(`Date: ${date}\nAnomalies: ${count}\nStudents Affected: ${studentCount}\nStudent IDs: ${students.join(', ')}`)
-    }
-  }
+  // const handleAnomalyTypeBarClick = (data: any) => {
+  //   if (data && data.payload) {
+  //     const { date, count, studentCount, students } = data.payload
+  //     alert(`Date: ${date}\nAnomalies: ${count}\nStudents Affected: ${studentCount}\nStudent IDs: ${students.join(', ')}`)
+  //   }
+  // }
 
   // Get student anomaly data for bar chart
   const getStudentAnomalyData = () => {
@@ -294,7 +292,7 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
   const handleStudentFilterChange = (value: string) => {
     setSelectedStudentFilter(value)
     // Reset other filters when switching between all students and specific student
-    setSelectedAnomalyTypeFilter("all")
+    // setSelectedAnomalyTypeFilter("all")
     setSelectedTimeRangeFilter("all")
   }
 
@@ -365,7 +363,7 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
                 </Select>
               </div>
 
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Anomaly Type
@@ -386,7 +384,7 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
                     <SelectItem value="blurDetection">Blur Detection</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium flex items-center gap-2">
@@ -421,10 +419,10 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
                     {selectedStudentFilter === "all" ? "All Students" : uniqueStudents.find(s => s.id === selectedStudentFilter)?.name || "Unknown"}
                   </span>
                   <span className="mx-1">•</span>
-                  <span className="inline-block">
+                  {/* <span className="inline-block">
                     {selectedAnomalyTypeFilter === "all" ? "All Types" : getAnomalyTypeDisplayName(selectedAnomalyTypeFilter)}
-                  </span>
-                  <span className="mx-1">•</span>
+                  </span> */}
+                  {/* <span className="mx-1">•</span> */}
                   <span className="inline-block">
                     {selectedTimeRangeFilter === "all" ? "All Time" : 
                      selectedTimeRangeFilter === "today" ? "Today" : 
@@ -467,7 +465,7 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent, value }) => `${getAnomalyTypeDisplayName(name)}: ${value}`}
+                        label={({ name, percent, value }) => `${getAnomalyTypeDisplayName(name)}`}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
@@ -557,7 +555,7 @@ export function AnomalyAnalytics({ isOpen, onClose, courseId, versionId, student
                   Top Students by Anomaly Count
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Students with the most detected anomalies (top 10)
+                  Students with the most detected anomalies (top 5)
                 </p>
               </CardHeader>
               <CardContent>

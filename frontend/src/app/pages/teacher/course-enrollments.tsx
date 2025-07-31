@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { QuizSubmissionDisplay } from "./QuizSubmissionDisplay"
 import { WatchTimeDisplay } from "./WatchTimeDisplay"
 import { AnomalyAnalytics } from "@/components/anomaly-analytics"
@@ -226,7 +225,7 @@ export default function CourseEnrollments() {
     }
     return 0
   })
-  console.log("Sorted Users:", sortedUsers)
+  // console.log("Sorted Users:", sortedUsers)
 
   // Sorting handler
   const handleSort = (column: 'name' | 'enrollmentDate' | 'progress') => {
@@ -263,7 +262,7 @@ export default function CourseEnrollments() {
   }
 
   const handleViewProgress = (user: EnrolledUser) => {
-    console.log("Viewing progress for user:", user)
+    // console.log("Viewing progress for user:", user)
     setSelectedUser(user)
     setIsViewProgressDialogOpen(true)
   }
@@ -275,7 +274,7 @@ export default function CourseEnrollments() {
 
   const confirmRemoveStudent = async () => {
     if (userToRemove && courseId && versionId) {
-      console.log("Removing student:", userToRemove)
+      // console.log("Removing student:", userToRemove)
       try {
         await unenrollMutation.mutateAsync({
           params: {
@@ -511,7 +510,7 @@ export default function CourseEnrollments() {
             </Button>
             <Button
               variant="outline"
-              className="gap-2 border-primary hover:bg-accent text-primary-foreground cursor-pointer"
+              className="gap-2 bg-primary hover:bg-accent text-primary cursor-pointer"
               onClick={() => setIsAnomalyAnalyticsOpen(true)}
             >
               <AlertTriangle className="h-4 w-4" />
@@ -801,8 +800,8 @@ export default function CourseEnrollments() {
                                     setSelectedViewItem(itemId)
                                     setSelectedViewItemType(itemType)
                                     setSelectedViewItemName(itemName)
-                                    console.log("Selected Item:", itemId, itemType, itemName)
-                                    console.log("selected vars", selectedViewItem, selectedViewItemType, selectedViewItemName)
+                                    // console.log("Selected Item:", itemId, itemType, itemName)
+                                    // console.log("selected vars", selectedViewItem, selectedViewItemType, selectedViewItemName)
                                   }}
                                   getItemIcon={getItemIcon}
                                 />
