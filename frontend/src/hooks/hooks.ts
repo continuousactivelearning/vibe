@@ -1384,7 +1384,7 @@ export function useCourseAnomalies(courseId: string, versionId: string): {
   const result = api.useQuery(
     "get",
     "/anomalies/course/{courseId}/version/{versionId}",
-    { params: { path: { courseId, versionId } } },
+    { params: { path: { courseId, versionId },query:{limit:1000} } },
     { enabled: !!courseId && !!versionId }
   );
   return {
