@@ -1058,6 +1058,7 @@ setInitialModules(modules)
               backdropFilter: "blur(6px)", // <-- add blur effect
               WebkitBackdropFilter: "blur(6px)", // for Safari support
             }}
+            className="overflow-y-scroll"
           >
             <VideoModal
               action="add"
