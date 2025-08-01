@@ -1,20 +1,27 @@
-import Sentry from '@sentry/node';
-import {nodeProfilingIntegration} from '@sentry/profiling-node';
-import {sentryDSN} from 'config/sentry';
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import { appConfig } from "./config/app.js";
 
-// Ensure to call this before importing any other modules!
-Sentry.init({
-  dsn: sentryDSN,
-  integrations: [
-    // Add our Profiling integration
-    nodeProfilingIntegration(),
-  ],
 
-  // Add Tracing by setting tracesSampleRate
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
+const environment = appConfig.sentry.environment;
+const dsn = appConfig.sentry.dsn;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
-  // Set sampling rate for profiling
-  // This is relative to tracesSampleRate
-  profilesSampleRate: 1.0,
-});
+if ((NODE_ENV === 'production' || NODE_ENV === 'staging' || NODE_ENV === 'development') && dsn) {
+  console.log(`Initializing Sentry in ${environment} environment with DSN: ${dsn}`);
+
+  Sentry.init({
+    dsn: dsn,
+    environment: environment,
+    integrations: [
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+    sendDefaultPii: true,
+  });
+} else {
+  console.log(`Sentry initialization skipped. Environment: ${environment}, DSN available: ${Boolean(dsn)}`);
+}
+
+export { Sentry };

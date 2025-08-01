@@ -1,0 +1,143 @@
+name: Backend CI/CD (Staging & Optional Production)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend-all.yml'
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: "Also deploy to production?"
+        required: true
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+env:
+  NODE_VERSION: '22'
+  DOCKER_IMAGE: vibe-backend
+  GCP_REGION: asia-south1
+  GCP_SERVICE: vibe-backend-staging
+
+jobs:
+  build:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    environment:
+      name: build
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:staging
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=staging
+            APP_PORT=${{ secrets.APP_PORT }}
+
+  deploy_staging:
+    name: Deploy to Cloud Run (Staging)
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: ${{ env.GCP_SERVICE }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            AI_SERVER_IP=${{ secrets.AI_SERVER_IP }}
+            AI_SERVER_PORT=${{ secrets.AI_SERVER_PORT }}
+            NODE_ENV=staging
+            APP_PORT=${{ secrets.APP_PORT }}
+            APP_URL=${{ secrets.APP_URL }}
+            APP_ORIGINS=${{ secrets.APP_ORIGINS }}
+            APP_MODULE=${{ secrets.APP_MODULE }}
+            APP_ROUTE_PREFIX=${{ secrets.APP_ROUTE_PREFIX }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            DB_URL=${{ secrets.DB_URL }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
+            TAILSCALE_AUTHKEY=${{ secrets.TAILSCALE_AUTHKEY }}
+            AI_PROXY_ADDRESS=socks5h://localhost:1055
+          flags: --allow-unauthenticated
+
+  deploy_production:
+    name: Deploy to Cloud Run (Production)
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_production == 'true'
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Deploy to Cloud Run (Production)
+        uses: google-github-actions/deploy-cloudrun@v1
+        with:
+          service: vibe-backend-production
+          region: ${{ env.GCP_REGION }}
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKER_IMAGE }}:latest
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          env_vars: |
+            AI_SERVER_IP=${{ secrets.AI_SERVER_IP }}
+            AI_SERVER_PORT=${{ secrets.AI_SERVER_PORT }}
+            NODE_ENV=production
+            APP_PORT=${{ secrets.APP_PORT }}
+            APP_URL=${{ secrets.APP_URL }}
+            APP_ORIGINS=${{ secrets.APP_ORIGINS }}
+            APP_MODULE=${{ secrets.APP_MODULE }}
+            APP_ROUTE_PREFIX=${{ secrets.APP_ROUTE_PREFIX }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            DB_URL=${{ secrets.DB_URL }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+            SMTP_USER=${{ secrets.SMTP_USER }}
+            SMTP_PASS=${{ secrets.SMTP_PASS }}
+            TAILSCALE_AUTHKEY=${{ secrets.TAILSCALE_AUTHKEY }}
+            AI_PROXY_ADDRESS=socks5h://localhost:1055
+          flags: --allow-unauthenticated
