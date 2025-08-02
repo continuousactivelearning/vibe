@@ -1043,7 +1043,7 @@ const onSubmitFlag = (reason: string) => {
               {/* Notification Stack */}
               <div className="fixed top-6 right-6 z-50 flex flex-col gap-2 w-90">
 
-                {!isItemForbidden && (
+                {isItemForbidden && (
                 <AccessRestrictedCard 
                   previousValidItem={previousValidItem} 
                   onDismiss={() => setIsItemForbidden(false)}
