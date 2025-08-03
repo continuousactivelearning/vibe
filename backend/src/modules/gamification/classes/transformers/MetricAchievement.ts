@@ -8,6 +8,7 @@ import {ID, Trigger} from '#shared/index.js';
 import {IMetricAchievement} from '#shared/index.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateMetricAchievementBody} from '../validators/GamifyEngineValidators.js';
+import { to } from 'mathjs';
 
 /**
  * MetricAchievement class - represents an achievement that users can unlock
@@ -89,6 +90,27 @@ export class MetricAchievement implements IMetricAchievement {
   })
   metricCount: number;
 
+  @Expose()
+  @JSONSchema({
+    title: 'Reward Metric ID',
+    description: 'The ID of the metric to increment as a reward for unlocking this achievement',
+    example: '60d5ec49b3f1c8e4a8f8b8c3',
+    type: 'string',
+  })
+  @Transform(ObjectIdToString.transformer, {toPlainOnly: true})
+  @Transform(StringToObjectId.transformer, {toClassOnly: true})
+  rewardMetricId?: ID;
+
+  @Expose()
+  @JSONSchema({
+    title: 'Reward Increment Value',
+    description: 'The value to increment the reward metric by',
+    example: 10,
+    type: 'number',
+  })
+
+  rewardIncrementValue?: number;
+
   /**
    * Constructor - creates a new MetricAchievement instance
    * @param achievementBody - Optional data to populate the achievement
@@ -101,6 +123,8 @@ export class MetricAchievement implements IMetricAchievement {
       this.trigger = achievementBody.trigger;
       this.metricId = achievementBody.metricId;
       this.metricCount = achievementBody.metricCount;
+      this.rewardMetricId = achievementBody.rewardMetricId;
+      this.rewardIncrementValue = achievementBody.rewardIncrementValue;
     }
   }
 }
