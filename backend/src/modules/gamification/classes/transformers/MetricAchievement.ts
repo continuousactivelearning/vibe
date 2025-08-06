@@ -8,7 +8,6 @@ import {ID, Trigger} from '#shared/index.js';
 import {IMetricAchievement} from '#shared/index.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateMetricAchievementBody} from '../validators/GamifyEngineValidators.js';
-import { to } from 'mathjs';
 
 /**
  * MetricAchievement class - represents an achievement that users can unlock
