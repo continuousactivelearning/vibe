@@ -1,6 +1,6 @@
-import React, { useRef, useEffect, useState, useCallback, JSX} from 'react';
+import React, { useRef, useEffect, useState, useCallback, JSX } from 'react';
 import ReactDOM from 'react-dom';
-import { ChevronUp, ChevronDown, PictureInPicture2, SquareArrowOutDownLeft} from 'lucide-react';
+import { ChevronUp, ChevronDown, PictureInPicture2, SquareArrowOutDownLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import GestureDetector from './ai/GestureDetector';
 import BlurDetection from './ai/BlurDetector';
@@ -12,8 +12,6 @@ import useCameraProcessor from './ai/useCameraProcessor';
 
 
 import { AnomalyType } from '@/types/reportanomaly.types';
-
-import { useAuthStore } from '@/store/auth-store';
 
 import { useCourseStore } from '@/store/course-store';
 
@@ -44,7 +42,7 @@ function FloatingVideo({
   const [isPoppedOut, setIsPoppedOut] = useState(false);
   const [anomaly, setAnomaly] = useState(false);
   const [anomalyType, setAnomalyType] = useState("");
-   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
   const [audioStream, setAudioStream] = useState<MediaStream | null>(null);
 
@@ -56,7 +54,7 @@ function FloatingVideo({
   const [isBlur, setIsBlur] = useState("No");
   const [isSpeaking, setIsSpeaking] = useState("No");
   const [gesture, setGesture] = useState("No Gesture Detected ❌");
-  const [isFocused, setIsFocused] = useState(true); 
+  const [isFocused, setIsFocused] = useState(true);
   const [facesCount, setFacesCount] = useState(0);
   const [recognizedFaces, setRecognizedFaces] = useState<any[]>([]);
   const [penaltyPoints, setPenaltyPoints] = useState(-90);
@@ -73,11 +71,11 @@ function FloatingVideo({
   // Helper function to check if a specific proctoring component is enabled
   const isComponentEnabled = useCallback((componentName: string): boolean => {
     if (!settings?.settings?.proctors?.detectors) return true;
-    
+
     const detector = settings.settings.proctors.detectors.find(
       (detector) => detector.detectorName === componentName
     );
-    
+
     return detector?.settings?.enabled ?? true;
   }, [settings]);
 
@@ -154,11 +152,11 @@ function FloatingVideo({
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [isRighClickDisabled]); 
+  }, [isRighClickDisabled]);
 
-// Image record anomaly effect
-const reportImage = useReportAnomalyImage();
-const lastCalledRef = useRef<number>(0);
+  // Image record anomaly effect
+  const reportImage = useReportAnomalyImage();
+  const lastCalledRef = useRef<number>(0);
   useEffect(() => {
     const handleImageAnomaly = async () => {
 
@@ -238,9 +236,9 @@ const lastCalledRef = useRef<number>(0);
     }
     handleImageAnomaly();
   }, [anomaly, anomalyType, courseStore.currentCourse?.courseId, courseStore.currentCourse?.itemId, courseStore.currentCourse?.moduleId, courseStore.currentCourse?.sectionId, courseStore.currentCourse?.versionId]);
- 
+
   const reportAudio = useReportAnomalyAudio();
-  
+
 
   // Audio recording for speech anomaly
   useEffect(() => {
@@ -413,8 +411,8 @@ const lastCalledRef = useRef<number>(0);
         // setAnomalies([]);
         setPenaltyPoints((prevPoints) => prevPoints + newPenaltyPoints);
         setPenaltyType(newPenaltyType);
-        setAnomalyType(newPenaltyType === "Focus" ? "focus": newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" :  "faceRecognition");
-        
+        setAnomalyType(newPenaltyType === "Focus" ? "focus" : newPenaltyType === "Blur" ? "blurDetection" : newPenaltyType === "Faces Count" ? "faceCountDetection" : newPenaltyType === "Speaking" ? "voiceDetection" : newPenaltyType === "Pre-emptive Thumbs-Up" ? "handGestureDetection" : newPenaltyType === "Failed Thumbs-Up Challenge" ? "handGestureDetection" : "faceRecognition");
+
         // Increment contiguous anomaly points
         setContiguousAnomalyPoints(prev => {
           const newContiguous = prev + newPenaltyPoints;
@@ -438,16 +436,16 @@ const lastCalledRef = useRef<number>(0);
           setPauseVid(false);  // Resume video when anomalies are cleared
         }
         // Reset contiguous anomaly points when no anomalies are detected
-        if(contiguousAnomalyPoints>0) setContiguousAnomalyPoints(0);
+        if (contiguousAnomalyPoints > 0) setContiguousAnomalyPoints(0);
       }
     }, 100); // Update every second
 
     return () => clearInterval(interval);
   }, [
-    isSpeaking, 
-    facesCount, 
-    isBlur, 
-    isFocused, 
+    isSpeaking,
+    facesCount,
+    isBlur,
+    isFocused,
     // reportAnomaly,
     courseStore.currentCourse,
     isVoiceDetectionEnabled,
@@ -467,14 +465,14 @@ const lastCalledRef = useRef<number>(0);
   // Random thumbs-up challenge system - only run if gesture detection is enabled
   useEffect(() => {
     if (!isHandGestureDetectionEnabled) return;
-    
+
     const checkForChallenge = () => {
       const now = Date.now();
       const timeSinceLastChallenge = now - lastChallengeTime;
 
       // Only trigger if no active challenge and enough time has passed (2-5 minutes randomly)
       if (!isThumbsUpChallenge && timeSinceLastChallenge > 30000) { // Minimum 30 seconds for testing
-        const randomInterval = Math.random() * (max-min) + min; // 2-5 minutes
+        const randomInterval = Math.random() * (max - min) + min; // 2-5 minutes
 
         if (timeSinceLastChallenge > randomInterval) {
           // Check if user is already showing thumbs-up when challenge starts
@@ -527,13 +525,13 @@ const lastCalledRef = useRef<number>(0);
   // Check for thumbs-up gesture during challenge - only run if gesture detection is enabled
   useEffect(() => {
     if (!isHandGestureDetectionEnabled || !isThumbsUpChallenge || !gesture) return;
-    
+
     const gestureText = gesture.toLowerCase();
     console.log(`[Challenge] Current gesture detected: "${gesture}" (normalized: "${gestureText}")`);
-    
+
     // Check for various thumbs-up patterns that MediaPipe might return
     const isThumbsUp = gestureText.includes("thumb_up") || gestureText === "thumb_up";
-    
+
     if (isThumbsUp) {
       console.log("[Challenge] ✅ Thumbs-up detected! Challenge passed.");
       setDoGesture(false);
@@ -544,11 +542,11 @@ const lastCalledRef = useRef<number>(0);
   }, [gesture, isThumbsUpChallenge, isHandGestureDetectionEnabled, setDoGesture]);
 
   // Check if any anomalies are detected - only consider enabled detectors
-  const isAnomaliesDetected = (isSpeaking === "Yes" && isVoiceDetectionEnabled) || 
-                              (facesCount !== 1 && isFaceCountDetectionEnabled) || 
-                              (isBlur === "Yes" && isBlurDetectionEnabled) || 
-                              (!isFocused && isFocusEnabled) ||
-                              (isThumbsUpChallenge && isHandGestureDetectionEnabled);
+  const isAnomaliesDetected = (isSpeaking === "Yes" && isVoiceDetectionEnabled) ||
+    (facesCount !== 1 && isFaceCountDetectionEnabled) ||
+    (isBlur === "Yes" && isBlurDetectionEnabled) ||
+    (!isFocused && isFocusEnabled) ||
+    (isThumbsUpChallenge && isHandGestureDetectionEnabled);
 
 
   // Smart overlay positioning based on face detection
@@ -763,7 +761,7 @@ const lastCalledRef = useRef<number>(0);
               className="h-6 w-6 p-0 text-white hover:bg-green-700 hover:text-white flex-shrink-0"
               title={isCollapsed ? 'Expand' : 'Collapse'}
             >
-              {isCollapsed ? <ChevronUp className="h-3 w-3" />: <ChevronDown className="h-3 w-3" /> }
+              {isCollapsed ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
             <Button
               variant="ghost"
@@ -801,7 +799,7 @@ const lastCalledRef = useRef<number>(0);
               className="h-6 w-6 p-0 text-white hover:bg-green-700 hover:text-white"
               title={isCollapsed ? 'Expand' : 'Collapse'}
             >
-              {isCollapsed ? <ChevronUp className="h-3 w-3" /> :<ChevronDown className="h-3 w-3" />}
+              {isCollapsed ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
             </Button>
             <Button
               variant="ghost"
@@ -1040,31 +1038,31 @@ const lastCalledRef = useRef<number>(0);
       {/* AI Components - Only render if enabled in proctoring settings */}
       <div className="hidden">
         {isBlurDetectionEnabled && (
-          <BlurDetection 
+          <BlurDetection
             key={`blur-${aiComponentsKey}`}
-            videoRef={videoRef} 
+            videoRef={videoRef}
             setIsBlur={setIsBlur}
           />
         )}
         {isVoiceDetectionEnabled && (
-          <SpeechDetector 
+          <SpeechDetector
             key={`speech-${aiComponentsKey}`}
             setIsSpeaking={setIsSpeaking}
           />
         )}
         {isHandGestureDetectionEnabled && (
-          <GestureDetector 
+          <GestureDetector
             key={`gesture-${aiComponentsKey}`}
-            videoRef={videoRef} 
+            videoRef={videoRef}
             setGesture={setGesture}
             trigger={true}
           />
         )}
         {(isFaceCountDetectionEnabled || isFaceRecognitionEnabled || isFocusEnabled) && (
-          <FaceDetectors 
+          <FaceDetectors
             key={`face-${faceDetectorsKey}`}
-            faces={faces} 
-            setIsFocused={()=>{}} // CHANGE THIS LATER.
+            faces={faces}
+            setIsFocused={() => { }} // CHANGE THIS LATER.
             videoRef={videoRef}
             onRecognitionResult={handleFaceRecognitionResult}
             // onDebugInfoUpdate={handleFaceRecognitionDebugUpdate}

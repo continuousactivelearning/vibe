@@ -5,7 +5,7 @@ import StudentCourses from "@/app/pages/student/course/courses";
 import StudentProfile from "@/app/pages/student/profile/profile";
 import CoursePage from "@/app/pages/student/course-page/course-page";
 
-const studentRoutes: RouteObject = {
+export const studentRoutes: RouteObject = {
   path: "/student",
   element: <StudentLayout />,
   children: [
@@ -28,10 +28,9 @@ const studentRoutes: RouteObject = {
   ],
 };
 
-const learnRoutes: RouteObject = {
+export const learnRoutes: RouteObject = {
   path: "student/learn",
   element: <CoursePage />
 };
 
 
-export default {studentRoutes, learnRoutes};

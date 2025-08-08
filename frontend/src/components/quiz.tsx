@@ -379,9 +379,9 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
     if (quizAttemptedRef.current || quizStarted || isPending) {
       return;
     }
-    
+
     quizAttemptedRef.current = true;
-    
+
     try {
       // Remove previous stop call
       // if (itemStartedRef.current) {
@@ -392,19 +392,19 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
       const response = await attemptQuiz({
         params: { path: { quizId: processedQuizId } }
       });
-      
+
       const currentAttemptId = response.attemptId;
       setAttemptId?.(currentAttemptId);
-      
+
       // Convert backend questions to frontend format
       const convertedQuestions = convertBackendQuestions(response.questionRenderViews);
       setQuizQuestions(convertedQuestions);
-      
+
       // Reset quiz state
       setAnswers({});
       setQuizStarted(true);
       setCurrentQuestionIndex(0);
-      
+
       // Set timer for first question if available
       if (convertedQuestions.length > 0 && convertedQuestions[0]?.timeLimit) {
         setTimeLeft(convertedQuestions[0].timeLimit);
@@ -428,7 +428,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
 
     try {
       const answersForSubmission = convertAnswersToSaveFormat();
-      const response = await submitQuiz({
+      const response: any = await submitQuiz({
         params: { path: { quizId: processedQuizId, attemptId: attemptId } },
         body: { answers: answersForSubmission }
       });
@@ -598,7 +598,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   }, [processedQuizId, resetQuiz]);
 
   useEffect(() => {
-    if (rewindVid){
+    if (rewindVid) {
       onPrevVideo?.();
       resetQuiz();
       setQuizStarted(false);
@@ -612,10 +612,11 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
       setShowHint(false);
       setTimeLeft(0);
       quizAttemptedRef.current = false;
-    }}, [rewindVid]);
+    }
+  }, [rewindVid]);
 
   // Timer effect
-   useEffect(() => {
+  useEffect(() => {
     if (!quizStarted || quizCompleted || doGesture || timeLeft <= 0) return;
 
     const timer = setInterval(() => {
@@ -698,7 +699,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   // Quiz not started
   if (!quizStarted) {
     // console.log("QUIZTYPE:", quizType);
-    if (quizType === 'DEADLINE'){
+    if (quizType === 'DEADLINE') {
       return (
         <div className="mx-auto space-y-8">
           <Card className="border-2 border-primary/20 bg-gradient-to-br from-background to-muted/50">
@@ -847,7 +848,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
         <div className="flex items-center justify-center min-h-[400px]">
           <Loader />
           <span
-          className='text-lg text-muted-foreground ml-4'
+            className='text-lg text-muted-foreground ml-4'
           > Loading quiz...</span>
         </div>
       );

@@ -81,7 +81,7 @@ export default function ModuleForm({
             key={section.id}
             sectionIndex={index}
             sectionData={section}
-            onSectionChange={(updatedSection) =>
+            onSectionChange={(updatedSection: any) =>
               updateSection(updatedSection, index)
             }
             selected={selected}

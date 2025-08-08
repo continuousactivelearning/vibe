@@ -2,8 +2,7 @@ import React, { useEffect } from "react";
 import { Face, Keypoint } from "@tensorflow-models/face-detection";
 import FaceRecognitionComponent from "./FaceRecognitionComponent";
 
-import type { FaceDetectorsProps, FaceRecognition, FaceRecognitionDebugInfo } from "@/types/ai.types";
-import { eye } from "@tensorflow/tfjs-core";
+import type { FaceDetectorsProps } from "@/types/ai.types";
 
 const isLookingAway = (face: Face): boolean => {
   if (!face || face.keypoints.length < 6) return false;

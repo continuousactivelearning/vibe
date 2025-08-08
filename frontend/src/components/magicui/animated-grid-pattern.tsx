@@ -2,7 +2,6 @@
 
 import { motion } from "motion/react";
 import {
-  ComponentPropsWithoutRef,
   useEffect,
   useId,
   useRef,

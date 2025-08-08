@@ -1,4 +1,5 @@
 import { SectorProps } from 'recharts';
+import { Enrollment } from './course.types';
 export type Task = {
   id: number;
   text: string;
@@ -27,6 +28,6 @@ export interface ChartLabelProps {
 }
 
 export interface DashboardSidebarProps {
-  enrollments: Array<Record<string, unknown>>;
+  enrollments: Enrollment[];
   className?: string;
 }

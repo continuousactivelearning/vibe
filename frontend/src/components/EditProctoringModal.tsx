@@ -45,7 +45,7 @@ export function ProctoringModal({
   isNew: boolean
 }) {
   const { editSettings, loading, error } = useEditProctoringSettings()
-  const { getSettings, settingLoading, settingError } = useGetProcotoringSettings();
+  const { getSettings, settingLoading } = useGetProcotoringSettings();
 
   const allComponents = Object.values(ProctoringComponent)
   const [detectors, setDetectors] = useState(

@@ -11,6 +11,7 @@ export interface VideoProps {
   pauseVid: boolean;
   onDurationChange?: (duration: number) => void;
   keyboardLockEnabled?:boolean;
+  anomalies?: string[] | undefined;
 }
 
 

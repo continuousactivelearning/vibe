@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "@/app/pages/auth-page";
-import teacherRoutes from "./teacher-routes";
-import studentRoutes from "./student-routes";
+import { teacherRoutes } from "./teacher-routes";
+import { studentRoutes } from "./student-routes";
 import { useAuthStore } from "@/store/auth-store";
 import { JSX } from "react";
 import React from "react";
@@ -10,7 +10,7 @@ import React from "react";
 function ProtectedRoute({ role, children }: { role: "teacher" | "student"; children: JSX.Element }) {
     const user = useAuthStore(state => state.user);
     const hasAccess = user?.role === role;
-    
+
     // Redirect if no access
     if (!hasAccess) {
         if (user?.role) {

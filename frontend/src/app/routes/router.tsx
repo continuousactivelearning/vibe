@@ -21,8 +21,8 @@ import StudentProfile from "@/app/pages/student/profile/profile";
 import AddCoursePage from '@/app/pages/teacher/AddCoursePage';
 import TeacherProfile from "@/app/pages/teacher/profile";
 import { LiveQuiz } from '@/app/pages/teacher/live-quiz'
+// import CoursePage from '@/app/pages/student/course-page'
 import Dashboard from '@/app/pages/teacher/dashboard'
-import CoursePage from '@/app/pages/student/course-page'
 import TeacherCoursePage from "@/app/pages/teacher/teacher-course-page";
 import TeacherCoursesPage from '@/app/pages/teacher/course-page'
 import Editor from '@/app/pages/teacher/create-article'
@@ -32,11 +32,14 @@ import CourseEnrollments from '../pages/teacher/course-enrollments'
 import InvitePage from '../pages/teacher/invite'
 import GenerateSectionPage from '@/app/pages/teacher/create-job'
 import AISectionPage from '@/app/pages/teacher/AISectionPage';
+// import FlaggedList from '../pages/teacher/FlaggedList'
+// import StudentRouteGuard from '@/components/StudentRouteGuard'
+
+
 import AISectionModal from '@/app/pages/teacher/components/AISectionModal';
 import FlaggedList from '../pages/teacher/FlaggedList/FlaggedList'
-// import CoursePage from '../pages/student/course-page/course-page'
-
-
+import CoursePage from '../pages/student/course-page/course-page'
+import StudentRouteGuard from '@/components/StudentRouteGuard'
 // Root route with error and notFound handling
 const rootRoute = new RootRoute({
   component: () => <Outlet />,

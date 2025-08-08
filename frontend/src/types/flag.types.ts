@@ -56,3 +56,9 @@ export interface FlagBody {
     entityType: EntityType,
     reason: string
 }
+
+export type FlagsData = {
+  reports: IReport[];
+  totalDocuments: number;
+  totalPages: number;
+};

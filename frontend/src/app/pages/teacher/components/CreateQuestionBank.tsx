@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Plus, X } from "lucide-react";
-import { useCreateQuestionBank, useAddQuestionBankToQuiz, type AddQuestionBankBody } from '@/hooks/hooks';
+import { useCreateQuestionBank, useAddQuestionBankToQuiz } from '@/hooks/hooks';
 import { useCourseStore } from '@/store/course-store';
 
 interface CreateQuestionBankDialogProps {

@@ -2,11 +2,11 @@ import { useProcessInvites } from "@/hooks/hooks";
 import { useState } from "react";
 import { Button } from "./ui/button";
 
-const InviteItem = ({ invite }) => {
+const InviteItem = ({ invite }: any) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [status, setStatus] = useState(invite.inviteStatus); // track local status
 
-    const onAccept = async (invite) => {
+    const onAccept = async (invite: any) => {
         const { data, isLoading, error } = await useProcessInvites(invite.inviteId);
         if (!isLoading && !error) {
             setStatus("ACCEPTED");

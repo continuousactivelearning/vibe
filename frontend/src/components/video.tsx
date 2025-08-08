@@ -2,14 +2,11 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
-import { Play, Pause, SkipBack, Volume2, ChevronRight } from 'lucide-react';
+import { Play, Pause, SkipBack, Volume2 } from 'lucide-react';
 import { useStartItem, useStopItem } from '../hooks/hooks';
-import { useAuthStore } from '../store/auth-store';
 import { useCourseStore } from '../store/course-store';
 import { usePlayerStore } from '../store/player-store'; // Import the new store
 import type { VideoProps, YTPlayerInstance } from '@/types/video.types';
-import { on } from 'events';
-
 
 // Helper to extract YouTube video ID from URL
 function getYouTubeId(url: string): string | null {
@@ -30,7 +27,7 @@ function parseTimeToSeconds(timeStr: string): number {
   }
 }
 
-export default function Video({ URL, startTime, endTime, points, anomalies, rewindVid, pauseVid, doGesture = false, onNext, isProgressUpdating, onDurationChange,keyboardLockEnabled= true }: VideoProps) {
+export default function Video({ URL, startTime, endTime, points, anomalies, rewindVid, pauseVid, doGesture = false, onNext, isProgressUpdating, onDurationChange, keyboardLockEnabled = true }: VideoProps) {
   const playerRef = useRef<YTPlayerInstance | null>(null);
   const iframeRef = useRef<HTMLDivElement>(null);
   const [playerReady, setPlayerReady] = useState(false);
@@ -77,7 +74,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       player.pauseVideo();
     } else {
       player.playVideo();
-      setTimeout(() => {playerRef.current?.setPlaybackRate?.(playbackRate);}, 50);
+      setTimeout(() => { playerRef.current?.setPlaybackRate?.(playbackRate); }, 50);
     }
   }, [playing]);
 
@@ -104,7 +101,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       // Resume if it was playing before gesture
       if (wasPlayingBeforeGesture.current) {
         player.playVideo();
-        setTimeout(() => {playerRef.current?.setPlaybackRate?.(playbackRate);}, 50);
+        setTimeout(() => { playerRef.current?.setPlaybackRate?.(playbackRate); }, 50);
         wasPlayingBeforeGesture.current = false;
       }
     }
@@ -139,14 +136,14 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
       if (playing) {
         player.pauseVideo();
         console.log('Video paused due to anomaly detection');
-         wasPlayingBeforeRewind.current = true; // Remember it was playing
+        wasPlayingBeforeRewind.current = true; // Remember it was playing
       }
     } else {
       // Resume video when anomalies are cleared
       // Only resume if it was playing before the rewind/pause
       if (wasPlayingBeforeRewind.current) {
         player.playVideo();
-        setTimeout(() => {playerRef.current?.setPlaybackRate?.(playbackRate);}, 50);
+        setTimeout(() => { playerRef.current?.setPlaybackRate?.(playbackRate); }, 50);
         console.log('Video resumed after anomalies cleared');
         wasPlayingBeforeRewind.current = false; // Reset the flag
       }
@@ -241,6 +238,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
     return () => {
       // Stop if started but not yet stopped
       if (!progressStoppedRef.current && watchItemIdRef.current) {
+        if (!currentCourse) return;
         stopItem.mutate({
           params: {
             path: {
@@ -250,7 +248,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
           },
           body: {
             watchItemId: watchItemIdRef.current,
-            itemId: currentCourse.itemId,
+            itemId: currentCourse.itemId ?? '',
             moduleId: currentCourse.moduleId ?? '',
             sectionId: currentCourse.sectionId ?? '',
           },
@@ -271,8 +269,8 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
 
   // Handle keyboard events including space for play/pause
   useEffect(() => {
-    
-    if(!keyboardLockEnabled) return;
+
+    if (!keyboardLockEnabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       // Handle space key for play/pause
       if (e.code === 'Space') {
@@ -323,6 +321,7 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
 
           // Enforce endTime constraint
           if (endTimeSeconds > 0 && !progressStoppedRef.current && time >= endTimeSeconds - 1) {
+            if (!currentCourse) return;
             const watchItemId = watchItemIdRef.current || currentCourse.watchItemId;
             console.log({
               params: {
@@ -349,13 +348,13 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
                 },
                 body: {
                   watchItemId,
-                  itemId: currentCourse.itemId,
+                  itemId: currentCourse.itemId ?? '',
                   moduleId: currentCourse.moduleId ?? '',
                   sectionId: currentCourse.sectionId ?? '',
                 }
               });
             }
-            onNext();
+            if (onNext) onNext();
             progressStoppedRef.current = true;
           }
           if (endTimeSeconds > 0 && time >= endTimeSeconds) {
@@ -607,22 +606,22 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
                   {rewindVid || pauseVid
                     ? (
                       <span style={{ fontWeight: 500, fontSize: 15 }}>
-                        {anomalies.includes("voiceDetection") ? (
+                        {anomalies?.includes("voiceDetection") ? (
                           <div style={{ marginBottom: 6 }}>
                             <strong>Don't speak!!</strong>
                           </div>
                         ) : <></>}
-                        {anomalies.includes("faceCountDetection") ? (
+                        {anomalies?.includes("faceCountDetection") ? (
                           <div style={{ marginBottom: 6 }}>
                             <strong>Only one face!!</strong>
                           </div>
                         ) : <></>}
-                        {anomalies.includes("blurDetection") ? (
+                        {anomalies?.includes("blurDetection") ? (
                           <div style={{ marginBottom: 6 }}>
                             <strong>Keep your camera clear!!</strong>
                           </div>
                         ) : <></>}
-                        {anomalies.includes("focus") ? (
+                        {anomalies?.includes("focus") ? (
                           <div style={{ marginBottom: 6 }}>
                             <strong>Stay focused!!</strong>
                           </div>
@@ -631,165 +630,165 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
                     )
                     : (
                       <span style={{ fontWeight: 500, fontSize: 15 }}>
-                      `Gesture Needed!`
-                      <br />
-                      <>
-                        <span>
-                          To continue watching your lesson, please show a <strong>thumbs up gesture</strong> in front of your camera.
-                        </span>
+                        `Gesture Needed!`
                         <br />
-                        <span style={{ fontWeight: 200, fontSize: 14 }}>
-                          This helps us know you’re present and engaged. Once we detect your gesture, the video will resume automatically.
-                        </span>
-                      </></span>
+                        <>
+                          <span>
+                            To continue watching your lesson, please show a <strong>thumbs up gesture</strong> in front of your camera.
+                          </span>
+                          <br />
+                          <span style={{ fontWeight: 200, fontSize: 14 }}>
+                            This helps us know you’re present and engaged. Once we detect your gesture, the video will resume automatically.
+                          </span>
+                        </></span>
                     )
                   }
+                </div>
               </div>
             </div>
-            </div>
-        )
+          )
           }
-      </div>
-
-      {/* Custom Controls Below Video */}
-      <div
-        style={{
-          background: 'hsl(var(--card))',
-          padding: '8px 16px',
-          borderTop: '1px solid hsl(var(--primary) / 0.2)',
-          borderRadius: '0 0 12px 12px',
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          flexShrink: 0,
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Progress Bar - Visual indicator only, no seeking */}
-        <div style={{ marginBottom: 8 }}>
-          <Slider
-            value={[currentTime]}
-            min={startTimeSeconds}
-            max={endTimeSeconds > 0 ? endTimeSeconds : duration}
-            step={0.1}
-            onValueChange={() => {
-              // Disabled - no seeking allowed
-            }}
-            className="w-full pointer-events-none"
-            disabled
-          />
         </div>
 
-        {/* Control Bar */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 12,
-          flexWrap: 'wrap'
-        }}>
-          {/* Left Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePlayPause();
+        {/* Custom Controls Below Video */}
+        <div
+          style={{
+            background: 'hsl(var(--card))',
+            padding: '8px 16px',
+            borderTop: '1px solid hsl(var(--primary) / 0.2)',
+            borderRadius: '0 0 12px 12px',
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+            flexShrink: 0,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Progress Bar - Visual indicator only, no seeking */}
+          <div style={{ marginBottom: 8 }}>
+            <Slider
+              value={[currentTime]}
+              min={startTimeSeconds}
+              max={endTimeSeconds > 0 ? endTimeSeconds : duration}
+              step={0.1}
+              onValueChange={() => {
+                // Disabled - no seeking allowed
               }}
-              size="icon"
-              variant={playing ? "default" : "secondary"}
-              className="rounded-full w-11 h-11 flex-shrink-0"
-              aria-label={playing ? 'Pause' : 'Play'}
-            >
-              {playing ? <Pause className="h-7 w-7 scale-130" /> : <Play className="h-7 w-7 scale-130" />}
-            </Button>
-
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBackward();
-              }}
-              size="icon"
-              variant="secondary"
-              className="rounded-full w-11 h-11 flex-shrink-0"
-              aria-label="Back 10 seconds"
-            >
-              <SkipBack className="h-3 w-3 scale-130" />
-            </Button>
-
-            <span style={{
-              color: 'hsl(var(--foreground))',
-              fontFamily: 'var(--font-sans)',
-              fontSize: 16,
-              fontWeight: 700,
-              minWidth: 80,
-              textShadow: '0 1px 3px hsl(var(--background) / 0.5)',
-              flexShrink: 0
-            }}>
-              {formatTime(Math.max(startTimeSeconds, currentTime))} / {formatTime(endTimeSeconds > 0 ? endTimeSeconds : duration)}
-            </span>
+              className="w-full pointer-events-none"
+              disabled
+            />
           </div>
 
-          {/* Right Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            {/* Speed Control */}
-            <Card className="flex flex-row items-center gap-1.5 px-2 py-1.5 bg-accent/15 flex-shrink-0">
-              <span className="text-md font-bold text-foreground min-w-[24px]">
-                Speed
+          {/* Control Bar */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap'
+          }}>
+            {/* Left Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePlayPause();
+                }}
+                size="icon"
+                variant={playing ? "default" : "secondary"}
+                className="rounded-full w-11 h-11 flex-shrink-0"
+                aria-label={playing ? 'Pause' : 'Play'}
+              >
+                {playing ? <Pause className="h-7 w-7 scale-130" /> : <Play className="h-7 w-7 scale-130" />}
+              </Button>
+
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBackward();
+                }}
+                size="icon"
+                variant="secondary"
+                className="rounded-full w-11 h-11 flex-shrink-0"
+                aria-label="Back 10 seconds"
+              >
+                <SkipBack className="h-3 w-3 scale-130" />
+              </Button>
+
+              <span style={{
+                color: 'hsl(var(--foreground))',
+                fontFamily: 'var(--font-sans)',
+                fontSize: 16,
+                fontWeight: 700,
+                minWidth: 80,
+                textShadow: '0 1px 3px hsl(var(--background) / 0.5)',
+                flexShrink: 0
+              }}>
+                {formatTime(Math.max(startTimeSeconds, currentTime))} / {formatTime(endTimeSeconds > 0 ? endTimeSeconds : duration)}
               </span>
-              <Slider
-                value={[playbackRate]}
-                min={0.25}
-                max={2}
-                step={0.05}
-                onValueChange={(value) => {
-                  const rate = value[0];
-                  const player = playerRef.current;
-                  if (player && typeof player.getAvailablePlaybackRates === 'function') {
-                    const availableRates = player.getAvailablePlaybackRates!();
-                    let closest = availableRates[0];
-                    for (const r of availableRates) {
-                      if (Math.abs(r - rate) < Math.abs(closest - rate)) closest = r;
+            </div>
+
+            {/* Right Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+              {/* Speed Control */}
+              <Card className="flex flex-row items-center gap-1.5 px-2 py-1.5 bg-accent/15 flex-shrink-0">
+                <span className="text-md font-bold text-foreground min-w-[24px]">
+                  Speed
+                </span>
+                <Slider
+                  value={[playbackRate]}
+                  min={0.25}
+                  max={2}
+                  step={0.05}
+                  onValueChange={(value) => {
+                    const rate = value[0];
+                    const player = playerRef.current;
+                    if (player && typeof player.getAvailablePlaybackRates === 'function') {
+                      const availableRates = player.getAvailablePlaybackRates!();
+                      let closest = availableRates[0];
+                      for (const r of availableRates) {
+                        if (Math.abs(r - rate) < Math.abs(closest - rate)) closest = r;
+                      }
+                      player.setPlaybackRate(closest);
+                      // Update both local state and global store
+                      setPlaybackRate(closest);
+                    } else {
+                      playerRef.current?.setPlaybackRate(rate);
+                      // Update both local state and global store
+                      setPlaybackRate(rate);
                     }
-                    player.setPlaybackRate(closest);
-                    // Update both local state and global store
-                    setPlaybackRate(closest);
-                  } else {
-                    playerRef.current?.setPlaybackRate(rate);
-                    // Update both local state and global store
-                    setPlaybackRate(rate);
-                  }
-                }}
-                className="w-[80px]"
-              />
-              <span className="text-md font-semibold text-primary min-w-[24px] text-center">
-                {playbackRate.toFixed(2)}x
-              </span>
-            </Card>
+                  }}
+                  className="w-[80px]"
+                />
+                <span className="text-md font-semibold text-primary min-w-[24px] text-center">
+                  {playbackRate.toFixed(2)}x
+                </span>
+              </Card>
 
-            {/* Volume Control */}
-            <Card className="flex flex-row items-center gap-1.5 px-2 py-1.5 bg-accent/15 flex-shrink-0">
-              <Volume2 className="h-3 w-3 text-accent flex-shrink-0 scale-160" />
-              <Slider
-                value={[volume]}
-                min={0}
-                max={100}
-                onValueChange={(value) => {
-                  const v = value[0];
-                  setVolume(v);
-                  playerRef.current?.setVolume(v);
-                }}
-                className="w-[80px]"
-              />
-              <span className="text-md font-bold text-foreground min-w-[24px] text-center">
-                {Math.round(volume)}%
-              </span>
-            </Card>
+              {/* Volume Control */}
+              <Card className="flex flex-row items-center gap-1.5 px-2 py-1.5 bg-accent/15 flex-shrink-0">
+                <Volume2 className="h-3 w-3 text-accent flex-shrink-0 scale-160" />
+                <Slider
+                  value={[volume]}
+                  min={0}
+                  max={100}
+                  onValueChange={(value) => {
+                    const v = value[0];
+                    setVolume(v);
+                    playerRef.current?.setVolume(v);
+                  }}
+                  className="w-[80px]"
+                />
+                <span className="text-md font-bold text-foreground min-w-[24px] text-center">
+                  {Math.round(volume)}%
+                </span>
+              </Card>
+            </div>
           </div>
-        </div>
 
-        {/* Next Lesson Button */}
-        {/*onNext && (
+          {/* Next Lesson Button */}
+          {/*onNext && (
             <div style={{
               borderTop: '1px solid hsl(var(--border))',
               paddingTop: '12px',
@@ -820,11 +819,11 @@ export default function Video({ URL, startTime, endTime, points, anomalies, rewi
               </Button>
             </div>
           )*/}
+        </div>
       </div>
-    </div>
 
-      {/* Global CSS to block YouTube interface */ }
-  <style>{`
+      {/* Global CSS to block YouTube interface */}
+      <style>{`
         iframe[src*="youtube.com"] {
           pointer-events: none !important;
         }

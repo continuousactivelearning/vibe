@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { redirect, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { Search, Users, TrendingUp, CheckCircle, RotateCcw, UserX, BookOpen, FileText, List, Play, AlertTriangle, X, Loader2, Eye, Clock, ChevronRight, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -29,8 +29,8 @@ import type { EnrolledUser } from "@/types/course.types"
 
 // Types for quiz functionality
 interface IAttemptDetails {
-  attemptId: string | ObjectId;
-  submissionResultId?: string | ObjectId;
+  attemptId: string | Object;
+  submissionResultId?: string | Object;
 }
 
 interface UserQuizMetricsResponse {

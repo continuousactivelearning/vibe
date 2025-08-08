@@ -3,9 +3,14 @@ export interface itemref {
   type?: string;
   _id?: string;
 }
+export type Enrollment = {
+  courseId: string;
+  courseVersionId: string;
+  enrollmentDate: Date;
+};
 
 export interface CourseCardProps {
-  enrollment: Record<string, unknown>;
+  enrollment: Enrollment;
   index: number;
   variant?: 'dashboard' | 'courses';
   className?: string;
@@ -15,7 +20,7 @@ export interface CourseCardProps {
 
 export interface CourseSectionProps {
   title: string;
-  enrollments: Array<Record<string, unknown>>;
+  enrollments: Enrollment[];
   isLoading: boolean;
   error?: string | null;
   totalEnrollments?: number;

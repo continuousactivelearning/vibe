@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaceRecognition, FaceRecognitionOverlayProps } from '@/types/ai.types';
+import { FaceRecognitionOverlayProps } from '@/types/ai.types';
 
 
 

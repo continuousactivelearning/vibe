@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -41,7 +41,6 @@ import {
   useUserEnrollments,
   useCourseById,
   useCourseVersionById,
-  useEditProctoringSettings
 } from "@/hooks/hooks"
 import { useAuthStore } from "@/store/auth-store"
 import { useCourseStore } from "@/store/course-store"

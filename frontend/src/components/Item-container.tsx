@@ -1,10 +1,9 @@
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import Video from './video';
 import Quiz from './quiz';
-import { questionBankRef } from '@/types/quiz.types';
 import Article from './article';
 import type { ArticleRef } from "@/types/article.types";
-import type { Item, ItemContainerProps, ItemContainerRef } from '@/types/item-container.types';
+import type { ItemContainerProps, ItemContainerRef } from '@/types/item-container.types';
 
 
 const ItemContainer = forwardRef<ItemContainerRef, ItemContainerProps>(({ item, doGesture, onNext, onPrevVideo, isProgressUpdating, attemptId, anomalies, setQuizPassed, setAttemptId, rewindVid, pauseVid, displayNextLesson,keyboardLockEnabled}, ref) => {

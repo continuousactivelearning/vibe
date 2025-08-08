@@ -1,5 +1,5 @@
 import { cn } from "@/utils/utils";
-import { motion, MotionProps } from "motion/react";
+import { motion } from "motion/react";
 
 import type { LineShadowTextProps } from "@/types/ui.types";
 

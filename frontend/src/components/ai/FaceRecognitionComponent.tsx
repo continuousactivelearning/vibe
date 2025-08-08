@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as faceapi from '@vladmandic/face-api';
 
-import type { FaceRecognition, TrackedFace, FaceRecognitionDebugInfo, FaceRecognitionComponentProps } from '@/types/ai.types';
+import type { FaceRecognition, FaceRecognitionDebugInfo, FaceRecognitionComponentProps } from '@/types/ai.types';
 
 // Optimized validation with caching
 const URL_VALIDATION_CACHE = new Map<string, boolean>();

@@ -14,7 +14,7 @@ import AddCoursePage from "@/app/pages/teacher/AddCoursePage";
 import InvitePage from "../pages/teacher/invite";
 import AISectionPage from "@/app/pages/teacher/AISectionPage";
 
-const teacherRoutes: RouteObject = {
+export const teacherRoutes: RouteObject = {
   path: "/teacher",
   element: <TeacherLayout />,
   children: [
@@ -82,4 +82,3 @@ const teacherRoutes: RouteObject = {
   ],
 };
 
-export default teacherRoutes;

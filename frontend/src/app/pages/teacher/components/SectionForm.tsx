@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, X, Play, Clock, Edit, Trash2 } from "lucide-react";
 import Video from "@/components/video";
-import AISectionModal from "./AISectionModal";
+// import AISectionModal from "./AISectionModal";
 import { useNavigate } from '@tanstack/react-router';
 
 interface ContentItem {
@@ -75,7 +75,7 @@ export default function SectionForm({
     points: "",
     range: [0, 300] as [number, number],
   });
-  const [showAIModal, setShowAIModal] = useState(false);
+  // const [showAIModal, setShowAIModal] = useState(false);
   const navigate = useNavigate();
 
   if (!sectionData) return null;

@@ -73,7 +73,7 @@ export default function CreateCourse() {
     setVersionSuccess(false);
     setVersionError(null);
     try {
-      const res = await createCourseVersionMutation.mutateAsync({
+      const res: any = await createCourseVersionMutation.mutateAsync({
         params: { path: { id: courseId } },
         body: {
           version: versionLabel,
@@ -218,8 +218,8 @@ export default function CreateCourse() {
                 value={versionDescription}
                 onChange={(e) => setVersionDescription(e.target.value)}
               />
-              <Button 
-                onClick={handleCreateVersion} 
+              <Button
+                onClick={handleCreateVersion}
                 disabled={createCourseVersionMutation.isPending || !versionLabel}
                 className="relative overflow-hidden bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_auto] hover:bg-[length:100%_auto] shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-1 px-8 group"
               >

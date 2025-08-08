@@ -30,7 +30,7 @@ export default function TeacherLayout() {
   const matches = useMatches();
   const navigate = useNavigate();
   const { user } = useAuthStore(); // 🧠 from store
-  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItem[]>([]);
+  const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItemment[]>([]);
   const [showInvites, setShowInvites] = useState(false);
   const [confirmLogout,setConfirmLogout] = useState(false);
 
@@ -39,12 +39,8 @@ export default function TeacherLayout() {
     navigate({ to: "/auth" });
   };
 
-  const handleGoBack = () => {
-    window.history.back();
-  };
-
   useEffect(() => {
-    const items: BreadcrumbItem[] = [];
+    const items: BreadcrumbItemment[] = [];
     items.push({
       label: "Dashboard",
       path: "/teacher",

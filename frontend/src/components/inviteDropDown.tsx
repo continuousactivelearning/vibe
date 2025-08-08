@@ -1,10 +1,10 @@
-import { useCourseVersionById, useInvites } from "@/hooks/hooks"
+import { useInvites } from "@/hooks/hooks"
 import { useEffect, useState } from "react";
 import InviteItem from "./InviteItem";
 
 
 const InviteDropdown = () => {
-    const { getInvites, loading, error } = useInvites();
+    const { getInvites, loading } = useInvites();
     const [invites, setInvites] = useState([]);
 
     useEffect(() => {
@@ -22,7 +22,7 @@ const InviteDropdown = () => {
                 {loading ? (
                     <li className="text-sm text-gray-500 dark:text-gray-300 px-2 py-2">Loading...</li>
                 ) : (() => {
-                    const pendingInvites = invites.filter((invite) => (invite.inviteStatus === "PENDING"));
+                    const pendingInvites = invites.filter((invite: any) => (invite.inviteStatus === "PENDING"));
 
                     return pendingInvites.length === 0 ? (
                         <li className="text-sm text-gray-500 dark:text-gray-300 px-2 py-2">No Pending Invites</li>
