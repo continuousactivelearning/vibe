@@ -66,7 +66,8 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
 
   // ===== HOOKS =====
   const { currentCourse, setWatchItemId } = useCourseStore();
-  const { mutateAsync: attemptQuiz, isPending, error: attemptError } = useAttemptQuiz();
+  const { mutateAsync: attemptQuiz, isPending, error: attemptError,data: attemptData} = useAttemptQuiz();
+  const [attempts, setAttempts] = useState<number>(0);
   const { mutateAsync: submitQuiz, isPending: isSubmitting, error: submitError } = useSubmitQuiz();
   const { mutateAsync: saveQuiz, isPending: isSaving, error: saveError } = useSaveQuiz();
   const startItem = useStartItem();
@@ -222,7 +223,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
           orders?: Order[];
         } = {};
         
-        if (!userAnswer) {
+        if (!userAnswer&& typeof userAnswer !== 'number') {
           // Default values for empty answers
           saveAnswer.lotItemId = '111111111111111111111111';
           saveAnswer.lotItemIds = ['111111111111111111111111'];
@@ -431,8 +432,14 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
         params: { path: { quizId: processedQuizId, attemptId: attemptId } },
         body: { answers: answersForSubmission }
       });
-
-      setSubmissionResults(response);
+      
+      // Convert the response to match the expected type
+      const formattedResponse: SubmitQuizResponse = {
+        ...response,
+        gradedAt: response.gradedAt ? new Date(response.gradedAt).toISOString() : undefined,
+      };
+      
+      setSubmissionResults(formattedResponse);
 
       // Update score from server response if available
       if (showScoreAfterSubmission && response.totalScore !== undefined) {
@@ -481,6 +488,28 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
     }
   }, [currentQuestionIndex, quizQuestions.length, completeQuiz, attemptId, processedQuizId, saveQuiz, convertAnswersToSaveFormat]);
 
+    // Track attempts using the attempt data from the hook
+    useEffect(() => {
+      if (attemptData) {
+        // Update the attempt count when a new attempt is created
+        setAttempts(attemptData.userAttempts);
+      }
+    }, [attemptData]);
+
+  const handleSkipQuiz = useCallback(async () => {
+    if (!attemptId) return;
+    // console.log('Skipping quiz. Attempt count:', attempts);
+    try {
+      if (onNext) {
+        onNext();
+      }
+      // Stop tracking the quiz item
+      handleStopItem();
+    } catch (error) {
+      console.error('Error during quiz skip:', error);
+    }
+  }, [attempts, processedQuizId]);
+
   const saveProgress = useCallback(async () => {
     if (!attemptId || quizQuestions.length === 0) {
       console.error('No attempt ID or questions available for saving');
@@ -499,6 +528,8 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   }, [attemptId, quizQuestions, processedQuizId, saveQuiz, convertAnswersToSaveFormat]);
 
   const currentQuestion = quizQuestions[currentQuestionIndex];
+
+  console.log("Current question: ", currentQuestion);
 
   const handleAnswer = useCallback((answer: string | number | number[] | string[] | undefined) => {
     if (answer === undefined) return;
@@ -553,6 +584,14 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
   }, [answers, currentQuestion, handleAnswer]);
 
   // ===== EFFECTS =====
+
+  useEffect(()=> {
+    if(attemptError && attemptError.includes("No available attempts") || !currentQuestion){
+      onNext?.();
+      return;
+    }
+  },[attemptError, currentQuestion])
+
   // Reset state when quiz ID changes
   useEffect(() => {
     resetQuiz();
@@ -611,6 +650,7 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
       setDontStart(true);
     }
   }, [quizType, quizStarted, quizCompleted, quizQuestions.length, isPending, dontStart]);
+
 
   useEffect(() => {
     if (quizCompleted) {
@@ -1207,7 +1247,19 @@ const Quiz = forwardRef<QuizRef, QuizProps>(({
         <Separator />
 
         {/* Navigation */}
-        <div className="flex justify-end">
+        <div className="flex justify-between items-center">
+          {/* Skip button (shown after 5 attempts) */}
+          {attempts >= 5 && (
+            <Button
+              // variant="outline"
+              onClick={handleSkipQuiz}
+              // className="text-white hover:text-background/90 hover:bg-foreground/10"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Skipping...' : 'Skip Quiz'}
+            </Button>
+          )}
+          
           <div className="flex gap-2">
             <Button
               variant="outline"

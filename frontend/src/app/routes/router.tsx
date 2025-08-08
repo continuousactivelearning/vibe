@@ -22,6 +22,7 @@ import AddCoursePage from '@/app/pages/teacher/AddCoursePage';
 import TeacherProfile from "@/app/pages/teacher/profile";
 import { LiveQuiz } from '@/app/pages/teacher/live-quiz'
 import Dashboard from '@/app/pages/teacher/dashboard'
+import CoursePage from '@/app/pages/student/course-page'
 import TeacherCoursePage from "@/app/pages/teacher/teacher-course-page";
 import TeacherCoursesPage from '@/app/pages/teacher/course-page'
 import Editor from '@/app/pages/teacher/create-article'
@@ -33,7 +34,7 @@ import GenerateSectionPage from '@/app/pages/teacher/create-job'
 import AISectionPage from '@/app/pages/teacher/AISectionPage';
 import AISectionModal from '@/app/pages/teacher/components/AISectionModal';
 import FlaggedList from '../pages/teacher/FlaggedList/FlaggedList'
-import CoursePage from '../pages/student/course-page/course-page'
+// import CoursePage from '../pages/student/course-page/course-page'
 
 
 // Root route with error and notFound handling
@@ -136,7 +137,6 @@ const studentLayoutRoute = new Route({
     if (!isAuthenticated) {
       throw redirect({ to: '/auth' });
     }
-
     // Role check - must be a student
     if (user?.role !== 'student') {
       if (user?.role === 'teacher') {
@@ -146,7 +146,12 @@ const studentLayoutRoute = new Route({
       }
     }
   },
-  component: StudentLayout,
+  component: ()=> (
+    <StudentRouteGuard>
+      <StudentLayout/>
+    </StudentRouteGuard>
+  )
+  ,
 });
 
 // Teacher dashboard route

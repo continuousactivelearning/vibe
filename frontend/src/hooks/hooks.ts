@@ -229,6 +229,7 @@ export interface QuestionAnswersBody {
 export interface CreateAttemptResponse {
   attemptId: string;
   questionRenderViews: QuestionRenderView[];
+  userAttempts:number;
 }
 
 export interface SubmitAttemptResponse {
@@ -293,7 +294,7 @@ interface IGradingResult {
 export interface QuizSubmissionResponseUpdated {
   _id?: string | ObjectId;
   quizId: string | ObjectId;
-  userId: string | ObjectId;
+  userId: string | ObjectId | {firstName:string, lastName:string, email:string};
   attemptId: string | ObjectId;
   submittedAt: Date;
   gradingResult?: IGradingResult;
@@ -441,7 +442,6 @@ export async function useProcessInvites(inviteId: string): Promise<{
     throw new Error(`Failed to update settings: ${res.status}`);
   }
 
-  console.log(res);
 
   return {
     data: null,
@@ -809,6 +809,24 @@ export function useItemById(
   };
 }
 
+export function useUpdateCourseItem(): {
+  mutate: (variables: { params: { path: { versionId: string, itemId: string } }, body: components['schemas']['UpdateItemBody'] }) => void,
+  mutateAsync: (variables: { params: { path: { versionId: string, itemId: string } }, body: components['schemas']['UpdateItemBody'] }) => Promise<components['schemas']['ItemDataResponse']>,
+  data: components['schemas']['ItemDataResponse'] | undefined,
+  error: string | null,
+  isPending: boolean,
+  isSuccess: boolean,
+  isError: boolean,
+  isIdle: boolean,
+  reset: () => void,
+  status: 'idle' | 'pending' | 'success' | 'error'
+}{
+  const result = api.useMutation("put", "/courses/versions/{versionId}/items/{itemId}");
+  return {
+    ...result,
+    error: result.error ? (result.error.message || 'Item update failed') : null
+  };
+}
 
 // PUT /courses/versions/{versionId}/modules/{moduleId}/sections/{sectionId}/items/{itemId}
 export function useUpdateItem(): {
@@ -1158,7 +1176,6 @@ export function useEditProctoringSettings() {
         body: JSON.stringify(body),
       });
 
-      console.log('Proctoring settings response:', res);
 
       if (!res.ok) {
         throw new Error(`Failed to update settings: ${res.status}`);
@@ -1833,7 +1850,7 @@ export function useQuestionBankById(questionBankId: string): {
 }
 
 // PATCH /quizzes/question-bank/{questionBankId}/questions/{questionId}/add
-export function useAddQuestionToBank(): {
+export function useAddQuestionToBank(): {                                                           
   mutate: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => void,
   mutateAsync: (variables: { params: { path: { questionBankId: string, questionId: string } } }) => Promise<QuestionBankResponse>,
   data: QuestionBankResponse | undefined,
@@ -1974,7 +1991,6 @@ export function useInvites(): {
         headers: { 'Content-Type': 'application/json', 'authorization': `Bearer ${localStorage.getItem('firebase-auth-token')}` },
       });
 
-      console.log(res);
 
       if (!res.ok) {
         throw new Error(`Failed to update settings: ${res.status}`);
@@ -2267,15 +2283,27 @@ export function useQuizResults(quizId: string): {
   };
 }
 
-export function useQuizSubmissions(quizId: string,gradeStatus:GradingSystemStatus, search:string, sort:string, currentPage:number, limit:number): {
+export function useQuizSubmissions(quizId: string,gradeStatus:GradingSystemStatus, search:string, sort:string, currentPage:number, limit:number,selectedTab:string): {
   data: {totalCount:number, totalPages:number, currentPage:number, data: QuizSubmissionResponseUpdated[]} | undefined,
   isLoading: boolean,
   error: string | null,
   refetch: () => void
 } {
+  const isPaginatedResult = selectedTab == "submissions";
   const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions", {
-    params: { path: { quizId }, query: { ...(gradeStatus && gradeStatus=="All" ? {}:{gradeStatus}), search, ...(sort && sort=="All" ? {}:{sort}), currentPage, limit   } }
+    params: { path: { quizId }, query: isPaginatedResult
+        ? {
+            ...(gradeStatus && gradeStatus !== "All" ? { gradeStatus } : {}),
+            ...(search ? { search } : {}),
+            ...(sort && sort !== "All" ? { sort } : {}),
+            currentPage,
+            limit,
+          }
+        : undefined,  }
   }, { enabled: !!quizId });
+  // const result = api.useQuery("get", "/quizzes/quiz/{quizId}/submissions", {
+  //   params: { path: { quizId }, query: { ...(gradeStatus && gradeStatus=="All" ? {}:{gradeStatus}), search, ...(sort && sort=="All" ? {}:{sort}), currentPage, limit   } }
+  // }, { enabled: !!quizId });
 
   return {
     data: result.data,

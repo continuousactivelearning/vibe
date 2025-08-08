@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Video } from "@/types/video.types";
-import { FlagTriangleRight } from "lucide-react";
+import Loader from "@/components/Loader";
 
 function getYouTubeId(url: string): string | null {
     const match = url.match(/(?:v=|youtu\.be\/?)([\w-]{11})/);
@@ -18,9 +18,13 @@ interface VideoModalProps {
     onEdit?: () => void; // Add this prop
     item?: Video | null;
     action: "add" | "edit" | "view";
+    selectedItemName: string,
+    isLoading: boolean,
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({
+    selectedItemName,
+    isLoading,
     onClose,
     onSave,
     onDelete,
@@ -59,8 +63,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
         item?.details.startTime ? parseTimeToSeconds(item.details.startTime) : 0,
         item?.details.endTime ? parseTimeToSeconds(item.details.endTime) : 0,
     ]);
-    console.log("VideoModal item:", item);
-    const [videoId, setVideoId] = useState<string | null>(getYouTubeId(item?.details.URL+"?rel=0" || ""));
+    const [videoId, setVideoId] = useState<string | null>(getYouTubeId(item?.details.URL + "?rel=0" || ""));
     const [points, setPoints] = useState<number>(item?.details.points ?? 0);
 
     const playerRef = useRef<any>(null);
@@ -239,7 +242,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
                 <FlagTriangleRight className="h-4 w-4 mr-1" />
                 View Flags
               </Button> */}
-              </span>
+                </span>
                 ) : null}
                 {/* Remove Close button from here */}
             </div>
@@ -311,8 +314,8 @@ const VideoModal: React.FC<VideoModalProps> = ({
                                 >
                                     {/* SVG Play Icon */}
                                     <svg width="64" height="64" viewBox="0 0 128 128" fill="none">
-                                        <circle cx="64" cy="64" r="64" fill="#FFF" fillOpacity="0.2"/>
-                                        <polygon points="52,40 96,64 52,88" fill="#FFF"/>
+                                        <circle cx="64" cy="64" r="64" fill="#FFF" fillOpacity="0.2" />
+                                        <polygon points="52,40 96,64 52,88" fill="#FFF" />
                                     </svg>
                                 </div>
                             )}
@@ -342,37 +345,40 @@ const VideoModal: React.FC<VideoModalProps> = ({
                                 MozUserSelect: 'none',
                                 msUserSelect: 'none',
                                 flexShrink: 0,
-                                display: 'flex',
+                                // display: 'flex',
                                 gap: '16px',
-                                alignItems: 'center',
-                                justifyContent: 'flex-start',
-                                position: 'relative',
+                                // alignItems: 'center',
+                                // justifyContent: 'flex-start',
+                                // position: 'relative',
                             }}
+                            className="md:flex items-center justify-start relative"
                         >
-                            <label className="font-medium mr-2">Start Time (s):</label>
-                            <Input
-                                type="number"
-                                min={0}
-                                max={range[1] - 0.1}
-                                step={0.1}
-                                value={range[0]}
-                                onChange={e => handleStartTimeChange(e.target.value)}
-                                disabled={!playerReady || action === "view"}
-                                style={{ width: 100 }}
-                            />
-                            <label className="font-medium ml-4 mr-2">End Time (s):</label>
-                            <Input
-                                type="number"
-                                min={range[0] + 0.1}
-                                max={duration}
-                                step={0.1}
-                                value={range[1]}
-                                onChange={e => handleEndTimeChange(e.target.value)}
-                                disabled={!playerReady || action === "view"}
-                                style={{ width: 100 }}
-                            />
+                            <div className="flex items-center gap-2">
+                                <label className="font-medium mr-2">Start Time (s):</label>
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    max={range[1] - 0.1}
+                                    step={0.1}
+                                    value={range[0]}
+                                    onChange={e => handleStartTimeChange(e.target.value)}
+                                    disabled={!playerReady || action === "view"}
+                                    style={{ width: 100 }}
+                                />
+                                <label className="font-medium ml-4 mr-2">End Time (s):</label>
+                                <Input
+                                    type="number"
+                                    min={range[0] + 0.1}
+                                    max={duration}
+                                    step={0.1}
+                                    value={range[1]}
+                                    onChange={e => handleEndTimeChange(e.target.value)}
+                                    disabled={!playerReady || action === "view"}
+                                    style={{ width: 100 }}
+                                />
+                            </div>
                             {/* Go to Start/End Buttons */}
-                            <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+                            <div className="mt-4 md:mt-0" style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
                                 <Button
                                     variant="secondary"
                                     size="sm"
@@ -401,7 +407,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
                         </div>
                     </div>
                 )}
-                <div>
+                <div className="mt-2">
                     <label className="block mb-1 font-medium">Points</label>
                     <Input
                         type="number"
@@ -431,12 +437,13 @@ const VideoModal: React.FC<VideoModalProps> = ({
                             onClick={handleSave}
                             disabled={!playerReady || !url}
                         >
-                            {action === "add" ? "Add Item" : "Update Item"}
+                            {action === "add" ? "Add Item " : "Update Item"}
                         </Button>
                     </div>
                 )}
             </div>
         </div>
+
     );
 };
 

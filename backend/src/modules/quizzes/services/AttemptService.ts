@@ -9,27 +9,27 @@ import {
   QuestionAnswerFeedback,
   Submission,
 } from '#quizzes/classes/transformers/Submission.js';
-import {IQuestionRenderView} from '#quizzes/question-processing/index.js';
-import {QuestionProcessor} from '#quizzes/question-processing/QuestionProcessor.js';
+import { IQuestionRenderView } from '#quizzes/question-processing/index.js';
+import { QuestionProcessor } from '#quizzes/question-processing/QuestionProcessor.js';
 
-import {generateRandomParameterMap} from '#quizzes/utils/index.js';
-import {GLOBAL_TYPES} from '#root/types.js';
-import {BaseService, MongoDatabase} from '#shared/index.js';
-import {injectable, inject} from 'inversify';
-import {ClientSession, ObjectId} from 'mongodb';
-import {NotFoundError, BadRequestError} from 'routing-controllers';
-import {QuestionBankService} from './QuestionBankService.js';
-import {QuestionService} from './QuestionService.js';
-import {QUIZZES_TYPES} from '../types.js';
-import {instanceToPlain} from 'class-transformer';
-import {QuizRepository} from '../repositories/providers/mongodb/QuizRepository.js';
-import {AttemptRepository} from '../repositories/providers/mongodb/AttemptRepository.js';
-import {SubmissionRepository} from '../repositories/providers/mongodb/SubmissionRepository.js';
-import {UserQuizMetricsRepository} from '../repositories/providers/mongodb/UserQuizMetricsRepository.js';
-import {BaseQuestion} from '../classes/transformers/Question.js';
-import {UserQuizMetrics} from '../classes/transformers/UserQuizMetrics.js';
-import {Attempt} from '../classes/transformers/Attempt.js';
-import {QuizItem} from '#root/modules/courses/classes/transformers/Item.js';
+import { generateRandomParameterMap } from '#quizzes/utils/index.js';
+import { GLOBAL_TYPES } from '#root/types.js';
+import { BaseService, MongoDatabase } from '#shared/index.js';
+import { injectable, inject } from 'inversify';
+import { ClientSession, ObjectId } from 'mongodb';
+import { NotFoundError, BadRequestError } from 'routing-controllers';
+import { QuestionBankService } from './QuestionBankService.js';
+import { QuestionService } from './QuestionService.js';
+import { QUIZZES_TYPES } from '../types.js';
+import { instanceToPlain } from 'class-transformer';
+import { QuizRepository } from '../repositories/providers/mongodb/QuizRepository.js';
+import { AttemptRepository } from '../repositories/providers/mongodb/AttemptRepository.js';
+import { SubmissionRepository } from '../repositories/providers/mongodb/SubmissionRepository.js';
+import { UserQuizMetricsRepository } from '../repositories/providers/mongodb/UserQuizMetricsRepository.js';
+import { BaseQuestion } from '../classes/transformers/Question.js';
+import { UserQuizMetrics } from '../classes/transformers/UserQuizMetrics.js';
+import { Attempt } from '../classes/transformers/Attempt.js';
+import { QuizItem } from '#root/modules/courses/classes/transformers/Item.js';
 @injectable()
 class AttemptService extends BaseService {
   constructor(
@@ -61,7 +61,7 @@ class AttemptService extends BaseService {
     questionDetails: IQuestionDetails[];
     questionRenderViews: IQuestionRenderView[];
   }> {
-    const questionsBankRefs = quiz.details.questionBankRefs;
+    const questionsBankRefs = quiz.details.questionBankRefs || [];
     const selectedQuestionIds: string[] = [];
 
     for (const questionBankRef of questionsBankRefs) {
@@ -90,7 +90,7 @@ class AttemptService extends BaseService {
         new QuestionProcessor(question).render(questionDetail.parameterMap),
       );
     }
-    return {questionDetails, questionRenderViews};
+    return { questionDetails, questionRenderViews };
   }
 
   private _buildGradingResult(
@@ -167,7 +167,7 @@ class AttemptService extends BaseService {
   public async attempt(
     userId: string | ObjectId,
     quizId: string,
-  ): Promise<{attemptId: string; questionRenderViews: IQuestionRenderView[]}> {
+  ): Promise<{ attemptId: string; questionRenderViews: IQuestionRenderView[] }> {
     return this._withTransaction(async session => {
       //1. Check if UserQuizMetrics exists for the user and quiz
       let metrics = await this.userQuizMetricsRepository.get(
@@ -175,6 +175,7 @@ class AttemptService extends BaseService {
         quizId,
         session,
       );
+
       const quiz = await this.quizRepository.getById(quizId, session);
       if (!metrics) {
         //1a If not, create a new UserQuizMetrics
@@ -214,7 +215,7 @@ class AttemptService extends BaseService {
       }
 
       //4. Fetch questions for the quiz attempt
-      const {questionDetails, questionRenderViews} =
+      const { questionDetails, questionRenderViews } =
         await this._getQuestionsForAttempt(quiz);
 
       //5. Create a new attempt
@@ -229,14 +230,14 @@ class AttemptService extends BaseService {
       metrics.latestAttemptStatus = 'ATTEMPTED';
       metrics.latestAttemptId = attemptId;
       metrics.remainingAttempts--;
-      metrics.attempts.push({attemptId});
-      await this.userQuizMetricsRepository.update(
+      metrics.attempts.push({ attemptId });
+      const updatedMetrics = await this.userQuizMetricsRepository.update(
         metrics._id.toString(),
         metrics,
       );
 
       //6. Return the attempt ID
-      return {attemptId, questionRenderViews};
+      return { attemptId, questionRenderViews, userAttempts: updatedMetrics?.attempts.length };
     });
   }
 
@@ -369,4 +370,4 @@ class AttemptService extends BaseService {
   }
 }
 
-export {AttemptService};
+export { AttemptService };

@@ -20,8 +20,12 @@ import {
   Settings,
   BarChart3,
   Users,
-  RefreshCw,FlagTriangleRight,
-  Search
+  Search,
+  RefreshCw,
+  FlagTriangleRight,
+  Edit,
+  X,
+  Download
 } from "lucide-react";
 import {
   useGetAllQuestionBanksForQuiz,
@@ -33,8 +37,10 @@ import {
   useReplaceQuestionWithDuplicate,
   useDeleteQuestion,
   useUpdateItem,
+  useEditQuestionBankInQuiz,
   useQuestionById,
-  useQuizSubmissions
+  useQuizSubmissions,
+  useUpdateCourseItem,
 } from '@/hooks/hooks';
 
 import ExpandableQuestionCard from './expandable-question-card';
@@ -46,6 +52,9 @@ import ConfirmationModal from './confirmation-modal';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { GradingSystemStatus } from '@/types/quiz.types';
 import { Pagination } from '@/components/ui/Pagination';
+import { toast } from 'sonner';
+import { DownloadReportButton } from './DownloadReportButton';
+import Loader from '@/components/Loader';
 
 interface EnhancedQuizEditorProps {
   quizId: string | null;
@@ -56,6 +65,8 @@ interface EnhancedQuizEditorProps {
   details: any;
   analytics: any;
   // submissions: any;
+  selectedItemName:string,
+  isLoading:boolean;
   performance: any;
   onDelete: () => void;
 }
@@ -75,6 +86,15 @@ interface QuestionFormData {
     points: number;
   };
   solution: any; // This would be the appropriate solution type based on question type
+}
+
+interface QuestionBankEditFormData {
+  questionBankId: string;
+  title: string;
+  description: string;
+  tags: string[];
+  difficultyLevel: string;
+  questionsToSelect: number;
 }
 
 const QUESTION_TYPES = [
@@ -164,9 +184,11 @@ const calculatePerformanceFromSubmissions = (submissions: any[]): { questionId: 
 };
 
 const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
+  isLoading,
   quizId,
   courseId,
   courseVersionId,
+  selectedItemName,
   moduleId,
   sectionId,
   details,
@@ -186,7 +208,7 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   const [editQuizSettings, setEditQuizSettings] = useState(false);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
-
+  
   // Confirmation modal states
   const [showDeleteQuizModal, setShowDeleteQuizModal] = useState(false);
   const [showDeleteQuestionBankModal, setShowDeleteQuestionBankModal] = useState(false);
@@ -215,10 +237,14 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   if(!quizId){
     console.error("Failed to fetch submission because quizId is ", quizId)
   }
-  const { data: submissionsData } = useQuizSubmissions(quizId!, selectedGradeStatus, searchQuery, sort, currentPage, limit);
+  const { data: submissionsData,refetch, isLoading:submissionsLoading } = useQuizSubmissions(quizId!, selectedGradeStatus, searchQuery, sort, currentPage, limit, selectedTab);
   
+  console.log("Submission data: ", submissionsData)
   const submissions = submissionsData?.data;
-  console.log("Submissions: ",submissions)
+
+  useEffect(() => {
+      refetch();
+  }, [selectedTab]);
 
   const handlePageChange = (newPage: number) => {
     if (submissionsData && newPage >= 1 && newPage <= submissionsData.totalPages) {
@@ -228,6 +254,21 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
 
   // Form states
   const [bankForm, setBankForm] = useState({ title: '', description: '' });
+
+  // Question bank edit form
+  const [showEditQuestionBankDialog, setShowEditQuestionBankDialog] = useState(false);
+  const [questionBankToEdit, setQuestionBankToEdit] = useState<any>(null);
+  const [questionBankEditForm, setQuestionBankEditForm] = useState<QuestionBankEditFormData>({
+    questionBankId: '',
+    title: '',
+    description: '',
+    tags: [],
+    difficultyLevel: '',
+    questionsToSelect: 3
+  });
+  const [currentTag, setCurrentTag] = useState('');
+
+
   const [questionForm, setQuestionForm] = useState<QuestionFormData>({
     question: {
       text: '',
@@ -266,7 +307,9 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   const removeQuestionFromBank = useRemoveQuestionFromBank();
   const replaceQuestionWithDuplicate = useReplaceQuestionWithDuplicate();
   const deleteQuestion = useDeleteQuestion();
-  const updateItem = useUpdateItem();
+  const updateItem = useUpdateCourseItem();
+  // const updateItem = useUpdateItem();
+  const editQuestionBankInQuiz = useEditQuestionBankInQuiz();
 
   // Initialize quiz settings form with existing details
   useEffect(() => {
@@ -333,25 +376,26 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
         name: quizSettingsForm.name,
         description: quizSettingsForm.description,
         type: 'QUIZ' as const,
-        quizDetails
+        details:quizDetails
       };
 
       await updateItem.mutateAsync({
         params: {
           path: {
             versionId: courseVersionId,
-            moduleId,
-            sectionId,
+            // moduleId,
+            // sectionId,
             itemId: quizId || ''
           }
         },
         body: requestBody
       });
-
+      toast.success("Settings updated!")
       setEditQuizSettings(false);
       // You might want to add a success notification here
     } catch (error) {
       console.error('Failed to update quiz settings:', error);
+      toast.error("Failed to update settings, Try again!")
       // You might want to add an error notification here
     }
   };
@@ -404,6 +448,96 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   const handleRemoveQuestionBank = async (bankId: string) => {
     setQuestionBankToDelete(bankId);
     setShowDeleteQuestionBankModal(true);
+  };
+
+  const handleEditQuestionBank = (questionBank: any) => {
+    // console.log('Edit button clicked for bank:', questionBank);
+    setQuestionBankToEdit(questionBank);
+    setQuestionBankEditForm({
+      questionBankId: questionBank.bankId,
+      title: questionBank.title || '',
+      description: questionBank.description || '',
+      tags: questionBank.tags || [],
+      difficultyLevel: (questionBank.difficulty && questionBank.difficulty.length > 0) ? questionBank.difficulty[0] : '',
+      questionsToSelect: questionBank.count || 3
+    });
+    setShowEditQuestionBankDialog(true);
+  };
+
+  // Tag management functions
+  const handleAddTag = () => {
+    if (currentTag.trim() && !questionBankEditForm.tags.includes(currentTag.trim())) {
+      setQuestionBankEditForm({ ...questionBankEditForm, tags: [...questionBankEditForm.tags, currentTag.trim()] });
+      setCurrentTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setQuestionBankEditForm({
+      ...questionBankEditForm,
+      tags: questionBankEditForm.tags.filter((tag: string) => tag !== tagToRemove)
+    });
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
+
+
+
+  const handleSaveEditQuestionBank = async () => {
+    if (!quizId || questionBankEditForm.questionsToSelect < 1) return;
+
+    // console.log('Saving question bank edit:', {
+    //   quizId,
+    //   questionBankId: questionBankEditForm.questionBankId,
+    //   questionsToSelect: questionBankEditForm.questionsToSelect,
+    //   tags: questionBankEditForm.tags,
+    //   difficultyLevel: questionBankEditForm.difficultyLevel
+    // });
+
+    try {
+      await editQuestionBankInQuiz.mutateAsync({
+        params: { path: { quizId } },
+        body: {
+          bankId: questionBankEditForm.questionBankId,
+          questionBankId: questionBankEditForm.questionBankId,
+          count: questionBankEditForm.questionsToSelect,
+          tags: questionBankEditForm.tags,
+          difficulty: questionBankEditForm.difficultyLevel ? [questionBankEditForm.difficultyLevel] : []
+        }
+      });
+      
+      // Close dialog and reset state
+      setShowEditQuestionBankDialog(false);
+      setQuestionBankToEdit(null);
+      
+      // Refresh the question banks data
+      refetchQuestionBanks();
+      
+      // console.log('Question banks refetched successfully');
+    } catch (error) {
+      console.error('Failed to edit question bank:', error);
+    }
+  };
+
+  const handleCancelEditQuestionBank = () => {
+    // If we have the original bank data, reset form to original values
+    if (questionBankToEdit) {
+      setQuestionBankEditForm({
+        questionBankId: questionBankToEdit.bankId,
+        title: questionBankToEdit.title || '',
+        description: questionBankToEdit.description || '',
+        tags: questionBankToEdit.tags || [],
+        difficultyLevel: (questionBankToEdit.difficulty && questionBankToEdit.difficulty.length > 0) ? questionBankToEdit.difficulty[0] : '',
+        questionsToSelect: questionBankToEdit.count || 3
+      });
+    }
+    setShowEditQuestionBankDialog(false);
+    setQuestionBankToEdit(null);
   };
 
   const confirmDeleteQuestionBank = async () => {
@@ -459,7 +593,6 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
       console.error('Failed to delete quiz:', error);
     }
   };
-  console.log(questionTextCache);
 
   const renderQuestionForm = () => (
     <div className="space-y-4">
@@ -643,19 +776,24 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   }, [showCreateBankDialog]);
 
   return (
+    <>
+    {isLoading || submissionsLoading ? <Loader/> : 
     <div className="h-full flex flex-col">
       <div className="border-b">
         <div className="p-6">
-          <div className="flex items-center justify-between">
+          <div className="lg:flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">{details?.name || 'Quiz Editor'}</h1>
-              <p className="text-muted-foreground">{details?.description || 'Manage your quiz content and analytics'}</p>
+              <h1 className="text-xl md:text-2xl font-bold">{selectedItemName ||details?.name || 'Quiz Editor'}</h1>
+              <p className="text-muted-foreground text-sm md:text-base">{details?.description || 'Manage your quiz content and analytics'}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 mt-4 lg:mt-0">
               {/* <Button variant="outline" size="sm">
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button> */}
+              {submissionsData && submissionsData.data.length && selectedTab == "analytics" &&
+                <DownloadReportButton data={submissionsData} />
+              }
               <Button variant="outline" size="sm" onClick={() => setEditQuizSettings(true)}>
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
@@ -700,17 +838,18 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
         </Tabs>
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden ">
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsContent value="questions" className="h-full m-0 ms-7 mt-2">
-            <div className="h-full flex">
+          <TabsContent value="questions" className="h-full m-0 md:ms-7 mt-2">
+            <div className="h-full md:flex">
               {/* Question Banks Sidebar */}
-              <div className="w-80 border-r rounded bg-muted/50 ">
+              <div className="md:w-80 border-r rounded  bg-muted/50 mt-1">
                 <CreateQuestionBankDialog
                   showCreateBankDialog={showCreateBankDialog}
                   setShowCreateBankDialog={setShowCreateBankDialog}
                   quizId={quizId}
                 />
+                {/* List of question banks */}
                 <ScrollArea className="h-[calc(100vh-200px)]">
                   <div className="p-4 space-y-2">
                     {questionBanks?.map((bank: any) => (
@@ -724,19 +863,32 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <BookOpen className="h-5 w-5 text-muted-foreground" />
-                              <span className="font-medium text-md font-semibold ">Bank {bank.bankId.slice(-8)}</span>
+                              <span className=" text-md font-semibold ">Bank {bank.bankId.slice(-8)}</span>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveQuestionBank(bank.bankId);
-                              }}
-                              className="h-6 w-6 p-0 text-destructive hover:text-destructive"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditQuestionBank(bank);
+                                }}
+                                className="h-6 w-6 p-0 text-white hover:text-background"
+                              >
+                               <Edit className="h-3 w-3 " />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveQuestionBank(bank.bankId);
+                                }}
+                                className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
                             {bank.count || 0} questions selected
@@ -756,10 +908,11 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                 </ScrollArea>
               </div>
 
-              {/* Questions Content */}
+              {/* Questions Content in a question bank */}
               <div className="flex-1">
                 {selectedQuestionBank ? (
                   <div className="h-full flex flex-col">
+                    {/* Add Question trigger for questions */}
                     <CreateQuestionDialog
                       showCreateQuestionDialog={showCreateQuestionDialog}
                       setShowCreateQuestionDialog={setShowCreateQuestionDialog}
@@ -793,7 +946,7 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                     </ScrollArea>
                   </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center">
+                  <div className="h-full flex items-center justify-center mt-4 md:-0">
                     <div className="text-center">
                       <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-muted-foreground">Select a Question Bank</h3>
@@ -829,9 +982,9 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
           </TabsContent>
 
           <TabsContent value="analytics" className="h-full m-0">
-            <div className="p-6 space-y-6">
+            <div className="p-3 md:p-4 lg:p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-rows-3 md:grid-cols-5 gap-6">
-                <Card className="col-span-3 row-span-2">
+                <Card className="col-span-5 lg:col-span-3 row-span-2">
                   <CardHeader>
                     <CardTitle>Question Performance</CardTitle>
                   </CardHeader>
@@ -863,11 +1016,11 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                     </Table>
                   </CardContent>
                 </Card>
-                <Card className="col-span-2 row-span-2 bg-muted/50 text-muted-foreground">
+                <Card className="col-span-5 lg:col-span-2 row-span-2 bg-muted/50 text-muted-foreground">
                   <CardHeader>
                     <CardTitle className="text-muted-foreground">Question Performance Chart</CardTitle>
                   </CardHeader>
-                  <CardContent className="h-full">
+                  <CardContent className="h-[450px] md:h-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={chartData}
@@ -1097,9 +1250,9 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm">
+                              {/* <Button variant="ghost" size="sm">
                                 <RefreshCw className="h-4 w-4" />
-                              </Button>
+                              </Button> */}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -1137,6 +1290,140 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
         }}
         submission={selectedSubmission}
       />
+
+      {/* Edit Question Bank Dialog */}
+      <Dialog open={showEditQuestionBankDialog} onOpenChange={setShowEditQuestionBankDialog}>
+        <DialogContent className="w-100">
+          <DialogHeader>
+            <DialogTitle>Edit Question Bank Configuration</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Bank Info Display */}
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground mb-4">
+                Editing configuration for: <strong>{questionBankEditForm.title}</strong>
+              </p>
+              <div className="text-sm text-muted-foreground">
+                <strong>Bank ID:</strong> {questionBankEditForm.questionBankId.slice(-8)}
+              </div>
+              {questionBankToEdit?.title && (
+                <div className="text-sm text-muted-foreground">
+                  <strong>Title:</strong> {questionBankToEdit.title}
+                </div>
+              )}
+              {questionBankToEdit?.description && (
+                <div className="text-sm text-muted-foreground">
+                  <strong>Description:</strong> {questionBankToEdit.description}
+                </div>
+              )}
+            </div>
+
+            {/* Tags Field */}
+            <div className="space-y-2">
+              <Label htmlFor="editTags">Tags</Label>
+              <div className="space-y-2">
+                <div className="flex gap-2">
+                  <Input
+                    id="editTags"
+                    value={currentTag}
+                    onChange={(e) => setCurrentTag(e.target.value)}
+                    onKeyPress={handleTagKeyPress}
+                    placeholder="Add a tag"
+                    className="w-80"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddTag}
+                    disabled={!currentTag.trim() || questionBankEditForm.tags.includes(currentTag.trim())}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Display Tags */}
+                {questionBankEditForm.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {questionBankEditForm.tags.map((tag: string, index: number) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          className="ml-1 text-muted-foreground hover:text-background"
+                          onClick={() => handleRemoveTag(tag)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Difficulty Level Field */}
+            <div className="space-y-2">
+              <Label htmlFor="editDifficulty">Difficulty Level</Label>
+              <Select
+                value={questionBankEditForm.difficultyLevel}
+                onValueChange={(value) => setQuestionBankEditForm({ ...questionBankEditForm, difficultyLevel: value })}
+              >
+                <SelectTrigger className="w-80">
+                  <SelectValue placeholder="Select difficulty level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Count Field */}
+            <div className="space-y-2">
+              <Label htmlFor="editQuestionCount">Number of Questions to Select</Label>
+              <Input
+                id="editQuestionCount"
+                type="number"
+                value={questionBankEditForm.questionsToSelect}
+                onChange={(e) => setQuestionBankEditForm({ ...questionBankEditForm, questionsToSelect: Number(e.target.value) })}
+                min={1}
+                className="w-80"
+                placeholder="Enter number of questions to select"
+              />
+            </div>
+
+            {/* Error Display */}
+            {editQuestionBankInQuiz.error && (
+              <div className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                {editQuestionBankInQuiz.error}
+              </div>
+            )}
+          </div>
+
+          {/* Dialog Actions */}
+          <div className="flex justify-end gap-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={handleCancelEditQuestionBank}
+              disabled={editQuestionBankInQuiz.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEditQuestionBank}
+              disabled={editQuestionBankInQuiz.isPending || questionBankEditForm.questionsToSelect < 1}
+            >
+              {editQuestionBankInQuiz.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Modals */}
       <ConfirmationModal
@@ -1178,6 +1465,8 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
         isLoading={deleteQuestion.isPending || removeQuestionFromBank.isPending}
       />
     </div>
+    }
+    </>
   );
 };
 
