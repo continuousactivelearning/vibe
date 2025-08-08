@@ -18,8 +18,8 @@ interface VideoModalProps {
     onEdit?: () => void; // Add this prop
     item?: Video | null;
     action: "add" | "edit" | "view";
-    selectedItemName:string,
-    isLoading:boolean,
+    selectedItemName: string,
+    isLoading: boolean,
 }
 
 const VideoModal: React.FC<VideoModalProps> = ({
@@ -40,6 +40,8 @@ const VideoModal: React.FC<VideoModalProps> = ({
     const [playerReady, setPlayerReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [showOverlay, setShowOverlay] = useState(false);
+    const [errors, setErrors] = useState<{ name?: string; description?: string; url?: string }>({});
+
     // Helper to convert "mm:ss.ms" or "hh:mm:ss.ms" to seconds
     function parseTimeToSeconds(time: string | undefined): number {
         if (!time) return 0;
@@ -63,7 +65,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
         item?.details.startTime ? parseTimeToSeconds(item.details.startTime) : 0,
         item?.details.endTime ? parseTimeToSeconds(item.details.endTime) : 0,
     ]);
-    const [videoId, setVideoId] = useState<string | null>(getYouTubeId(item?.details.URL+"?rel=0" || ""));
+    const [videoId, setVideoId] = useState<string | null>(getYouTubeId(item?.details.URL + "?rel=0" || ""));
     const [points, setPoints] = useState<number>(item?.details.points ?? 0);
 
     const playerRef = useRef<any>(null);
@@ -197,6 +199,14 @@ const VideoModal: React.FC<VideoModalProps> = ({
 
     // Handle Save
     const handleSave = () => {
+        const newErrors: { name?: string; description?: string; url?: string } = {};
+
+        if (!name.trim()) newErrors.name = "Name is required";
+        if (!description.trim()) newErrors.description = "Description is required";
+        if (!url.trim()) newErrors.url = "URL is required";
+        setErrors(newErrors);
+        if (Object.keys(newErrors).length > 0) return;
+
         const video: Video = {
             _id: item?._id || "",
             name,
@@ -248,27 +258,58 @@ const VideoModal: React.FC<VideoModalProps> = ({
                         ) : null}
                         {/* Remove Close button from here */}
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                         <Input
                             placeholder="Video Name"
                             value={name}
-                            onChange={e => setName(e.target.value)}
+                            onChange={e => {
+                                const value = e.target.value;
+                                setName(value);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    name: value.trim() ? '' : "Name is required"
+                                }));
+                            }}
                             disabled={action === "view"}
                         />
+                        {errors.name && (
+                            <p className="text-xs text-red-500 mt-1">{errors.name}</p>
+                        )}
                         <Input
                             placeholder="Paste YouTube video URL"
                             value={url}
-                            onChange={e => setUrl(e.target.value)}
+                            onChange={e => {
+                                const value = e.target.value;
+                                setUrl(value);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    url: value.trim() ? '' : "URL is required"
+                                }));
+                            }}
                             disabled={action === "view"}
                         />
+                        {errors.url && (
+                            <p className="text-xs text-red-500 mt-1">{errors.url}</p>
+                        )}
                         <textarea
                             placeholder="Description"
                             value={description}
-                            onChange={e => setDescription(e.target.value)}
+                            onChange={e => {
+                                const value = e.target.value;
+                                setDescription(value);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    description: value.trim() ? undefined : "Description is required"
+                                }));
+                            }}
                             disabled={action === "view"}
                             rows={3}
-                            className="w-full rounded border px-3 py-2 text-sm"
+                            className="w-full rounded border px-3 py-2 text-sm mb-0"
                         />
+                        {errors.description && (
+                            <p className="text-xs text-red-500">{errors.description}</p>
+                        )}
+
                         {videoId && (
                             <div
                                 style={{
@@ -437,7 +478,7 @@ const VideoModal: React.FC<VideoModalProps> = ({
                                 )}
                                 <Button
                                     onClick={handleSave}
-                                    disabled={!playerReady || !url}
+                                    disabled={!playerReady || !url || !name || !description}
                                 >
                                     {action === "add" ? "Add Item " : "Update Item"}
                                 </Button>

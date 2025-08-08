@@ -180,6 +180,7 @@ export default function TeacherCoursePage() {
   useEffect(() => {
     if (createModule.isSuccess || createSection.isSuccess || createItem.isSuccess || updateModule.isSuccess || updateSection.isSuccess || updateItem.isSuccess || deleteModule.isSuccess || deleteSection.isSuccess || deleteItem.isSuccess) {
       refetchVersion();
+      refetchItems()
       // Also refetch items for active section
       
       if (activeSectionInfo) {
