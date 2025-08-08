@@ -248,6 +248,26 @@ export class CreateMetricAchievementBody implements IMetricAchievement {
   @IsNumber()
   @IsNotEmpty()
   metricCount: number;
+
+  @JSONSchema({
+    title: 'Reward Id',
+    description: 'The ID of the metric to increment as a reward',
+    example: '68593511b809b47d9b389262',
+    type: 'string'
+  })
+  @IsMongoId()
+  @IsOptional()
+  rewardMetricId?: string;
+  
+  @JSONSchema({
+    title: 'Reward Increment Value',
+    description: 'The value to increment the reward metric by',
+    example: 10,
+    type: 'number'
+  })
+  @IsNumber()
+  @IsOptional()
+  rewardIncrementValue?: number;
 }
 
 /**
@@ -352,6 +372,26 @@ export class UpdateMetricAchievementBody
   @IsNumber()
   @IsNotEmpty()
   metricCount: number;
+
+  @JSONSchema({
+    title: 'Reward Metric ID',
+    description: 'The ID of the metric to increment as a reward for unlocking this achievement',
+    example: '60d5ec49b3f1c8e4a8f8b8c3',
+    type: 'string',
+  })
+  @IsMongoId()
+  @IsOptional()
+  rewardMetricId?: string;
+
+  @JSONSchema({
+    title: 'Reward Increment Value',
+    description: 'The value to increment the reward metric by',
+    example: 10,
+    type: 'number',
+  })
+  @IsNumber()
+  @IsOptional()
+  rewardIncrementValue?: number;
 }
 
 /**

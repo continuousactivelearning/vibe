@@ -456,6 +456,8 @@ export interface IAchievementBase {
   description: string;
   trigger: Trigger;
   badgeUrl: string; // URL to the badge image
+  rewardMetricId?: string | ObjectId; // Optional field to link achievements to specific metrics
+  rewardIncrementValue?: number; //Optional field to specify the increment value for the reward metric
 }
 
 export interface IMetricAchievement extends IAchievementBase {
