@@ -23,6 +23,7 @@ import {
   IUserGameMetric,
   IUserGameAchievement,
   IMetricTrigger,
+  AchievementStatus,
 } from '#root/shared/interfaces/models.js';
 
 /**
@@ -257,11 +258,14 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
   async deleteAchievement(
     achievementId: ObjectId,
     session?: ClientSession,
-  ): Promise<DeleteResult | null> {
+  ): Promise<UpdateResult | null> {
     await this.init();
 
-    const result = await this.achievementCollection.deleteOne(
+    // Perform a soft delete by updating the status.
+
+    const result = await this.achievementCollection.updateOne(
       {_id: achievementId},
+      {$set: {status: AchievementStatus.INACTIVE}},
       {session},
     );
 
@@ -269,6 +273,27 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       return result;
     }
     throw new Error('Failed to delete achievement');
+  }
+
+  // Delete achievements by metric ID
+  async deleteAchievementByMetricId(
+    metricId: string | ObjectId,
+    session?: ClientSession,
+  ): Promise<UpdateResult | null> {
+    await this.init();
+
+    // Soft delete achievements by updating their status.
+
+    const result = await this.achievementCollection.updateMany(
+      {metricId: metricId},
+      {$set: {status: AchievementStatus.DELETED}},
+      {session},
+    );
+
+    if (result.acknowledged) {
+      return result;
+    }
+    throw new Error('Failed to delete achievements');
   }
 
   // Create a user game metric (user progress on a metric)
@@ -604,6 +629,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
     const aggregateCondition = metricsUpdated.map(metric => ({
       $and: [
         {metricId: metric.metricId},
+        {status: AchievementStatus.ACTIVE},
         {$expr: {$lte: ['$metricCount', metric.value]}},
       ],
     }));
@@ -619,6 +645,24 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       achievementId: ach._id,
       unlockedAt: new Date(),
     }));
+
+    // Step 6: Handle reward metric increments
+    const rewardOps = achievementsUnlocked
+      .filter(ach => ach.rewardMetricId && ach.rewardIncrementValue)
+      .map(ach => ({
+        updateOne: {
+          filter: {
+            userId: metricTriggers.userId,
+            metricId: ach.rewardMetricId,
+          },
+          update: {$inc: {value: ach.rewardIncrementValue}},
+          upsert: true, // Create if it doesn't exist
+        },
+      }));
+
+    if (rewardOps.length > 0) {
+      await this.userMetricCollection.bulkWrite(rewardOps, {session});
+    }
 
     const updateResultAchievements =
       await this.userAchievementCollection.updateOne(

@@ -114,8 +114,6 @@ export class userGameMetricsService extends BaseService {
           };
         });
 
-        console.log(userGameMetrics);
-
         // Bulk create user game metrics
         const createdMetrics =
           await this.gamifyEngineRepo.createUserGameMetrics(
@@ -127,7 +125,7 @@ export class userGameMetricsService extends BaseService {
           throw new Error('Failed to create user game metrics');
         }
 
-        combinedMetrics = [...metrics, ...createdMetrics];
+        return plainToInstance(UserGameMetric, [...createdMetrics, ...metrics]);
       }
 
       return plainToInstance(UserGameMetric, combinedMetrics);

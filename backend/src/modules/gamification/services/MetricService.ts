@@ -122,6 +122,19 @@ export class metricService extends BaseService {
         throw new NotFoundError(`Game metric with ID ${id} not found`);
       }
 
+      // Cascade delete achievements associated with this metric.
+      const achievementDeleteResult =
+        await this.gamifyEngineRepo.deleteAchievementByMetricId(
+          metricId,
+          session,
+        );
+
+      if (!achievementDeleteResult) {
+        throw new InternalServerError(
+          `Failed to delete achievements for metric ID ${id}`,
+        );
+      }
+
       // Cascade delete user game metrics.
       const cascadeDeleteResult =
         await this.gamifyEngineRepo.deleteUserGameMetricById(metricId, session);

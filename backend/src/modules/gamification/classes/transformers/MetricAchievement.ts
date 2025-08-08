@@ -4,7 +4,7 @@ import {
   ObjectIdToString,
   StringToObjectId,
 } from '#shared/constants/transformerConstants.js';
-import {ID, Trigger} from '#shared/index.js';
+import {AchievementStatus, ID, Trigger} from '#shared/index.js';
 import {IMetricAchievement} from '#shared/index.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateMetricAchievementBody} from '../validators/GamifyEngineValidators.js';
@@ -89,10 +89,21 @@ export class MetricAchievement implements IMetricAchievement {
   })
   metricCount: number;
 
+  // Current status of the achievement (active or inactive)
+  @Expose()
+  @JSONSchema({
+    title: 'Achievement Status',
+    description: 'Current status of the achievement',
+    example: 'ACTIVE',
+    type: 'string',
+  })
+  status?: AchievementStatus = AchievementStatus.ACTIVE;
+
   @Expose()
   @JSONSchema({
     title: 'Reward Metric ID',
-    description: 'The ID of the metric to increment as a reward for unlocking this achievement',
+    description:
+      'The ID of the metric to increment as a reward for unlocking this achievement',
     example: '60d5ec49b3f1c8e4a8f8b8c3',
     type: 'string',
   })
@@ -107,7 +118,6 @@ export class MetricAchievement implements IMetricAchievement {
     example: 10,
     type: 'number',
   })
-
   rewardIncrementValue?: number;
 
   /**
@@ -120,6 +130,9 @@ export class MetricAchievement implements IMetricAchievement {
       this.description = achievementBody.description;
       this.badgeUrl = achievementBody.badgeUrl;
       this.trigger = achievementBody.trigger;
+      this.status = achievementBody?.status || AchievementStatus.ACTIVE;
+      this.rewardMetricId = achievementBody?.rewardMetricId;
+      this.rewardIncrementValue = achievementBody?.rewardIncrementValue;
       this.metricId = achievementBody.metricId;
       this.metricCount = achievementBody.metricCount;
       this.rewardMetricId = achievementBody.rewardMetricId;
