@@ -36,6 +36,12 @@ export class achievementService extends BaseService {
     achievement: MetricAchievement,
   ): Promise<MetricAchievement | null> {
     return this._withTransaction(async session => {
+      // Clean up the achievement object to ensure it has the correct structure.
+
+      achievement = Object.fromEntries(
+        Object.entries(achievement).filter(([_, value]) => value !== undefined),
+      ) as MetricAchievement;
+
       // Check if MetricId is valid
       const isValidMetricId = await this.gamifyEngineRepo.readGameMetric(
         achievement.metricId,

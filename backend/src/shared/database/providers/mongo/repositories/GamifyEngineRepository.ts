@@ -640,6 +640,24 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       unlockedAt: ach.unlockedAt,
     }));
 
+    // Step 6: Handle reward metric increments
+    const rewardOps = achievementsUnlocked
+      .filter(ach => ach.rewardMetricId && ach.rewardIncrementValue)
+      .map(ach => ({
+        updateOne: {
+          filter: {
+            userId: metricTriggers.userId,
+            metricId: ach.rewardMetricId,
+          },
+          update: {$inc: {value: ach.rewardIncrementValue}},
+          upsert: true, // Create if it doesn't exist
+        },
+      }));
+
+    if (rewardOps.length > 0) {
+      await this.userMetricCollection.bulkWrite(rewardOps, {session});
+    }
+
     return {
       metricsUpdated: metricsUpdated,
       achievementsUnlocked: achievementsUpdated,

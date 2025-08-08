@@ -101,6 +101,8 @@ export class userGameMetricsService extends BaseService {
         throw new NotFoundError('No game metrics found in the system');
       }
 
+      let combinedMetrics = metrics;
+
       // If no metrics found for the user, lazy create default metrics.
       if (allMetrics.length != metrics.length || metrics.length === 0) {
         const userGameMetrics = allMetrics.map(metric => {
@@ -125,10 +127,10 @@ export class userGameMetricsService extends BaseService {
           throw new Error('Failed to create user game metrics');
         }
 
-        return plainToInstance(UserGameMetric, createdMetrics);
+        combinedMetrics = [...metrics, ...createdMetrics];
       }
 
-      return plainToInstance(UserGameMetric, metrics);
+      return plainToInstance(UserGameMetric, combinedMetrics);
     });
   }
 
