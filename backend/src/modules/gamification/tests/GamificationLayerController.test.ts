@@ -6,15 +6,7 @@ import {
 } from 'routing-controllers';
 import {Container} from 'inversify';
 import request from 'supertest';
-import {
-  describe,
-  it,
-  beforeAll,
-  afterAll,
-  expect,
-  vi,
-  beforeEach,
-} from 'vitest';
+import {describe, it, beforeAll, expect, vi, beforeEach} from 'vitest';
 import {faker} from '@faker-js/faker';
 import {ObjectId} from 'mongodb';
 
@@ -28,6 +20,7 @@ import {InversifyAdapter} from '#root/inversify-adapter.js';
 import {FirebaseAuthService} from '#root/modules/auth/services/FirebaseAuthService.js';
 import {coursesContainerModule} from '#root/modules/courses/container.js';
 import {notificationsContainerModule} from '#root/modules/notifications/container.js';
+import {title} from 'process';
 
 describe('GamifyLayerController', () => {
   const appInstance = Express();
@@ -131,8 +124,6 @@ describe('GamifyLayerController', () => {
       .post('/auth/signup')
       .send(instructorSignUp);
     const userRes = await request(app).post('/auth/signup').send(userSignUp);
-
-    console.log(userRes.body);
 
     userId = userRes.body.userId;
     adminToken = `mock-admin-token-${adminRes.body}`;
@@ -519,7 +510,7 @@ describe('GamifyLayerController', () => {
 
     it('should retrieve rules for an event (admin)', async () => {
       const res = await request(app)
-        .get(`/gamification/rules/${eventId}`)
+        .get(`/gamification/rules/event/${eventId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
@@ -529,7 +520,7 @@ describe('GamifyLayerController', () => {
 
     it('should retrieve rules for an event (instructor)', async () => {
       const res = await request(app)
-        .get(`/gamification/rules/${eventId}`)
+        .get(`/gamification/rules/event/${eventId}`)
         .set('Authorization', `Bearer ${instructorToken}`);
 
       expect(res.status).toBe(200);
@@ -537,7 +528,7 @@ describe('GamifyLayerController', () => {
 
     it('should return 403 for unauthorized role (user)', async () => {
       const res = await request(app)
-        .get(`/gamification/rules/${eventId}`)
+        .get(`/gamification/rules/event/${eventId}`)
         .set('Authorization', `Bearer ${userToken}`);
 
       expect(res.status).toBe(403);
@@ -545,7 +536,7 @@ describe('GamifyLayerController', () => {
 
     it('should return 400 for invalid event ID', async () => {
       const res = await request(app)
-        .get('/gamification/rules/invalid-id')
+        .get('/gamification/rules/event/invalid-id')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
@@ -554,14 +545,14 @@ describe('GamifyLayerController', () => {
     it('should return 404 for non-existent event ID', async () => {
       const nonExistentId = new ObjectId().toString();
       const res = await request(app)
-        .get(`/gamification/rules/${nonExistentId}`)
+        .get(`/gamification/rules/event/${nonExistentId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(404);
     });
   });
 
-  describe('GET /gamification/rule/:ruleId', () => {
+  describe('GET /gamification/rules/:ruleId', () => {
     let ruleId: string;
 
     beforeAll(async () => {
@@ -571,6 +562,7 @@ describe('GamifyLayerController', () => {
         eventVersion: '1.0.0',
         eventPayload: {
           score: 'number',
+          timetaken: 'number',
         },
       };
 
@@ -587,8 +579,7 @@ describe('GamifyLayerController', () => {
         eventId: eventId,
         metricId: new ObjectId().toString(),
         logic: {
-          condition: 'score > 80',
-          action: 'incrementMetric',
+          and: [{'>': [{var: 'score'}, 80]}, {'<': [{var: 'timetaken'}, 300]}],
         },
         ruleVersion: 1,
       };
@@ -600,10 +591,9 @@ describe('GamifyLayerController', () => {
 
       ruleId = ruleRes.body._id;
     });
-
     it('should retrieve a specific rule (admin)', async () => {
       const res = await request(app)
-        .get(`/gamification/rule/${ruleId}`)
+        .get(`/gamification/rules/${ruleId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
@@ -612,7 +602,7 @@ describe('GamifyLayerController', () => {
 
     it('should return 400 for invalid rule ID', async () => {
       const res = await request(app)
-        .get('/gamification/rule/invalid-id')
+        .get('/gamification/rules/invalid-id')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
@@ -621,7 +611,7 @@ describe('GamifyLayerController', () => {
     it('should return 404 for non-existent rule', async () => {
       const nonExistentId = new ObjectId().toString();
       const res = await request(app)
-        .get(`/gamification/rule/${nonExistentId}`)
+        .get(`/gamification/rules/${nonExistentId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(404);
@@ -630,6 +620,7 @@ describe('GamifyLayerController', () => {
 
   describe('PUT /gamification/rule', () => {
     let ruleId: string;
+    let eventId: string;
 
     beforeAll(async () => {
       const eventBody = {
@@ -638,6 +629,7 @@ describe('GamifyLayerController', () => {
         eventVersion: '1.0.0',
         eventPayload: {
           score: 'number',
+          timetaken: 'number',
         },
       };
 
@@ -646,7 +638,7 @@ describe('GamifyLayerController', () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send(eventBody);
 
-      const eventId = eventRes.body._id;
+      eventId = eventRes.body._id;
 
       const ruleBody = {
         ruleName: 'Update Rule Test Rule',
@@ -654,8 +646,7 @@ describe('GamifyLayerController', () => {
         eventId: eventId,
         metricId: new ObjectId().toString(),
         logic: {
-          condition: 'score > 80',
-          action: 'incrementMetric',
+          and: [{'>': [{var: 'score'}, 80]}, {'<': [{var: 'timetaken'}, 300]}],
         },
         ruleVersion: 1,
       };
@@ -673,17 +664,16 @@ describe('GamifyLayerController', () => {
         ruleId: ruleId,
         ruleName: 'Updated Rule Name',
         ruleDescription: 'Updated description',
-        eventId: new ObjectId().toString(),
+        eventId: eventId,
         metricId: new ObjectId().toString(),
         logic: {
-          condition: 'score > 90',
-          action: 'incrementMetric',
+          and: [{'>': [{var: 'score'}, 90]}, {'<': [{var: 'timetaken'}, 300]}],
         },
         ruleVersion: 2,
       };
 
       const res = await request(app)
-        .put('/gamification/rule')
+        .put('/gamification/rules')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(updateBody);
 
@@ -703,7 +693,7 @@ describe('GamifyLayerController', () => {
       };
 
       const res = await request(app)
-        .put('/gamification/rule')
+        .put('/gamification/rules')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(invalidUpdateBody);
 
@@ -726,7 +716,7 @@ describe('GamifyLayerController', () => {
       };
 
       const res = await request(app)
-        .put('/gamification/rule')
+        .put('/gamification/rules')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(updateBody);
 
@@ -734,7 +724,7 @@ describe('GamifyLayerController', () => {
     });
   });
 
-  describe('DELETE /gamification/rule/:ruleId', () => {
+  describe('DELETE /gamification/rules/:ruleId', () => {
     let ruleId: string;
 
     beforeEach(async () => {
@@ -776,7 +766,7 @@ describe('GamifyLayerController', () => {
 
     it('should delete a rule (admin)', async () => {
       const res = await request(app)
-        .delete(`/gamification/rule/${ruleId}`)
+        .delete(`/gamification/rules/${ruleId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(204);
@@ -784,7 +774,7 @@ describe('GamifyLayerController', () => {
 
     it('should return 400 for invalid rule ID', async () => {
       const res = await request(app)
-        .delete('/gamification/rule/invalid-id')
+        .delete('/gamification/rules/invalid-id')
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(400);
@@ -793,7 +783,7 @@ describe('GamifyLayerController', () => {
     it('should return 404 for non-existent rule', async () => {
       const nonExistentId = new ObjectId().toString();
       const res = await request(app)
-        .delete(`/gamification/rule/${nonExistentId}`)
+        .delete(`/gamification/rules/${nonExistentId}`)
         .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(404);
@@ -830,7 +820,7 @@ describe('GamifyLayerController', () => {
       };
 
       const userGameMetricRes = await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(userGameMetricBody);
 
@@ -842,7 +832,7 @@ describe('GamifyLayerController', () => {
         eventVersion: '1.0.0',
         eventPayload: {
           score: 'number',
-          timeTaken: 'number',
+          timetaken: 'number',
         },
       };
 
@@ -883,18 +873,14 @@ describe('GamifyLayerController', () => {
         eventId: eventId,
         eventPayload: {
           score: 90,
-          timeTaken: 100,
+          timetaken: 100,
         },
       };
 
-      console.log('Trigger as user payload:', triggerBody);
-
       const res = await request(app)
-        .post('/gamification/eventtrigger')
+        .post('/gamification/trigger/event')
         .set('Authorization', `Bearer ${userToken}`)
         .send(triggerBody);
-
-      console.log(res.body);
 
       expect(res.status).toBe(200);
     });
@@ -905,12 +891,12 @@ describe('GamifyLayerController', () => {
         eventId: eventId,
         eventPayload: {
           score: 90,
-          timeTaken: 100,
+          timetaken: 100,
         },
       };
-      console.log('Trigger as admin payload:', triggerBody);
+
       const res = await request(app)
-        .post('/gamification/eventtrigger')
+        .post('/gamification/trigger/event')
         .set('Authorization', `Bearer ${adminToken}`)
         .send(triggerBody);
 
@@ -928,7 +914,7 @@ describe('GamifyLayerController', () => {
       };
 
       const res = await request(app)
-        .post('/gamification/eventtrigger')
+        .post('/gamification/trigger/event')
         .set('Authorization', `Bearer ${userToken}`)
         .send(invalidTriggerBody);
 

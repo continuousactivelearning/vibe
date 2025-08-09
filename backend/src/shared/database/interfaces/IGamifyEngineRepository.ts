@@ -70,11 +70,17 @@ export interface IGamifyEngineRepository {
     session?: ClientSession,
   ): Promise<UpdateResult | null>;
 
-  // Delete an achievement by its ID
+  // Delete an achievement by its ID (Soft delete)
   deleteAchievement(
     achievementId: string | ObjectId,
     session?: ClientSession,
-  ): Promise<DeleteResult | null>;
+  ): Promise<UpdateResult | null>;
+
+  // Delete achivements by metric ID (Soft delete)
+  deleteAchievementByMetricId(
+    metricId: string | ObjectId,
+    session?: ClientSession,
+  ): Promise<UpdateResult | null>;
 
   // Create a user game metric (user progress on a metric)
   createUserGameMetric(

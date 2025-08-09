@@ -96,8 +96,8 @@ export class EventsBody implements IEvents {
     description: 'Event payload information with dynamic types',
     type: 'object',
     example: {
-      performance: 'int',
-      timetaken: 'int',
+      performance: 'number',
+      timetaken: 'number',
     },
   })
   @IsRecordOfEventPayload(EventPayloadType)
@@ -140,8 +140,8 @@ export class UpdateEventsBody implements IEvents {
     description: 'Event payload information with dynamic types',
     type: 'object',
     example: {
-      performance: 'int',
-      timetaken: 'int',
+      performance: 'number',
+      timetaken: 'number',
     },
   })
   @IsObject()
@@ -195,8 +195,14 @@ export class RuleBody implements IRule {
     title: 'Rule Logic',
     description: 'Logic for the rule to be applied',
     type: 'object',
+    example: {
+      and: [
+        {'<=': [{var: 'timetaken'}, 120]},
+        {'>=': [{var: 'percentage'}, 80]},
+      ],
+    },
   })
-  logic: Record<string, any>;
+  logic: Record<string, unknown>;
 
   @JSONSchema({
     title: 'Rule Version',
@@ -291,7 +297,7 @@ export class UpdateRuleBody implements IRule {
     description: 'Logic for the rule to be applied',
     type: 'object',
   })
-  logic: Record<string, any>;
+  logic: Record<string, unknown>;
 
   @JSONSchema({
     title: 'Rule Version',

@@ -119,6 +119,19 @@ export class achievementService extends BaseService {
       const updatePayload = {...achievement, _id: achievementId};
       achievement = plainToInstance(MetricAchievement, updatePayload);
 
+      // Fetch the existing achievement and check it's status
+
+      const existingAchievement = await this.gamifyEngineRepo.readAchievement(
+        achievementId,
+        session,
+      );
+
+      if (existingAchievement?.status === 'DELETED') {
+        throw new NotFoundError(
+          `Achievement with ID ${id} is deleted and cannot be updated`,
+        );
+      }
+
       // Validate that the referenced metric exists
       const isValidMetricId = await this.gamifyEngineRepo.readGameMetric(
         achievement.metricId,
@@ -161,11 +174,11 @@ export class achievementService extends BaseService {
         session,
       );
 
-      if (deleteResult.deletedCount === 0) {
+      if (deleteResult.modifiedCount === 0) {
         throw new NotFoundError(`Achievement with ID ${id} not found`);
       }
 
-      return deleteResult.acknowledged && deleteResult.deletedCount > 0;
+      return deleteResult.acknowledged && deleteResult.modifiedCount > 0;
     });
   }
 }

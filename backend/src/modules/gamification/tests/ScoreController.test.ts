@@ -6,7 +6,7 @@ import {
 } from 'routing-controllers';
 import {Container} from 'inversify';
 import request from 'supertest';
-import {describe, it, beforeAll, afterAll, expect, vi, beforeEach} from 'vitest';
+import {describe, it, beforeAll, expect, vi} from 'vitest';
 import {faker} from '@faker-js/faker';
 import {ObjectId} from 'mongodb';
 
@@ -18,7 +18,6 @@ import {authModuleOptions} from '#root/modules/auth/index.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
 import {FirebaseAuthService} from '#root/modules/auth/services/FirebaseAuthService.js';
 import {GAMIFICATION_TYPES} from '../types.js';
-import {ScoringService} from '#gamification/services/ScoringService.js';
 import {gamificationModuleOptions} from '../index.js';
 import {IScoringWeights} from '#gamification/interfaces/scoring.js';
 
@@ -56,7 +55,7 @@ describe('ScoreController', () => {
     };
 
     const mockScoringService = {
-      calculateScore: vi.fn().mockImplementation((attempt) => {
+      calculateScore: vi.fn().mockImplementation(attempt => {
         return {
           score: 85,
           breakdown: {
@@ -65,17 +64,19 @@ describe('ScoreController', () => {
             streakBonus: 3,
             timeBonus: 2,
             hintPenalty: -0.5,
-            attemptPenalty: -0.5
-          }
+            attemptPenalty: -0.5,
+          },
         };
       }),
       getCurrentWeights: vi.fn().mockReturnValue(defaultWeights),
-      updateWeights: vi.fn().mockImplementation((weights) => weights)
+      updateWeights: vi.fn().mockImplementation(weights => weights),
     };
 
     // Correct way to rebind the service
     container.unbind(GAMIFICATION_TYPES.ScoringService);
-    container.bind(GAMIFICATION_TYPES.ScoringService).toConstantValue(mockScoringService);
+    container
+      .bind(GAMIFICATION_TYPES.ScoringService)
+      .toConstantValue(mockScoringService);
 
     const options: RoutingControllersOptions = {
       controllers: [
@@ -84,32 +85,36 @@ describe('ScoreController', () => {
       ],
       authorizationChecker: async (action, roles) => {
         const token = action.request.headers['authorization']?.split(' ')[1];
-        
+
         // Check if token exists
         if (!token) return false;
-        
+
         // Admin token case
         if (token.includes('admin')) {
-          return roles.includes('admin') || roles.includes('instructor') || roles.includes('user');
+          return (
+            roles.includes('admin') ||
+            roles.includes('instructor') ||
+            roles.includes('user')
+          );
         }
-        
+
         // Instructor token case
         if (token.includes('instructor')) {
           return roles.includes('instructor') || roles.includes('user');
         }
-        
+
         // User token case
         if (token.includes('user')) {
           return roles.includes('user');
         }
-        
+
         return false;
       },
-      currentUserChecker: async (action) => {
+      currentUserChecker: async action => {
         // Implementation for current user checker
         const token = action.request.headers['authorization']?.split(' ')[1];
         if (token) {
-          return { id: userId };
+          return {id: userId};
         }
         return null;
       },
@@ -145,7 +150,9 @@ describe('ScoreController', () => {
     };
 
     const adminRes = await request(app).post('/auth/signup').send(adminSignUp);
-    const instructorRes = await request(app).post('/auth/signup').send(instructorSignUp);
+    const instructorRes = await request(app)
+      .post('/auth/signup')
+      .send(instructorSignUp);
     const userRes = await request(app).post('/auth/signup').send(userSignUp);
 
     userId = userRes.body.userId;
@@ -153,7 +160,10 @@ describe('ScoreController', () => {
     instructorToken = `mock-instructor-token-${instructorRes.body}`;
     userToken = `mock-user-token-${userRes.body}`;
 
-    vi.spyOn(FirebaseAuthService.prototype, 'getUserIdFromReq').mockResolvedValue(userId);
+    vi.spyOn(
+      FirebaseAuthService.prototype,
+      'getUserIdFromReq',
+    ).mockResolvedValue(userId);
   });
 
   describe('POST /gamification/score', () => {
@@ -166,14 +176,14 @@ describe('ScoreController', () => {
         {
           questionId: new ObjectId().toString(),
           confidenceScore: 3,
-          result: true
-        }
+          result: true,
+        },
       ],
       streaks: 3,
       timeTaken: 300,
       idealTime: 600,
       attemptCount: 1,
-      hintCount: 0
+      hintCount: 0,
     };
 
     it('should calculate score successfully (user)', async () => {
@@ -209,7 +219,7 @@ describe('ScoreController', () => {
       const invalidAttempt = {
         userId: 'invalid-id',
         quizId: 'invalid-id',
-        grades: [] 
+        grades: [],
       };
 
       const res = await request(app)
@@ -224,7 +234,7 @@ describe('ScoreController', () => {
     it('should return 400 for empty grades array', async () => {
       const invalidAttempt = {
         ...validAttempt,
-        grades: []
+        grades: [],
       };
 
       const res = await request(app)
@@ -238,10 +248,12 @@ describe('ScoreController', () => {
     it('should return 400 for invalid confidence score', async () => {
       const invalidAttempt = {
         ...validAttempt,
-        grades: [{
-          ...validAttempt.grades[0],
-          confidenceScore: 6 // Invalid confidence score
-        }]
+        grades: [
+          {
+            ...validAttempt.grades[0],
+            confidenceScore: 6, // Invalid confidence score
+          },
+        ],
       };
 
       const res = await request(app)
@@ -287,7 +299,7 @@ describe('ScoreController', () => {
       hintPenalty: -1,
       streakBonus: 4,
       timeWeight: 0.3,
-      attemptPenalty: -0.75
+      attemptPenalty: -0.75,
     };
 
     it('should update weights successfully (admin)', async () => {
@@ -325,7 +337,7 @@ describe('ScoreController', () => {
         hintPenalty: 'invalid',
         streakBonus: null,
         timeWeight: 2,
-        attemptPenalty: undefined
+        attemptPenalty: undefined,
       };
 
       const res = await request(app)
@@ -340,7 +352,7 @@ describe('ScoreController', () => {
     it('should return 400 when required fields are missing', async () => {
       const incompleteWeights = {
         highWeight: 2,
-        lowWeight: 1
+        lowWeight: 1,
         // Missing other required fields
       };
 

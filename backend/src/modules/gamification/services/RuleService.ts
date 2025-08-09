@@ -11,7 +11,6 @@ import {plainToInstance} from 'class-transformer';
 import {NotFoundError} from 'routing-controllers';
 import jsonLogic from 'json-logic-js';
 import {ObjectId} from 'mongodb';
-import {ClientSession} from 'mongodb';
 
 /**
  * RuleService - handles business logic for gamification rules
@@ -44,7 +43,12 @@ export class ruleService extends BaseService {
         throw new NotFoundError(`Event with ID ${rule.eventId} not found`);
       }
 
+      // Event payload keys
+
+      const eventPayloadKeys = Object.keys(event.eventPayload);
+
       // Now create a dummy payload to validate the rule
+      // Todo: This is a temporary solution, we should optimize this using caching to avoid creating dummy payloads every time per event.
 
       const dummyPayload = {};
 
@@ -68,6 +72,40 @@ export class ruleService extends BaseService {
             dummyPayload[key] = {};
             break;
         }
+      }
+
+      // Check if the variables in the rule logic match the event payload
+
+      const extractVariables = (rule: Object) => {
+        const varsFound = new Set<string>();
+
+        const recurse = (node: any) => {
+          if (typeof node === 'object' && node !== null) {
+            for (const key in node) {
+              if (key === 'var' && typeof node[key] === 'string') {
+                varsFound.add(node[key]);
+              } else {
+                recurse(node[key]);
+              }
+            }
+          }
+        };
+
+        recurse(rule);
+
+        return Array.from(varsFound);
+      };
+
+      const ruleVariables = extractVariables(rule.logic);
+
+      if (
+        !ruleVariables.every(variable => eventPayloadKeys.includes(variable))
+      ) {
+        throw new NotFoundError(
+          `Rule variables do not match event payload for event ID ${
+            rule.eventId
+          }. Expected variables: ${eventPayloadKeys.join(', ')}`,
+        );
       }
 
       // Validate the rule with the dummy payload

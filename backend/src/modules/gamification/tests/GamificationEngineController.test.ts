@@ -73,7 +73,6 @@ describe('GamificationEngineController', () => {
 
     expect(signupRes.status).toBe(201);
     userId = signupRes.body.userId;
-    console.log('User ID:', userId);
     expect(userId).toBeTruthy();
     vi.spyOn(
       FirebaseAuthService.prototype,
@@ -543,7 +542,7 @@ describe('GamificationEngineController', () => {
     });
   });
 
-  describe('POST /gamification/engine/usermetrics', () => {
+  describe('POST /gamification/engine/user/metrics', () => {
     it('should create a user metric', async () => {
       // first create a metric to use in the user metric.
       const metricBody = {
@@ -568,7 +567,7 @@ describe('GamificationEngineController', () => {
         lastUpdated: '',
       };
       const res = await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .send(userMetricBody);
       expect(res.status).toBe(201);
     });
@@ -581,7 +580,7 @@ describe('GamificationEngineController', () => {
       };
 
       const res = await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .send(invalidUserMetricBody);
 
       expect(res.status).toBe(400);
@@ -597,14 +596,14 @@ describe('GamificationEngineController', () => {
       };
 
       const res = await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .send(userMetricBody);
 
       expect(res.status).toBe(404);
     });
   });
 
-  describe('GET /gamification/engine/usermetrics', () => {
+  describe('GET /gamification/engine/user/metrics', () => {
     it('should retrieve all user metrics', async () => {
       // first create a metric to use in the user metric.
 
@@ -630,11 +629,11 @@ describe('GamificationEngineController', () => {
       };
 
       await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .send(userMetric);
 
       const res = await request(app).get(
-        `/gamification/engine/usermetrics/${userId}`,
+        `/gamification/engine/user/${userId}/metrics/`,
       );
 
       expect(res.status).toBe(200);
@@ -643,7 +642,7 @@ describe('GamificationEngineController', () => {
 
     it('should return 400 for invalid user ID', async () => {
       const res = await request(app).get(
-        '/gamification/engine/usermetrics/invalidUserId',
+        '/gamification/engine/user/invalidUserId/metrics/',
       );
 
       expect(res.status).toBe(400);
@@ -677,7 +676,7 @@ describe('GamificationEngineController', () => {
       };
 
       const createRes = await request(app)
-        .post('/gamification/engine/usermetrics')
+        .post('/gamification/engine/user/metrics')
         .send(userMetricBody);
 
       expect(createRes.status).toBe(201);
@@ -693,7 +692,7 @@ describe('GamificationEngineController', () => {
       };
 
       const res = await request(app)
-        .put('/gamification/engine/usermetrics')
+        .put('/gamification/engine/user/metrics')
         .send(updateBody);
 
       expect(res.status).toBe(200);
@@ -709,14 +708,14 @@ describe('GamificationEngineController', () => {
       };
 
       const res = await request(app)
-        .put('/gamification/engine/usermetrics')
+        .put('/gamification/engine/user/metrics')
         .send(updateBody);
 
       expect(res.status).toBe(404);
     });
   });
 
-  describe('POST /gamification/engine/metrictrigger', () => {
+  describe('POST /gamification/trigger/metric', () => {
     it('should trigger a metric update', async () => {
       const metricBody = {
         name: 'Test Metric',
@@ -752,6 +751,12 @@ describe('GamificationEngineController', () => {
           },
         ],
       };
+
+      const res = await request(app)
+        .post('/gamification/trigger/metric')
+        .send(triggerBody);
+
+      expect(res.status).toBe(200);
     });
   });
 });

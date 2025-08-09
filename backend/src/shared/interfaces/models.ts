@@ -322,7 +322,12 @@ export interface IBlogDetails {
   estimatedReadTimeInMinutes: number;
 }
 
-export type EnrollmentRole = 'INSTRUCTOR' | 'STUDENT' | 'MANAGER' | 'TA' | 'STAFF';
+export type EnrollmentRole =
+  | 'INSTRUCTOR'
+  | 'STUDENT'
+  | 'MANAGER'
+  | 'TA'
+  | 'STAFF';
 export type EnrollmentStatus = 'ACTIVE' | 'INACTIVE';
 // New interfaces for user enrollment and progress tracking
 export interface IEnrollment {
@@ -450,11 +455,18 @@ export interface IGameMetric {
 
 export type Trigger = 'metric'; // defining as a type so that it can be extended later e.g streaks.
 
+export enum AchievementStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  DELETED = 'DELETED',
+}
+
 export interface IAchievementBase {
   _id?: string | ObjectId | null;
   name: string;
   description: string;
   trigger: Trigger;
+  status?: AchievementStatus;
   badgeUrl: string; // URL to the badge image
   rewardMetricId?: string | ObjectId; // Optional field to link achievements to specific metrics
   rewardIncrementValue?: number; //Optional field to specify the increment value for the reward metric
