@@ -1,4 +1,4 @@
-﻿State Management in React: Context Providers & Zustand (with TypeScript)
+﻿## State Management in React: Context Providers & Zustand (with TypeScript)
 
 ## 1. Problem Statement
 
