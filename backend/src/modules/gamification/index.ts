@@ -5,15 +5,23 @@ import {GamificationContainerModule} from './container.js';
 import {InversifyAdapter} from '#root/inversify-adapter.js';
 import {useContainer} from 'class-validator';
 import {ScoreController} from '#root/modules/gamification/controllers/ScoreController.js';
-import {GamifyEngineController} from './controllers/GamifyEngineController.js';
 import {HttpErrorHandler} from '#root/shared/index.js';
 import {SCORING_VALIDATORS} from '#gamification/classes/validators/ScoringValidators.js';
-import {GamifyLayerController} from './controllers/GamifyLayerController.js';
+import {
+  EventController,
+  AchievementController,
+  MetricController,
+  TriggerController,
+  RuleController,
+} from './controllers/index.js';
 
 export const gamificationModuleControllers: Function[] = [
-  GamifyEngineController,
+  MetricController,
+  AchievementController,
+  TriggerController,
+  EventController,
   ScoreController,
-  GamifyLayerController,
+  RuleController,
 ];
 
 export const gamificationContainerModules: ContainerModule[] = [
