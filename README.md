@@ -2,6 +2,10 @@
 
 ViBe is an innovative educational platform that enhances learning through continuous assessment and interactive challenges. Designed to ensure that every student fully masters the material before progressing, ViBe uses smart question generation and adaptive reviews to reinforce understanding and foster deeper learning.
 
+[![Watch the video](https://img.youtube.com/vi/Qc0FY260A98/maxresdefault.jpg)](https://youtu.be/Qc0FY260A98)
+
+### [Click here to Watch](https://youtu.be/Qc0FY260A98)
+
 ## Key Features
 
 - **Active Learning Through Adaptive Challenges:**  

@@ -1,25 +1,19 @@
-import {ItemsGroup} from 'modules/courses/classes/transformers/index';
-import {
-  IBaseItem,
-  IVideoDetails,
-  IQuizDetails,
-  IBlogDetails,
-  ICourseVersion,
-} from 'shared/interfaces/Models';
-import {ObjectId, ClientSession} from 'mongodb';
+import {Item, ItemsGroup} from '#courses/classes/transformers/Item.js';
+import { UpdateItemBody } from '#root/modules/courses/classes/index.js';
+import {ClientSession, ObjectId} from 'mongodb';
 
 export interface IItemRepository {
   readItem(
     courseVersionId: string,
     itemId: string,
     session?: ClientSession,
-  ): Promise<IBaseItem | null>;
+  ): Promise<Item | null>;
 
   deleteItem(
     itemGroupsId: string,
     itemId: string,
     session?: ClientSession,
-  ): Promise<boolean>;
+  ): Promise<ItemsGroup | null>;
 
   createItemsGroup(
     itemsGroup: ItemsGroup,
@@ -37,6 +31,17 @@ export interface IItemRepository {
     session?: ClientSession,
   ): Promise<ItemsGroup | null>;
 
+  updateItem(
+    itemId: string,
+    item: UpdateItemBody,
+    session?: ClientSession
+  ): Promise<Item>
+
+  findItemsGroupByItemId(
+    itemId: string,
+    session?: ClientSession,
+  ): Promise<ItemsGroup | null>;
+
   getFirstOrderItems(
     courseVersionId: string,
     session?: ClientSession,
@@ -46,6 +51,13 @@ export interface IItemRepository {
     itemId: ObjectId;
   }>;
 
+  createItem(item: Item, session?: ClientSession): Promise<Item | null>;
+  CalculateTotalItemsCount(courseId: string, versionId: string, session?: ClientSession): Promise<number>;
+  getTotalItemsCount(
+    courseId: string,
+    versionId: string,
+    session?: ClientSession,
+  ): Promise<number>;
   // createVideoDetails(details: IVideoDetails): Promise<string>;
   // createQuizDetails(details: IQuizDetails): Promise<string>;
   // createBlogDetails(details: IBlogDetails): Promise<string>;
