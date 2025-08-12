@@ -1379,7 +1379,7 @@ export function useUserAnomalies(courseId: string, versionId: string, userId: st
   const result = api.useQuery(
     "get",
     "/anomalies/course/{courseId}/version/{versionId}/user/{userId}",
-    { params: { path: { courseId, versionId, userId } } },
+    { params: { path: { courseId, versionId, userId },query:{limit:1000} } },
     { enabled: !!courseId && !!versionId && !!userId }
   );
   return {
@@ -1400,7 +1400,7 @@ export function useCourseAnomalies(courseId: string, versionId: string): {
   const result = api.useQuery(
     "get",
     "/anomalies/course/{courseId}/version/{versionId}",
-    { params: { path: { courseId, versionId } } },
+    { params: { path: { courseId, versionId },query:{limit:1000} } }, //kept limit to 1000 later can be changed
     { enabled: !!courseId && !!versionId }
   );
   return {

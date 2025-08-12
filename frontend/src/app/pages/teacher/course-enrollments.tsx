@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { redirect, useNavigate } from "@tanstack/react-router"
+import { useNavigate } from "@tanstack/react-router"
 import { Search, Users, TrendingUp, CheckCircle, RotateCcw, UserX, BookOpen, FileText, List, Play, AlertTriangle, X, Loader2, Eye, Clock, ChevronRight, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
@@ -14,8 +14,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { QuizSubmissionDisplay } from "./QuizSubmissionDisplay"
 import { WatchTimeDisplay } from "./WatchTimeDisplay"
+import { AnomalyAnalytics } from "@/components/anomaly-analytics"
 
-// Import hooks - including the new quiz hooks
+
+
+// Import hooks - including the new quiz hooks and anomaly hooks
 import {
   useCourseById,
   useCourseVersionById,
@@ -26,6 +29,10 @@ import {
 } from "@/hooks/hooks"
 import { useCourseStore } from "@/store/course-store"
 import type { EnrolledUser } from "@/types/course.types"
+import type { AnomalyData, AnomalyType } from "@/types/reportanomaly.types"
+
+// Type alias for ObjectId
+type ObjectId = string;
 
 // Types for quiz functionality
 interface IAttemptDetails {
@@ -164,6 +171,9 @@ export default function CourseEnrollments() {
   const [selectedViewItemType, setSelectedViewItemType] = useState<string>("")
   const [selectedViewItemName, setSelectedViewItemName] = useState<string>("")
 
+  // Anomaly analytics state
+  const [isAnomalyAnalyticsOpen, setIsAnomalyAnalyticsOpen] = useState(false)
+
   // Fetch enrollments data
   const {
     data: enrollmentsData,
@@ -215,7 +225,7 @@ export default function CourseEnrollments() {
     }
     return 0
   })
-  console.log("Sorted Users:", sortedUsers)
+  // console.log("Sorted Users:", sortedUsers)
 
   // Sorting handler
   const handleSort = (column: 'name' | 'enrollmentDate' | 'progress') => {
@@ -252,7 +262,7 @@ export default function CourseEnrollments() {
   }
 
   const handleViewProgress = (user: EnrolledUser) => {
-    console.log("Viewing progress for user:", user)
+    // console.log("Viewing progress for user:", user)
     setSelectedUser(user)
     setIsViewProgressDialogOpen(true)
   }
@@ -264,7 +274,7 @@ export default function CourseEnrollments() {
 
   const confirmRemoveStudent = async () => {
     if (userToRemove && courseId && versionId) {
-      console.log("Removing student:", userToRemove)
+      // console.log("Removing student:", userToRemove)
       try {
         await unenrollMutation.mutateAsync({
           params: {
@@ -497,6 +507,14 @@ export default function CourseEnrollments() {
               }}
             >
               Send Invites
+            </Button>
+            <Button
+              variant="outline"
+              className="gap-2 bg-primary hover:bg-accent text-primary cursor-pointer"
+              onClick={() => setIsAnomalyAnalyticsOpen(true)}
+            >
+              <AlertTriangle className="h-4 w-4" />
+              Anomaly Analytics
             </Button>
           </div>
         </div>
@@ -772,8 +790,6 @@ export default function CourseEnrollments() {
                                 <FileText className="h-4 w-4 text-emerald-600" />
                                 <span className="font-medium text-foreground">{section.name}</span>
                               </div>
-
-                              {/* Items */}
                               {expandedSections.has(section.sectionId) && (
                                 <SectionItems
                                   versionId={versionId!}
@@ -784,13 +800,13 @@ export default function CourseEnrollments() {
                                     setSelectedViewItem(itemId)
                                     setSelectedViewItemType(itemType)
                                     setSelectedViewItemName(itemName)
-                                    console.log("Selected Item:", itemId, itemType, itemName)
-                                    console.log("selected vars", selectedViewItem, selectedViewItemType, selectedViewItemName)
+                                    // console.log("Selected Item:", itemId, itemType, itemName)
+                                    // console.log("selected vars", selectedViewItem, selectedViewItemType, selectedViewItemName)
                                   }}
                                   getItemIcon={getItemIcon}
                                 />
-                              )}
-                            </div>
+                      )}
+                    </div>
                           )) || <p className="text-sm text-muted-foreground ml-6">No sections in this module</p>}
                         </div>
                       )}
@@ -1087,7 +1103,16 @@ export default function CourseEnrollments() {
             </div>
           </div>
         )}
-      </div>
+
+      {/* Anomaly Analytics Component */}
+      <AnomalyAnalytics
+        isOpen={isAnomalyAnalyticsOpen}
+        onClose={() => setIsAnomalyAnalyticsOpen(false)}
+        courseId={courseId || ""}
+        versionId={versionId || ""}
+        studentEnrollments={studentEnrollments}
+      />
+    </div>
     </div>
   )
 }
@@ -1249,3 +1274,4 @@ function SectionItems({
     </div>
   )
 }
+
