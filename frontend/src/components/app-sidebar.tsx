@@ -61,7 +61,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon" variant="sidebar" className="border-r">
 
       <SidebarHeader className="flex items-center px-4 py-4">
-        <div className="flex items-center gap-3">
+        <Link to="/teacher" className="flex items-center gap-3 focus:outline-none">
           <div className="h-10 w-10 rounded-lg overflow-hidden shrink-0">
             <img
               src="https://continuousactivelearning.github.io/vibe/img/logo.png"
@@ -74,7 +74,7 @@ export function AppSidebar() {
               <AuroraText colors={["#A07CFE", "#FE8FB5", "#FFBE7B"]}><b>ViBe</b></AuroraText>
             </span>
           )}
-        </div>
+        </Link>
       </SidebarHeader>
 
       <SidebarContent>
