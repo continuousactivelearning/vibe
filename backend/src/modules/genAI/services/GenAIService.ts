@@ -21,6 +21,9 @@ import axios from 'axios';
 import { SocksProxyAgent } from 'socks-proxy-agent';
 import { aiConfig } from '#root/config/ai.js';
 import { appConfig } from '#root/config/app.js';
+import { ANOMALIES_TYPES } from '#root/modules/anomalies/types.js';
+import { CloudStorageService } from '#root/modules/anomalies/index.js';
+import { storageConfig } from '#root/config/storage.js';
 
 @injectable()
 export class GenAIService extends BaseService {
@@ -46,6 +49,9 @@ export class GenAIService extends BaseService {
     @inject(GLOBAL_TYPES.Database)
     private readonly mongoDatabase: MongoDatabase,
 
+    @inject(ANOMALIES_TYPES.CloudStorageService)
+    private readonly cloudStorageService: CloudStorageService,
+
     private storage = new Storage({
       projectId: appConfig.firebase.projectId,
     })
@@ -58,17 +64,71 @@ export class GenAIService extends BaseService {
    * @param jobData Job configuration data
    * @returns Created job data
    */
-  async startJob(userId: string, jobData: JobBody): Promise<{ jobId: string }> {
+  async startJob(userId: string, jobData: JobBody, audio?: Express.Multer.File): Promise<{ jobId: string }> {
     return this._withTransaction(async session => {
+
       // Prepare job data and send to AI server]
       const result = await this.webhookService.AIServerCheck();
       if (result !== 200) {
         throw new Error('Failed to connect to AI server');
       }
-      const jobId = await this.genAIRepository.save(userId, jobData, session)
-      await this.genAIRepository.createTaskData(jobId, session);
+      const jobId = await this.genAIRepository.save(userId, jobData, audio? true : false, jobData.transcript ? true : false, session)
+      if (audio) {
+        // check file type (audio/)
+        if (!audio.mimetype.startsWith('audio/')) {
+          throw new BadRequestError('Invalid file type. Please upload an audio file.');
+        }
+        // store on buckets
+        const fileName = await this.cloudStorageService.uploadAudio(audio, jobId);
+        await this.genAIRepository.createTaskDataWithAudio(jobId, fileName, `https://storage.googleapis.com/${storageConfig.googleCloud.aiServerBucketName}/${fileName}`, session);
+      }
+      else if (jobData.transcript) {
+        const fileName = await this.cloudStorageService.uploadTranscript(jobData.transcript, jobId);
+        await this.genAIRepository.createTaskDataWithTranscript(jobId, fileName, `https://storage.googleapis.com/${storageConfig.googleCloud.aiServerBucketName}/${fileName}`, session);
+      }
+      else {
+        await this.genAIRepository.createTaskData(jobId, session);
+      }
 
       return {jobId};
+    });
+  }
+
+  async abortTask(jobId: string): Promise<void> {
+    return this._withTransaction(async session => {
+      const job = await this.genAIRepository.getById(jobId, session);
+      if (!job) {
+        throw new NotFoundError(`Job with ID ${jobId} not found`);
+      }
+      
+      // Check which task is currently running
+      let runningTask: TaskType | null = null;
+      
+      if (job.jobStatus.audioExtraction === TaskStatus.RUNNING) {
+        runningTask = TaskType.AUDIO_EXTRACTION;
+      } else if (job.jobStatus.transcriptGeneration === TaskStatus.RUNNING) {
+        runningTask = TaskType.TRANSCRIPT_GENERATION;
+      } else if (job.jobStatus.segmentation === TaskStatus.RUNNING) {
+        runningTask = TaskType.SEGMENTATION;
+      } else if (job.jobStatus.questionGeneration === TaskStatus.RUNNING) {
+        runningTask = TaskType.QUESTION_GENERATION;
+      } else if (job.jobStatus.uploadContent === TaskStatus.RUNNING) {
+        runningTask = TaskType.UPLOAD_CONTENT;
+      }
+      
+      if (!runningTask) {
+        throw new BadRequestError(`No running tasks found for job ID ${jobId}`);
+      }
+      
+      if (runningTask === TaskType.UPLOAD_CONTENT) {
+        throw new InternalServerError("Task upload content cannot be aborted");
+      }
+      
+      await this.webhookService.abortTask(jobId);
+      await this.updateJob(jobId, runningTask, {
+        status: TaskStatus.ABORTED,
+        error: 'Task aborted by user'
+      });
     });
   }
 
@@ -110,7 +170,7 @@ export class GenAIService extends BaseService {
         throw new NotFoundError(`User with ID ${userId} does not have permission to approve this job`);
       }
       const jobState = await this.getJobState(jobId, usePrevious);
-      if (jobState.taskStatus !== TaskStatus.COMPLETED && jobState.taskStatus !== TaskStatus.FAILED) {
+      if (jobState.taskStatus !== TaskStatus.COMPLETED && jobState.taskStatus !== TaskStatus.FAILED && jobState.taskStatus !== TaskStatus.ABORTED) {
         throw new BadRequestError(`The task ${jobState.currentTask} for job ID ${jobId} has not been completed yet, please approve the task to start.`);
       }
       jobState.parameters = {...jobState.parameters, ...this.removeUndefined(parameters)};
@@ -285,6 +345,7 @@ export class GenAIService extends BaseService {
    * @returns Updated job information
    */
   async updateJob(jobId: string, task: string, jobData?: audioData | trascriptGenerationData | segmentationData | questionGenerationData | contentUploadData): Promise<any> {
+    console.log(`Updating job ${jobId} for task ${task} with data:`, jobData);
     return this._withTransaction(async session => {
       // Retrieve existing job
       const job = await this.genAIRepository.getById(jobId, session);
@@ -292,7 +353,7 @@ export class GenAIService extends BaseService {
       if (!job || !taskData) {
         throw new NotFoundError(`Job with ID ${jobId} not found`);
       }
-      if (jobData.status === TaskStatus.COMPLETED || jobData.status === TaskStatus.FAILED) {
+      if (jobData.status === TaskStatus.COMPLETED || jobData.status === TaskStatus.FAILED || jobData.status === TaskStatus.ABORTED) {
         switch (task) {
           case TaskType.AUDIO_EXTRACTION:
             job.jobStatus.audioExtraction = jobData.status;
@@ -365,27 +426,27 @@ export class GenAIService extends BaseService {
         throw new NotFoundError(`Task data for job ID ${jobId} not found`);
       }
       const jobState = new JobState();
-      if (job.jobStatus.audioExtraction === TaskStatus.WAITING || job.jobStatus.audioExtraction === TaskStatus.COMPLETED || job.jobStatus.audioExtraction === TaskStatus.FAILED) {
+      if (!(job.jobStatus.audioExtraction === TaskStatus.PENDING || job.jobStatus.audioExtraction === TaskStatus.RUNNING)) {
         jobState.currentTask = TaskType.AUDIO_EXTRACTION;
         if (job.jobStatus.audioExtraction === TaskStatus.WAITING) jobState.currentTask = null;
         jobState.taskStatus = job.jobStatus.audioExtraction;
         jobState.url = job.url;
       }
-      if (job.jobStatus.transcriptGeneration === TaskStatus.WAITING || job.jobStatus.transcriptGeneration === TaskStatus.COMPLETED || job.jobStatus.transcriptGeneration === TaskStatus.FAILED) {
+      if (!(job.jobStatus.transcriptGeneration === TaskStatus.PENDING || job.jobStatus.transcriptGeneration === TaskStatus.RUNNING)) {
         jobState.currentTask = TaskType.TRANSCRIPT_GENERATION;
         if (job.jobStatus.transcriptGeneration === TaskStatus.WAITING) jobState.currentTask = TaskType.AUDIO_EXTRACTION;
         jobState.taskStatus = job.jobStatus.transcriptGeneration;
         jobState.parameters = job.transcriptParameters;
         jobState.file = task.audioExtraction[usePrevious ? usePrevious : task.audioExtraction.length - 1]?.fileUrl;
       }
-      if (job.jobStatus.segmentation === TaskStatus.WAITING || job.jobStatus.segmentation === TaskStatus.COMPLETED || job.jobStatus.segmentation === TaskStatus.FAILED) {
+      if (!(job.jobStatus.segmentation === TaskStatus.PENDING || job.jobStatus.segmentation === TaskStatus.RUNNING)) {
         jobState.currentTask = TaskType.SEGMENTATION;
         if (job.jobStatus.segmentation === TaskStatus.WAITING) jobState.currentTask = TaskType.TRANSCRIPT_GENERATION;
         jobState.taskStatus = job.jobStatus.segmentation;
         jobState.parameters = job.segmentationParameters;
         jobState.file = task.transcriptGeneration[usePrevious ? usePrevious : task.transcriptGeneration.length - 1]?.fileUrl;
       }
-      if (job.jobStatus.questionGeneration === TaskStatus.WAITING || job.jobStatus.questionGeneration === TaskStatus.COMPLETED || job.jobStatus.questionGeneration === TaskStatus.FAILED) {
+      if (!(job.jobStatus.questionGeneration === TaskStatus.PENDING || job.jobStatus.questionGeneration === TaskStatus.RUNNING)) {
         jobState.currentTask = TaskType.QUESTION_GENERATION;
         if (job.jobStatus.questionGeneration === TaskStatus.WAITING) jobState.currentTask = TaskType.SEGMENTATION;
         jobState.taskStatus = job.jobStatus.questionGeneration;
@@ -393,7 +454,6 @@ export class GenAIService extends BaseService {
         jobState.file = task.segmentation[usePrevious ? usePrevious : task.segmentation.length - 1]?.transcriptFileUrl;
         jobState.segmentMap = task.segmentation[usePrevious ? usePrevious : task.segmentation.length - 1]?.segmentationMap;
       }
-      // if all the previous task are completed
       if (job.jobStatus.audioExtraction === TaskStatus.COMPLETED && job.jobStatus.transcriptGeneration === TaskStatus.COMPLETED && job.jobStatus.segmentation === TaskStatus.COMPLETED && job.jobStatus.questionGeneration === TaskStatus.COMPLETED && job.jobStatus.uploadContent !== TaskStatus.PENDING) {
         console.log("All previous tasks completed, setting current task to UPLOAD_CONTENT");
         jobState.currentTask = TaskType.UPLOAD_CONTENT
