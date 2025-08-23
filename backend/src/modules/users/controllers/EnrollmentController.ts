@@ -298,7 +298,13 @@ export class EnrollmentController {
     }
 
     return {
-      enrollments: enrollmentsData.enrollments,
+      enrollments: enrollmentsData.enrollments.map((enrollment: any) => ({
+        role: enrollment.role,
+        status: enrollment.status,
+        enrollmentDate: enrollment.enrollmentDate,
+        user: enrollment.user,
+        progress: enrollment.progress,
+      })),
       totalDocuments: enrollmentsData.totalDocuments,
       totalPages: enrollmentsData.totalPages,
       currentPage: page,

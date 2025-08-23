@@ -340,11 +340,7 @@ export class EnrollmentService extends BaseService {
                   filter: { _id: new ObjectId(enrollment._id) },
                   update: {
                     $set: {
-                      progress: {
-                        completedItems,
-                        totalItems,
-                        percentCompleted: totalItems > 0 ? completedItems / totalItems : 0,
-                      },
+                      percentCompleted: totalItems > 0 ? completedItems / totalItems : 0,
                     },
                   },
                 },
