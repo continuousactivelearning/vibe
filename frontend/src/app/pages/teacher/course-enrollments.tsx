@@ -650,7 +650,7 @@ export default function CourseEnrollments() {
                             </div>
                           </TableCell>
                           <TableCell className="py-6">
-                            <EnrollmentProgress progress={enrollment.progress?.percentCompleted || 0} />
+                            <EnrollmentProgress progress={enrollment.progress || 0} />
                           </TableCell>
                           <TableCell className="py-6 pr-6">
                             <div className="flex items-center gap-3">
@@ -659,11 +659,11 @@ export default function CourseEnrollments() {
                                 size="sm"
                                 onClick={() =>
                                   handleViewProgress({
-                                    id: enrollment.user.userId,
+                                    id: enrollment.user._id,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
-                                    email: enrollment.userId,
+                                    email: enrollment.user.email,
                                     enrolledDate: enrollment.enrollmentDate,
-                                    progress: enrollment.progress?.percentCompleted || 0
+                                    progress: enrollment.progress || 0
                                   })}
                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all duration-200 cursor-pointer"
                               >
@@ -675,15 +675,15 @@ export default function CourseEnrollments() {
                                 size="sm"
                                 onClick={() =>
                                   handleResetProgress({
-                                    id: enrollment.user.userId,
+                                    id: enrollment.user._id,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
-                                    email: enrollment.userId,
+                                    email: enrollment.user.email,
                                     enrolledDate: enrollment.enrollmentDate,
                                     progress: 0,
                                   })
                                 }
                                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all duration-200 cursor-pointer"
-                                disabled={resetProgressMutation.isPending || Math.round((enrollment.progress?.percentCompleted || 0) * 100) == 0}
+                                disabled={resetProgressMutation.isPending || (enrollment.progress || 0)}
                               >
                                 {resetProgressMutation.isPending ? (
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -697,7 +697,7 @@ export default function CourseEnrollments() {
                                 size="sm"
                                 onClick={() =>
                                   handleRemoveStudent({
-                                    id: enrollment.user.userId,
+                                    id: enrollment.user._id,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
                                     email: enrollment.user.email,
                                     enrolledDate: enrollment.enrollmentDate,

@@ -234,62 +234,19 @@ export class EnrollmentService extends BaseService {
         );
       }
 
-      const result = await this.enrollmentRepo.getCourseVersionEnrollments(
-        courseId,
-        courseVersionId,
-        skip,
-        limit,
-        search,
-        sortBy,
-        sortOrder,
-      );
-      
-      const enrollments = result.enrollments;
-      
-      const totalItems = await this.itemRepo.getTotalItemsCount(courseId, courseVersionId, session);
-      
-      // Create enriched enrollments with progress data
-      const enrichedEnrollments = await Promise.all(
-        enrollments.map(async (enrollment) => {
-          try {
-            // Get completed items count for display
-            const completedItemsCount = await this.progressService.getUserProgressPercentageWithoutTotal(
-              enrollment.userId, 
-              courseId, 
-              courseVersionId
-            );
-            
-            return {
-              role: enrollment.role,
-              status: enrollment.status,
-              enrollmentDate: enrollment.enrollmentDate,
-              user: {
-                userId: enrollment.userId,
-                firstName: enrollment.firstName,
-                lastName: enrollment.lastName,
-                email: enrollment.email,
-              },
-              progress: {
-                completedItems: completedItemsCount,
-                totalItems,
-                percentCompleted: enrollment.percentCompleted || 0,
-              }
-            };
-          } catch (error) {
-            console.log(enrollment.userId, error);
-            return null;
-          }
-        })
-      );
+      const enrollmentsData =
+        await this.enrollmentRepo.getCourseVersionEnrollments(
+          courseId,
+          courseVersionId,
+          skip,
+          limit,
+          search,
+          sortBy,
+          sortOrder,
+          session,
+        );
 
-      const filteredEnrollments = enrichedEnrollments.filter(enrollment => enrollment !== null);
-      
-      return {
-        enrollments: filteredEnrollments,
-        totalDocuments: result.totalDocuments,
-        totalPages: result.totalPages,
-        currentPage: result.currentPage,
-      };
+      return enrollmentsData;
     });
   }
 

@@ -325,7 +325,6 @@ export class EnrollmentRepository {
       enrollments,
     };
   }
-
   async getVersionEnrollmentStats(
     courseId: string,
     courseVersionId: string,
