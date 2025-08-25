@@ -190,36 +190,36 @@ export default function CourseEnrollments() {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchQuery);
       setIsSearching(false);
-    }, 300); 
+    }, 300);
 
     return () => {
       clearTimeout(handler);
     };
   }, [searchQuery, debouncedSearch]);
 
-    // Fetch enrollments data
-const {
-  data: enrollmentsData,
-  isLoading: enrollmentsLoading,
-  error: enrollmentsError,
-  refetch: refetchEnrollments,
-} = useCourseVersionEnrollments(
-  courseId,
-  versionId,
-  currentPage,
-  pageLimit,
-  debouncedSearch,
-  sortBy,
-  sortOrder,
-  !!(courseId && versionId)
-);
+  // Fetch enrollments data
+  const {
+    data: enrollmentsData,
+    isLoading: enrollmentsLoading,
+    error: enrollmentsError,
+    refetch: refetchEnrollments,
+  } = useCourseVersionEnrollments(
+    courseId,
+    versionId,
+    currentPage,
+    pageLimit,
+    debouncedSearch,
+    sortBy,
+    sortOrder,
+    !!(courseId && versionId)
+  );
 
   // API Hooks
   const resetProgressMutation = useResetProgress()
   const unenrollMutation = useUnenrollUser()
 
   // Pagination state
-    const totalDocuments = enrollmentsData?.totalDocuments || 0
+  const totalDocuments = enrollmentsData?.totalDocuments || 0
   const totalPages = enrollmentsData?.totalPages || 1
 
 
@@ -234,7 +234,7 @@ const {
     }
   }
 
-    const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage)
     }
@@ -650,11 +650,8 @@ const {
                             </div>
                           </TableCell>
                           <TableCell className="py-6">
-                            <EnrollmentProgress progress={Math.round((enrollment.progress || 0) )} />
+                            <EnrollmentProgress progress={enrollment.progress?.percentCompleted || 0} />
                           </TableCell>
-                          {/* <TableCell className="py-6">
-                           <span className={`text-xs font-medium ${enrollment.status === "ACTIVE" ? "text-green-500" : "text-red-500"}`}>{enrollment.status}</span>
-                          </TableCell> */}
                           <TableCell className="py-6 pr-6">
                             <div className="flex items-center gap-3">
                               <Button
@@ -662,11 +659,11 @@ const {
                                 size="sm"
                                 onClick={() =>
                                   handleViewProgress({
-                                    id: enrollment.user?._id,
+                                    id: enrollment.user.userId,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
                                     email: enrollment.userId,
                                     enrolledDate: enrollment.enrollmentDate,
-                                    progress: Math.round((enrollment.progress || 0))
+                                    progress: enrollment.progress?.percentCompleted || 0
                                   })}
                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all duration-200 cursor-pointer"
                               >
@@ -678,7 +675,7 @@ const {
                                 size="sm"
                                 onClick={() =>
                                   handleResetProgress({
-                                    id: enrollment.user?._id,
+                                    id: enrollment.user.userId,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
                                     email: enrollment.userId,
                                     enrolledDate: enrollment.enrollmentDate,
@@ -686,7 +683,7 @@ const {
                                   })
                                 }
                                 className="text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all duration-200 cursor-pointer"
-                                disabled={resetProgressMutation.isPending || Math.round((enrollment.progress || 0)) == 0}
+                                disabled={resetProgressMutation.isPending || Math.round((enrollment.progress?.percentCompleted || 0) * 100) == 0}
                               >
                                 {resetProgressMutation.isPending ? (
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -700,7 +697,7 @@ const {
                                 size="sm"
                                 onClick={() =>
                                   handleRemoveStudent({
-                                    id: enrollment.user?._id,
+                                    id: enrollment.user.userId,
                                     name: `${enrollment?.user?.firstName} ${enrollment?.user?.lastName}`,
                                     email: enrollment.user.email,
                                     enrolledDate: enrollment.enrollmentDate,
@@ -1132,13 +1129,13 @@ const {
           </div>
         )}
         {totalPages > 1 && (
-                  <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalDocuments={totalDocuments}
-                    onPageChange={handlePageChange}
-                  />
-                )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalDocuments={totalDocuments}
+            onPageChange={handlePageChange}
+          />
+        )}
       </div>
     </div>
   )

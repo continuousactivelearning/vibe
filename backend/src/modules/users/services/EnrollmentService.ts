@@ -234,32 +234,62 @@ export class EnrollmentService extends BaseService {
         );
       }
 
-      const enrollmentsData =
-        await this.enrollmentRepo.getCourseVersionEnrollments(
-          courseId,
-          courseVersionId,
-          skip,
-          limit,
-          search,
-          sortBy,
-          sortOrder,
-          session,
-        );
-
-      return enrollmentsData;
-    });
-  }
-
-  async getCourseVersionEnrollmentStatistics(
-    courseId: string,
-    versionId: string,
-  ): Promise<EnrollmentStats> {
-    return this._withTransaction(async (session: ClientSession) => {
-      return await this.enrollmentRepo.getVersionEnrollmentStats(
+      const result = await this.enrollmentRepo.getCourseVersionEnrollments(
         courseId,
-        versionId,
-        session,
+        courseVersionId,
+        skip,
+        limit,
+        search,
+        sortBy,
+        sortOrder,
       );
+      
+      const enrollments = result.enrollments;
+      
+      const totalItems = await this.itemRepo.getTotalItemsCount(courseId, courseVersionId, session);
+      
+      // Create enriched enrollments with progress data
+      const enrichedEnrollments = await Promise.all(
+        enrollments.map(async (enrollment) => {
+          try {
+            // Get completed items count for display
+            const completedItemsCount = await this.progressService.getUserProgressPercentageWithoutTotal(
+              enrollment.userId, 
+              courseId, 
+              courseVersionId
+            );
+            
+            return {
+              role: enrollment.role,
+              status: enrollment.status,
+              enrollmentDate: enrollment.enrollmentDate,
+              user: {
+                userId: enrollment.userId,
+                firstName: enrollment.firstName,
+                lastName: enrollment.lastName,
+                email: enrollment.email,
+              },
+              progress: {
+                completedItems: completedItemsCount,
+                totalItems,
+                percentCompleted: enrollment.percentCompleted || 0,
+              }
+            };
+          } catch (error) {
+            console.log(enrollment.userId, error);
+            return null;
+          }
+        })
+      );
+
+      const filteredEnrollments = enrichedEnrollments.filter(enrollment => enrollment !== null);
+      
+      return {
+        enrollments: filteredEnrollments,
+        totalDocuments: result.totalDocuments,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+      };
     });
   }
 
@@ -267,6 +297,31 @@ export class EnrollmentService extends BaseService {
     return this._withTransaction(async (session: ClientSession) => {
       const result = await this.enrollmentRepo.countEnrollments(userId);
       return result;
+    });
+  }
+
+  async getCourseVersionEnrollmentStatistics(
+    courseId: string,
+    courseVersionId: string,
+  ) {
+    return this._withTransaction(async (session: ClientSession) => {
+      const courseVersion = await this.courseRepo.readVersion(
+        courseVersionId,
+        session,
+      );
+      if (!courseVersion || courseVersion.courseId.toString() !== courseId) {
+        throw new NotFoundError(
+          'Course version not found or does not belong to this course',
+        );
+      }
+
+      const stats = await this.enrollmentRepo.getVersionEnrollmentStats(
+        courseId,
+        courseVersionId,
+        session,
+      );
+
+      return stats;
     });
   }
 
@@ -482,4 +537,63 @@ export class EnrollmentService extends BaseService {
   }
 
 
+  async updatePercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    percentCompleted: number,
+    session?: ClientSession,
+  ): Promise<void> {
+    await this.enrollmentRepo.updatePercentCompleted(
+      userId,
+      courseId,
+      courseVersionId,
+      percentCompleted,
+      session,
+    );
+  }
+
+  async getPercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ): Promise<number> {
+    return await this.enrollmentRepo.getPercentCompleted(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+  }
+
+  async calculateAndUpdatePercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    session?: ClientSession,
+  ): Promise<number> {
+    const completedItemsCount = await this.progressService.getUserProgressPercentageWithoutTotal(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+
+    const totalItems = await this.itemRepo.getTotalItemsCount(
+      courseId,
+      courseVersionId,
+      session,
+    );
+
+    const percentCompleted = totalItems > 0 ? completedItemsCount / totalItems : 0;
+
+    await this.updatePercentCompleted(
+      userId,
+      courseId,
+      courseVersionId,
+      percentCompleted,
+      session,
+    );
+
+    return percentCompleted;
+  }
 }
+

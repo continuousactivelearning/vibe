@@ -45,7 +45,7 @@ export class Enrollment implements IEnrollment {
   enrollmentDate: Date;
 
   @Expose()
-  percentCompleted: number;
+  percentCompleted?: number;
 
   constructor(userId?: string, courseId?: string, courseVersionId?: string) {
     if (userId && courseId && courseVersionId) {

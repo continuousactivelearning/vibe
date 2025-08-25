@@ -254,6 +254,15 @@ export class UpdateProgressBody {
   @IsString()
   @IsMongoId()
   attemptId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @JSONSchema({
+    description: 'Whether this attempt is skipped',
+    type: 'boolean',
+    example: true,
+  })
+  isSkipped?: boolean;
 }
 
 export class UpdateProgressParams {

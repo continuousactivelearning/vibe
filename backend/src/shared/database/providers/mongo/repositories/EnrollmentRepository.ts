@@ -439,4 +439,53 @@ export class EnrollmentRepository {
       )
       .toArray();
   }
+  async updatePercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    percentCompleted: number,
+    session?: ClientSession,
+  ): Promise<void> {
+    await this.init();
+
+    const courseObjectId = new ObjectId(courseId);
+    const courseVersionObjectId = new ObjectId(courseVersionId);
+
+    const userFilter = [
+      userId,
+      ObjectId.isValid(userId) ? new ObjectId(userId) : null,
+    ].filter(Boolean);
+
+    const result = await this.enrollmentCollection.updateOne(
+      {
+        userId: { $in: userFilter },
+        courseId: courseObjectId,
+        courseVersionId: courseVersionObjectId,
+      },
+      {
+        $set: { percentCompleted }
+      },
+      { session }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new NotFoundError('Enrollment not found to update progress');
+    }
+  }
+
+  async getPercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+  ): Promise<number> {
+    await this.init();
+
+    const enrollment = await this.findEnrollment(userId, courseId, courseVersionId);
+
+    if (!enrollment) {
+      throw new NotFoundError('Enrollment not found');
+    }
+
+    return enrollment.percentCompleted || 0;
+  }
 }

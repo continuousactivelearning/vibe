@@ -677,6 +677,12 @@ class ProgressService extends BaseService {
         throw new NotFoundError('Progress not found');
       }
 
+      const percentCompleted = await this.enrollmentRepo.getPercentCompleted(
+        userId.toString(),
+        courseId,
+        courseVersionId,
+      );
+
       const totalItems = await this.itemRepo.getTotalItemsCount(
         courseId,
         courseVersionId,
@@ -693,10 +699,6 @@ class ProgressService extends BaseService {
 
       // Use Set to ensure unique completed items and for efficient size comparison
       const completedItemsSet = new Set(completedItemsArray);
-
-      // Handle divide by zero case
-      const percentCompleted =
-        totalItems > 0 ? completedItemsSet.size / totalItems : 0;
 
       return {
         completed: progress.completed,
@@ -911,7 +913,8 @@ class ProgressService extends BaseService {
       }
 
       //  for updating enrollment progress percent
-      await this.updateEnrollmentProgressPercent(
+      // await this.updateEnrollmentProgressPercent(
+      await this.updateEnrollmentPercentCompleted(
         userId,
         courseId,
         courseVersionId,
@@ -1034,6 +1037,14 @@ class ProgressService extends BaseService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
+
+      await this.enrollmentRepo.updatePercentCompleted(
+        userId,
+        courseId,
+        courseVersionId,
+        0,
+        session,
+      );
     });
   }
 
@@ -1194,6 +1205,13 @@ class ProgressService extends BaseService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
+
+      await this.updateEnrollmentPercentCompleted(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
     });
   }
 
@@ -1326,6 +1344,13 @@ class ProgressService extends BaseService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
+
+      await this.updateEnrollmentPercentCompleted(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
     });
   }
 
@@ -1453,6 +1478,13 @@ class ProgressService extends BaseService {
       if (!result) {
         throw new InternalServerError('Progress could not be reset');
       }
+
+      await this.updateEnrollmentPercentCompleted(
+        userId,
+        courseId,
+        courseVersionId,
+        session,
+      );
     });
   }
 
@@ -1475,6 +1507,35 @@ class ProgressService extends BaseService {
       throw new NotFoundError('Watch time not found');
     }
     return watchTime;
+  }
+
+  private async updateEnrollmentPercentCompleted(
+    userId: string,
+    courseId: string,
+    courseVersionId: string,
+    session?: any,
+  ): Promise<void> {
+    const completedItemsCount = await this.getUserProgressPercentageWithoutTotal(
+      userId,
+      courseId,
+      courseVersionId,
+    );
+
+    const totalItems = await this.itemRepo.getTotalItemsCount(
+      courseId,
+      courseVersionId,
+      session,
+    );
+
+    const percentCompleted = totalItems > 0 ? completedItemsCount / totalItems : 0;
+
+    await this.enrollmentRepo.updatePercentCompleted(
+      userId,
+      courseId,
+      courseVersionId,
+      percentCompleted,
+      session,
+    );
   }
 }
 
