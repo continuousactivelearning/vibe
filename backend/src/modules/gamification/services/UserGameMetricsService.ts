@@ -101,16 +101,21 @@ export class userGameMetricsService extends BaseService {
         throw new NotFoundError('No game metrics found in the system');
       }
 
-      let combinedMetrics = metrics;
+      const metricsSet = new Set(metrics.map(metric => metric.metricId));
+
+      const missingMetrics = allMetrics.filter(
+        metric => !metricsSet.has(metric._id),
+      );
 
       // If no metrics found for the user, lazy create default metrics.
-      if (allMetrics.length != metrics.length || metrics.length === 0) {
-        const userGameMetrics = allMetrics.map(metric => {
+      if (missingMetrics.length > 0 || metrics.length === 0) {
+        const userGameMetrics = missingMetrics.map(metric => {
           return {
             userId: userObjectId,
             metricId: metric._id,
             value: 0,
             lastUpdated: new Date(),
+            lastStreakUpdated: null,
           };
         });
 
@@ -128,7 +133,7 @@ export class userGameMetricsService extends BaseService {
         return plainToInstance(UserGameMetric, [...createdMetrics, ...metrics]);
       }
 
-      return plainToInstance(UserGameMetric, combinedMetrics);
+      return plainToInstance(UserGameMetric, metrics);
     });
   }
 

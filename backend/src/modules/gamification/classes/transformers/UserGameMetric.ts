@@ -68,6 +68,16 @@ export class UserGameMetric implements IUserGameMetric {
   })
   lastUpdated: Date;
 
+  // Last update of streak
+  @JSONSchema({
+    title: 'streakLastUpdated',
+    description:
+      'Timestamp of the last update to the streak for this user game metric, in ISO format',
+    type: 'string',
+    nullable: true,
+  })
+  lastStreakUpdated?: Date;
+
   /**
    * Constructor - creates a new UserGameMetric instance
    * @param body - Optional data to populate the user metric
@@ -77,9 +87,8 @@ export class UserGameMetric implements IUserGameMetric {
       this.userId = body.userId;
       this.metricId = body.metricId;
       this.value = body.value;
-      this.lastUpdated = body.lastUpdated
-        ? new Date(body.lastUpdated)
-        : new Date();
+      this.lastUpdated = new Date();
+      this.lastStreakUpdated = null;
     }
   }
 }
