@@ -685,7 +685,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
     }));
 
     // Step 6: Handle reward metric increments
-    const rewardOps1 = achievementsUnlocked
+    const rewardOps = achievementsUnlocked
       .filter(ach => ach.rewardMetricId && ach.rewardIncrementValue)
       .map(ach => ({
         updateOne: {
@@ -698,8 +698,8 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
         },
       }));
 
-    if (rewardOps1.length > 0) {
-      await this.userMetricCollection.bulkWrite(rewardOps1, {session});
+    if (rewardOps.length > 0) {
+      await this.userMetricCollection.bulkWrite(rewardOps, {session});
     }
 
     return {
