@@ -18,6 +18,7 @@ import {
   BookOpen,
   HelpCircle,
   Settings,
+  Loader2,
   BarChart3,
   Users,
   Search,
@@ -289,6 +290,7 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
   const [selectedGradeStatus, setSelectedGradeStatus] = useState<GradingSystemStatus>("All");
   const [sort, setSort] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [priorityFilter, setPriorityFilter] = useState<string>("All");
   const [typeFilter, setTypeFilter] = useState<string>("All");
 
@@ -302,11 +304,30 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
     { label: "Lowest Score First", value: "score_asc" },
   ];
 
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (searchQuery !== debouncedSearchQuery) {
+      setIsSearching(true);
+    }
+
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      setCurrentPage(1);
+      setIsSearching(false);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery, debouncedSearchQuery]);
 
   if (!quizId) {
     console.error("Failed to fetch submission because quizId is ", quizId)
   }
   const { data: submissionsData, refetch, isLoading: submissionsLoading } = useQuizSubmissions(quizId!, selectedGradeStatus, searchQuery, sort, currentPage, limit, selectedTab);
+
+  const showTableLoading = isSearching || submissionsLoading;
   const { theme } = useTheme();
 
   const submissions = submissionsData?.data;
@@ -873,7 +894,7 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
 
   return (
     <>
-      {isLoading || submissionsLoading ? <Loader /> :
+      {isLoading ? <Loader /> :
         <div className="h-full flex flex-col">
           <div className="border-b">
             <div className="p-6">
@@ -918,15 +939,15 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
 
             <Tabs value={selectedTab} onValueChange={setSelectedTab} className="px-6 mb-4">
               <TabsList>
-                <TabsTrigger value="analytics" className="flex items-center gap-2">
+                <TabsTrigger value="analytics" className="flex items-center gap-2 cursor-pointer">
                   <BarChart3 className="h-4 w-4" />
                   Analytics
                 </TabsTrigger>
-                <TabsTrigger value="questions" className="flex items-center gap-2">
+                <TabsTrigger value="questions" className="flex items-center gap-2 cursor-pointer">
                   <HelpCircle className="h-4 w-4" />
                   Questions
                 </TabsTrigger>
-                <TabsTrigger value="submissions" className="flex items-center gap-2">
+                <TabsTrigger value="submissions" className="flex items-center gap-2 cursor-pointer">
                   <Users className="h-4 w-4" />
                   Submissions
                 </TabsTrigger>
@@ -1283,12 +1304,14 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg blur-sm"></div>
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search by student name, email ... "
-                        value={searchQuery}
-                        onChange={(e) => { setSearchQuery(e.target.value) }}
-                        className="pl-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300"
-                      />
+                      <form onSubmit={(e) => e.preventDefault()} className="w-full">
+                        <Input
+                          placeholder="Search by student name, email ... "
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="pl-10 bg-background border-border focus:border-primary focus:ring-primary/20 transition-all duration-300"
+                        />
+                      </form>
                     </div>
                   </div>
 
@@ -1363,8 +1386,17 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {submissions?.map((sub: any) => (
-                            <TableRow key={sub._id}>
+                          {showTableLoading ? (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center py-8">
+                                <div className="flex justify-center">
+                                  <Loader2 className="h-6 w-6 animate-spin" />
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : submissions?.length > 0 ? (
+                            submissions.map((sub: any) => (
+                              <TableRow key={sub._id}>
                               <TableCell className="font-medium max-w-[180px] overflow-hidden        text-ellipsis whitespace-nowrap"
                                 title={`${sub.userId?.firstName ?? ''} ${sub.userId?.lastName ?? ''}`}>
                                 {(sub.userId?.firstName ?? '') + ' ' + (sub.userId?.lastName ?? '')}
@@ -1406,13 +1438,14 @@ const EnhancedQuizEditor: React.FC<EnhancedQuizEditorProps> = ({
                                 </div>
                               </TableCell>
                             </TableRow>
-                          )) || (
-                              <TableRow>
-                                <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                                  No submissions yet
-                                </TableCell>
-                              </TableRow>
-                            )}
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                                No submissions yet
+                              </TableCell>
+                            </TableRow>
+                          )}
                         </TableBody>
 
                       </Table>
