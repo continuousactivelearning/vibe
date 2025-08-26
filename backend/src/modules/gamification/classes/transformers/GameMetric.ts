@@ -5,7 +5,11 @@ import {
   StringToObjectId,
 } from '#shared/constants/transformerConstants.js';
 import {ID} from '#shared/index.js';
-import {GameMetricType, IGameMetric} from '#shared/interfaces/models.js';
+import {
+  GameMetricType,
+  IGameMetric,
+  StreakResolutionType,
+} from '#shared/interfaces/models.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {CreateGameMetricBody} from '../validators/index.js';
 
@@ -77,6 +81,18 @@ class GameMetric implements IGameMetric {
   })
   defaultIncrementValue: number;
 
+  // Streak resolution strategy for this metric
+  @Expose()
+  @JSONSchema({
+    title: 'Streak Resolution Strategy',
+    description:
+      'Strategy for resolving streaks (Consecutive, Daily, FailReset)',
+    example: 'Consecutive',
+    type: 'string',
+    enum: ['Consecutive', 'Daily', 'FailReset'],
+  })
+  streakResolutionStrategy?: StreakResolutionType;
+
   /**
    * Constructor - creates a new GameMetric instance
    * @param gameMetricBody - Optional data to populate the metric
@@ -88,6 +104,9 @@ class GameMetric implements IGameMetric {
       this.type = gameMetricBody.type;
       this.units = gameMetricBody.units;
       this.defaultIncrementValue = gameMetricBody.defaultIncrementValue;
+      if (gameMetricBody.streakResolutionStrategy) {
+        this.streakResolutionStrategy = gameMetricBody.streakResolutionStrategy;
+      }
     }
   }
 }
