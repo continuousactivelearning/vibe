@@ -443,6 +443,12 @@ export enum GameMetricType {
   NUMBER = 'Number',
 }
 
+export enum StreakResolutionType {
+  CONSECUTIVE = 'Consecutive',
+  DAILY = 'Daily',
+  FAILRESET = 'FailReset',
+}
+
 // GameMetric interface
 export interface IGameMetric {
   _id?: string | ObjectId | null;
@@ -451,9 +457,14 @@ export interface IGameMetric {
   type: GameMetricType;
   units: string;
   defaultIncrementValue: number;
+
+  streakResolutionStrategy?: StreakResolutionType;
 }
 
-export type Trigger = 'metric'; // defining as a type so that it can be extended later e.g streaks.
+export enum Trigger {
+  METRIC = 'metric',
+  STREAK = 'streak',
+}
 
 export enum AchievementStatus {
   ACTIVE = 'ACTIVE',
@@ -473,10 +484,9 @@ export interface IAchievementBase {
 }
 
 export interface IMetricAchievement extends IAchievementBase {
-  trigger: 'metric';
+  trigger: Trigger;
   metricId: string | ObjectId;
   metricCount: number;
-  streakDays?: never; // Ensure streakDays is never used here
 }
 
 // UserMetric interface
@@ -486,6 +496,7 @@ export interface IUserGameMetric {
   metricId: string | ObjectId;
   value: number; // Current value of the metric
   lastUpdated: Date; // Timestamp of the last update
+  lastStreakUpdated?: Date; // Timestamp of the last streak update
 }
 
 // Achievement interface
@@ -506,6 +517,7 @@ export interface IUserGameAchievement {
 export interface IMetrics {
   metricId: string | ObjectId;
   value?: number;
+  lastStreakUpdated?: Date; // Optional, used for streak metrics
 }
 
 // Gamify Engine-trigger (Metric) interface

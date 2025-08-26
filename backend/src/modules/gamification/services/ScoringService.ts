@@ -149,7 +149,6 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.updateUserGameMetric(updatedMetric);
         } else {
@@ -158,7 +157,6 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.createUserGameMetric(newMetric);
         }
@@ -169,7 +167,6 @@ export class ScoringService extends BaseService {
             userId: attempt.userId.toString(),
             metricId: attempt.metricId.toString(),
             value: finalPoints,
-            lastUpdated: new Date(),
           });
           await this.userGameMetricsService.createUserGameMetric(newMetric);
         } else {

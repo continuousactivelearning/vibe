@@ -24,6 +24,8 @@ import {
   IUserGameAchievement,
   IMetricTrigger,
   AchievementStatus,
+  StreakResolutionType,
+  ID,
 } from '#root/shared/interfaces/models.js';
 
 /**
@@ -87,6 +89,69 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       }
       this.initialized = true;
     }
+  }
+
+  private resolveStreakValue(
+    metric: UserGameMetric,
+    strategy: string,
+    defaultIncrementValue: number,
+  ): {metricId: ID; value: number; lastStreakUpdated: Date} {
+    // Iterate through each metric and resolve it's streak value.
+    // streak values are resolved based on streakResolutionStrategy.
+
+    if (!metric.lastStreakUpdated) {
+      metric.value = defaultIncrementValue;
+      metric.lastStreakUpdated = new Date();
+
+      return {
+        metricId: metric.metricId,
+        value: metric.value,
+        lastStreakUpdated: metric.lastStreakUpdated,
+      };
+    }
+
+    if (strategy == StreakResolutionType.CONSECUTIVE) {
+      const lastStreakUpdate = new Date(metric.lastStreakUpdated);
+      const today = new Date();
+      const diff = today.getTime() - lastStreakUpdate.getTime();
+
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+
+      console.log(hours);
+
+      if (hours < 24) {
+        // Same day, do nothing, keep current streak
+      } else if (hours >= 24 && hours < 48) {
+        // Exactly yesterday — increment
+        metric.value += defaultIncrementValue;
+      } else {
+        // Missed more than 1 day — reset streak
+        metric.value = 0;
+      }
+    } else if (strategy == StreakResolutionType.DAILY) {
+      const now = new Date();
+
+      const lastStreakUpdate = new Date(metric.lastStreakUpdated)
+        .toISOString()
+        .slice(0, 10);
+      const today = now.toISOString().slice(0, 10);
+
+      console.log(lastStreakUpdate, today);
+
+      if (lastStreakUpdate === today) {
+        metric.value += defaultIncrementValue;
+      } else {
+        metric.value = 1;
+      }
+    }
+
+    metric.lastStreakUpdated = new Date();
+
+    return {
+      metricId: metric.metricId,
+      value: metric.value,
+      lastStreakUpdated: metric.lastStreakUpdated,
+    };
   }
 
   // Create a new game metric
@@ -559,23 +624,52 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
           projection: {
             _id: 1,
             defaultIncrementValue: 1,
+            streakResolutionStrategy: 1,
           },
           session,
         },
       )
       .toArray();
 
-    if (metrics.length !== metricTriggers.metrics.length) {
+    const userMetrics = await this.userMetricCollection
+      .find({
+        userId: metricTriggers.userId,
+        metricId: {$in: metricIds},
+      })
+      .toArray();
+
+    if (
+      metrics.length !== metricTriggers.metrics.length ||
+      userMetrics.length !== metricTriggers.metrics.length
+    ) {
       return;
     }
 
-    const docsById = new Map(metrics.map(doc => [doc._id.toString(), doc]));
-    const orderedDocs = metricIds.map(id => docsById.get(id.toString()));
+    const metricsById = new Map(metrics.map(doc => [doc._id.toString(), doc]));
+    const orderedDocs = metricIds.map(id => metricsById.get(id.toString()));
 
-    //Update the metric values to defaultValue if the metric value is not provided.
+    const userMetricsById = new Map(
+      userMetrics.map(doc => [doc.metricId.toString(), doc]),
+    );
+    const userMetricDocs = metricIds.map(id =>
+      userMetricsById.get(id.toString()),
+    );
+
+    // Todo: Transform streakmetrics
+    // identify what value should be given 0 or defaultIncrementValue based on streakResolutionStrategy.
 
     metricTriggers.metrics = metricTriggers.metrics.map((metric, index) => {
       const metricDoc = orderedDocs[index];
+      const userMetric = userMetricDocs[index];
+
+      if (metricDoc.streakResolutionStrategy) {
+        return this.resolveStreakValue(
+          userMetric,
+          metricDoc.streakResolutionStrategy,
+          metricDoc.defaultIncrementValue,
+        );
+      }
+
       return {
         ...metric,
         value:
@@ -585,23 +679,46 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       };
     });
 
+    console.log('Metrics after resolving streaks:', metricTriggers.metrics);
+
     const bulkOps = metricTriggers.metrics.map(metric => {
+      if (!metric.lastStreakUpdated) {
+        return {
+          updateOne: {
+            filter: {
+              userId: metricTriggers.userId,
+              metricId: metric.metricId,
+            },
+            update: {$inc: {value: metric.value}},
+            upsert: true, // Create if it doesn't exist
+          },
+        };
+      }
       return {
         updateOne: {
           filter: {
             userId: metricTriggers.userId,
             metricId: metric.metricId,
           },
-          update: {$inc: {value: metric.value}},
+          update: {
+            $set: {
+              value: metric.value,
+              lastStreakUpdated: metric.lastStreakUpdated,
+            },
+          },
           upsert: true, // Create if it doesn't exist
         },
       };
     });
 
+    console.dir(bulkOps, {depth: null});
+
     // Step 2: Execute the bulk update operation.
     const updateResult = await this.userMetricCollection.bulkWrite(bulkOps, {
       session,
     });
+
+    console.log(updateResult);
 
     // Step 3: fetch the updated user metrics.
     const metricsUpdated = await this.userMetricCollection
@@ -615,6 +732,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
             _id: 0,
             metricId: 1,
             value: 1,
+            StreakResolutionType: 1,
           },
           session,
         },
@@ -625,6 +743,8 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
     if (metricsUpdated.length === 0) {
       return null;
     }
+
+    // Feat: Add filter for streak and non-streak achievements.
 
     const aggregateCondition = metricsUpdated.map(metric => ({
       $and: [
@@ -684,23 +804,6 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       unlockedAt: ach.unlockedAt,
     }));
 
-    // Step 6: Handle reward metric increments
-    const rewardOps1 = achievementsUnlocked
-      .filter(ach => ach.rewardMetricId && ach.rewardIncrementValue)
-      .map(ach => ({
-        updateOne: {
-          filter: {
-            userId: metricTriggers.userId,
-            metricId: ach.rewardMetricId,
-          },
-          update: {$inc: {value: ach.rewardIncrementValue}},
-          upsert: true, // Create if it doesn't exist
-        },
-      }));
-
-    if (rewardOps1.length > 0) {
-      await this.userMetricCollection.bulkWrite(rewardOps1, {session});
-    }
 
     return {
       metricsUpdated: metricsUpdated,
