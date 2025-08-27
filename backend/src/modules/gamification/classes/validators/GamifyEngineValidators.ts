@@ -18,6 +18,8 @@ import {
   IMetricAchievement,
   IUserGameAchievement,
   IUserGameMetric,
+  StreakResolutionType,
+  Trigger,
 } from '#root/shared/index.js';
 import {JSONSchema} from 'class-validator-jsonschema';
 import {ObjectId} from 'mongodb';
@@ -82,6 +84,19 @@ export class CreateGameMetricBody implements IGameMetric {
   @IsNotEmpty()
   @IsNumber()
   defaultIncrementValue: number;
+
+  // Streak resolution strategy for this metric
+  @JSONSchema({
+    title: 'Streak Resolution Strategy',
+    description:
+      'Strategy for resolving streaks (Consecutive, Daily, FailReset)',
+    example: 'Consecutive',
+    type: 'string',
+    enum: ['Consecutive', 'Daily', 'FailReset'],
+  })
+  @IsOptional()
+  @IsEnum(StreakResolutionType)
+  streakResolutionStrategy?: StreakResolutionType;
 }
 
 /**
@@ -172,6 +187,18 @@ export class updateGameMetric implements Partial<IGameMetric> {
   @IsNotEmpty()
   @IsNumber()
   defaultIncrementValue: number;
+
+  @JSONSchema({
+    title: 'Streak Resolution Strategy',
+    description:
+      'Strategy for resolving streaks (Consecutive, Daily, FailReset)',
+    example: 'Consecutive',
+    type: 'string',
+    enum: ['Consecutive', 'Daily', 'FailReset'],
+  })
+  @IsOptional()
+  @IsEnum(StreakResolutionType)
+  streakResolutionStrategy?: StreakResolutionType;
 }
 
 // ==================== ACHIEVEMENTS VALIDATORS ====================
@@ -222,11 +249,11 @@ export class CreateMetricAchievementBody implements IMetricAchievement {
     description: 'Trigger type for the achievement, e.g; metric',
     example: 'metric',
     type: 'string',
-    enum: ['metric'],
+    enum: [Trigger.METRIC, Trigger.STREAK],
   })
-  @IsString()
+  @IsEnum(Trigger)
   @IsNotEmpty()
-  trigger: 'metric';
+  trigger: Trigger;
 
   // ID of the metric this achievement tracks
   @JSONSchema({
@@ -356,11 +383,11 @@ export class UpdateMetricAchievementBody
     description: 'Trigger type for the achievement, e.g; metric',
     example: 'metric',
     type: 'string',
-    enum: ['metric'],
+    enum: [Trigger.METRIC, Trigger.STREAK],
   })
-  @IsString()
+  @IsEnum(Trigger)
   @IsNotEmpty()
-  trigger: 'metric';
+  trigger: Trigger;
 
   // Updated metric ID
   @JSONSchema({
@@ -549,7 +576,7 @@ export class UpdateUserGameAchievementBody
 /**
  * Validator for user game metric data
  */
-export class UserGameMetricBody implements IUserGameMetric {
+export class UserGameMetricBody implements Partial<IUserGameMetric> {
   // ID of the user who owns this metric
   @JSONSchema({
     title: 'User ID',
@@ -582,7 +609,7 @@ export class UserGameMetricBody implements IUserGameMetric {
   @IsNumber()
   value: number;
 
-  // When this metric was last updated
+  /*// When this metric was last updated
   @JSONSchema({
     title: 'Last Updated',
     description: 'Timestamp of the last update to the metric',
@@ -591,6 +618,7 @@ export class UserGameMetricBody implements IUserGameMetric {
   })
   @IsString()
   lastUpdated: Date;
+  */
 }
 
 /**
