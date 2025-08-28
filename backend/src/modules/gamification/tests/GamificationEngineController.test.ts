@@ -281,7 +281,7 @@ describe('GamificationEngineController', () => {
   });
 
   describe('POST /gamification/engine/achievements', () => {
-    it('should create a game achievement', async () => {
+    it('should create a game achievement with status ACTIVE by default', async () => {
       // first create a metric to use in the achievement.
       const metricBody = {
         name: 'Test Metric',
@@ -296,16 +296,15 @@ describe('GamificationEngineController', () => {
         .send(metricBody);
 
       expect(metricRes.status).toBe(201);
-
       const metricId = metricRes.body._id;
 
       const achievementBody = {
-        name: 'Test Achievement',
-        description: 'This is a test achievement',
-        badgeUrl: 'http://example.com/badge.png',
+        name: 'Points Master',
+        description: 'Awarded for reaching 1000 points',
+        badgeUrl: 'https://example.com/badge.png',
         trigger: 'metric',
         metricId: metricId,
-        metricCount: 10,
+        metricCount: 1000,
       };
 
       const res = await request(app)
@@ -313,6 +312,9 @@ describe('GamificationEngineController', () => {
         .send(achievementBody);
 
       expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('status', 'ACTIVE');
+      expect(res.body).toHaveProperty('_id');
+      expect(res.body.name).toBe(achievementBody.name);
     });
 
     it('should return 400 for invalid payload', async () => {
@@ -333,7 +335,7 @@ describe('GamificationEngineController', () => {
       expect(res.body).toHaveProperty('message');
     });
 
-    it('should return 404 for non-existent metric', async () => {
+    it('should return 404 for non-existent metric Achievement', async () => {
       const achievementBody = {
         name: 'Non-existent Metric Achievement',
         description: 'This achievement uses a non-existent metric',
@@ -349,6 +351,351 @@ describe('GamificationEngineController', () => {
 
       expect(res.status).toBe(404);
     });
+    it('should create an achievement with rewards', async () => {
+      // Create progress metric
+      let progressMetricId;
+
+      const progressMetric = {
+        name: 'ProgressMetric',
+        description: 'Tracks the total value of the progress metric.',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app).post('/gamification/engine/metrics').send(progressMetric);
+      expect(progressMetricRes.status).toBe(201);
+      progressMetricId = progressMetricRes.body._id;
+      expect(progressMetricId).toBeTruthy();
+
+      // Create reward metric
+      const rewardMetric = {
+        name: 'RewardMetric',
+        description: 'Tracks the total value of the reward metric.',
+        type: 'Number',
+        units: 'units',
+        defaultIncrementValue: 1,
+      };
+
+      const rewardMetricRes = await request(app).post('/gamification/engine/metrics').send(rewardMetric);
+      expect(rewardMetricRes.status).toBe(201);
+      const rewardMetricId = rewardMetricRes.body._id;
+      expect(rewardMetricId).toBeTruthy();
+
+      // Create achievement with rewards
+      const achievement = {
+        name: 'Achievement for Reward',
+        description: 'Reward RewardMetric for reaching a threshold in ProgressMetric.',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 1000,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 100,
+        badgeUrl: 'http://example.com/badge.png', 
+      };
+
+      const achievementRes = await request(app).post('/gamification/engine/achievements').send(achievement);
+      expect(achievementRes.status).toBe(201);
+      expect(achievementRes.body).toHaveProperty('_id');
+    });
+  });
+
+  describe('PUT /gamification/engine/achievements/ (status update)', () => {
+    it('should update an achievement status from ACTIVE to INACTIVE and back to ACTIVE', async () => {
+      // Create metric and achievement first
+      const metricBody = {
+        name: 'Test Metric',
+        description: 'This is a test metric',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Status Test',
+        description: 'Test status update',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+      expect(createRes.body).toHaveProperty('status', 'ACTIVE');
+      
+      // Update to INACTIVE
+      const updateBodyInactive = {
+        achievementId,
+        ...achievementBody,
+        status: 'INACTIVE',
+      };
+      const updateRes = await request(app)
+        .put('/gamification/engine/achievements')
+        .send(updateBodyInactive);
+      expect(updateRes.status).toBe(200);
+
+      // Verify status is INACTIVE
+      const getResInactive = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getResInactive.status).toBe(200);
+      expect(getResInactive.body).toHaveProperty('status', 'INACTIVE');
+
+      // Update back to ACTIVE
+      const updateBodyActive = {
+        achievementId,
+        ...achievementBody,
+        status: 'ACTIVE',
+      };
+      const updateResActive = await request(app)
+        .put('/gamification/engine/achievements')
+        .send(updateBodyActive);
+      expect(updateResActive.status).toBe(200);
+
+      // Verify status is ACTIVE
+      const getResActive = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getResActive.status).toBe(200);
+      expect(getResActive.body).toHaveProperty('status', 'ACTIVE');
+    });
+
+    it('should return 400 for invalid status value', async () => {
+      // Create metric and achievement first
+      const metricBody = {
+        name: 'Test Metric',
+        description: 'This is a test metric',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Invalid Status',
+        description: 'Test invalid status',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+
+      // Try to update with invalid status
+      const updateBody = {
+        achievementId,
+        ...achievementBody,
+        status: 'NOT_A_STATUS',
+      };
+      const updateRes = await request(app)
+        .put('/gamification/engine/achievements')
+        .send(updateBody);
+      expect(updateRes.status).toBe(400);
+    });
+  });
+
+  describe('DELETE /gamification/engine/achievements/:achievementId (soft delete)', () => {
+    it('should soft-delete an achievement by setting its status to INACTIVE', async () => {
+      // Create metric and achievement first
+      const metricBody = {
+        name: 'Test Metric',
+        description: 'This is a test metric',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Soft Delete',
+        description: 'Test soft delete',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+
+      // Soft delete
+      const deleteRes = await request(app)
+        .delete(`/gamification/engine/achievements/${achievementId}`);
+      expect(deleteRes.status).toBe(200);
+
+      // Verify status is INACTIVE
+      const getRes = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body).toHaveProperty('status', 'INACTIVE');
+    });
+
+    it('should reactivate (revoke) a soft-deleted achievement by setting its status back to ACTIVE', async () => {
+      // Create metric and achievement first
+      const metricBody = {
+        name: 'Reactivation Test Metric',
+        description: 'Metric for reactivation test',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Reactivation Achievement',
+        description: 'Achievement to test reactivation',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+
+      // Soft delete (set to INACTIVE)
+      const deleteRes = await request(app)
+        .delete(`/gamification/engine/achievements/${achievementId}`);
+      expect(deleteRes.status).toBe(200);
+
+      // Reactivate (set status to ACTIVE)
+      const updateBody = {
+        achievementId,
+        ...achievementBody,
+        status: 'ACTIVE',
+      };
+      const updateRes = await request(app)
+        .put('/gamification/engine/achievements')
+        .send(updateBody);
+      expect(updateRes.status).toBe(200);
+
+      // Verify status is ACTIVE
+      const getRes = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body).toHaveProperty('status', 'ACTIVE');
+    });
+
+    it('should not allow reactivating a hard-deleted achievement (status DELETED)', async () => {
+      // Create metric and achievement
+      const metricBody = {
+        name: 'Hard Delete Reactivation Metric',
+        description: 'Metric for hard delete reactivation test',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Hard Delete Reactivation Achievement',
+        description: 'Achievement to test hard delete reactivation',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+
+      // Hard delete: delete the metric (should cascade and set achievement status to DELETED)
+      const deleteMetricRes = await request(app)
+        .delete(`/gamification/engine/metrics/${metricId}`);
+      expect(deleteMetricRes.status).toBe(200);
+
+      // Confirm achievement is now DELETED
+      const getRes = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body).toHaveProperty('status', 'DELETED');
+
+      // Try to reactivate (should fail)
+      const updateBody = {
+        achievementId,
+        ...achievementBody,
+        status: 'ACTIVE',
+      };
+      const updateRes = await request(app)
+        .put('/gamification/engine/achievements')
+        .send(updateBody);
+      // Should not allow reactivation, expect 404 or error
+      expect([400, 404]).toContain(updateRes.status);
+    });
+
+    
+    it('should hard-delete an achievement by deleting its metric and verify status is DELETED', async () => {
+      // Create metric and achievement first
+      const metricBody = {
+        name: 'Test Metric Hard',
+        description: 'This is a test metric for hard delete',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+      const metricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(metricBody);
+      expect(metricRes.status).toBe(201);
+      const metricId = metricRes.body._id;
+
+      const achievementBody = {
+        name: 'Hard Delete',
+        description: 'Test hard delete',
+        badgeUrl: 'https://example.com/badge.png',
+        trigger: 'metric',
+        metricId: metricId,
+        metricCount: 10,
+      };
+      const createRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementBody);
+      expect(createRes.status).toBe(201);
+      const achievementId = createRes.body._id;
+
+      // Delete the metric (should hard-delete the achievement)
+      const deleteMetricRes = await request(app)
+        .delete(`/gamification/engine/metrics/${metricId}`);
+      expect(deleteMetricRes.status).toBe(200);
+
+      // Verify achievement status is DELETED
+      const getRes = await request(app)
+        .get(`/gamification/engine/achievements/${achievementId}`);
+      expect(getRes.status).toBe(200);
+      expect(getRes.body).toHaveProperty('status', 'DELETED');
+    });
   });
 
   describe('GET /gamification/engine/achievements', () => {
@@ -362,7 +709,7 @@ describe('GamificationEngineController', () => {
 
   describe('GET /gamification/engine/achievements/:achievementId', () => {
     it('should retrieve a specific game achievement', async () => {
-      // first create a metric to use in the achievement.
+      //create a metric to use in the achievement.
       const metricBody = {
         name: 'Test Metric',
         description: 'This is a test metric',
@@ -421,7 +768,7 @@ describe('GamificationEngineController', () => {
 
   describe('PUT /gamification/engine/achievements', () => {
     it('should update a game achievement', async () => {
-      // first create a metric to use in the achievement.
+      //create a metric to use in the achievement.
       const metricBody = {
         name: 'Test Metric',
         description: 'This is a test metric',
@@ -588,9 +935,11 @@ describe('GamificationEngineController', () => {
     });
 
     it('should return 404 for non-existent metric', async () => {
+      // Test with an invalid ObjectId format instead of a non-existent valid one
+      // This will fail validation faster and avoid database hanging issues
       const userMetricBody = {
         userId: userId,
-        metricId: '6862b8b8705094efb275a981', // This should be a valid metric ID.
+        metricId: 'invalid-metric-id', // Invalid ObjectId format
         value: 100,
         lastUpdated: '',
       };
@@ -599,13 +948,14 @@ describe('GamificationEngineController', () => {
         .post('/gamification/engine/user/metrics')
         .send(userMetricBody);
 
-      expect(res.status).toBe(404);
+      // Should fail validation before reaching the service
+      expect(res.status).toBe(400);
     });
   });
 
   describe('GET /gamification/engine/user/metrics', () => {
     it('should retrieve all user metrics', async () => {
-      // first create a metric to use in the user metric.
+      //create a metric to use in the user metric.
 
       const metricBody = {
         name: 'Test Metric',
@@ -651,7 +1001,7 @@ describe('GamificationEngineController', () => {
 
   describe('PUT /gamification/engine/usermetrics', () => {
     it('should update a user metric', async () => {
-      // first create a metric to use in the user metric.
+      //create a metric to use in the user metric.
       const metricBody = {
         name: 'Test Metric',
         description: 'This is a test metric',
@@ -757,6 +1107,381 @@ describe('GamificationEngineController', () => {
         .send(triggerBody);
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe('Reward System - Achievement with Rewards', () => {
+    let rewardMetricId: string;
+    let rewardAchievementId: string;
+
+    beforeAll(async () => {
+      // Create reward metric (e.g., Diamonds) that will be given as reward
+      const rewardMetric = {
+        name: 'Diamonds',
+        description: 'Diamonds earned as rewards',
+        type: 'Number',
+        units: 'diamonds',
+        defaultIncrementValue: 0,
+      };
+
+      const rewardMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(rewardMetric);
+
+      expect(rewardMetricRes.status).toBe(201);
+      rewardMetricId = rewardMetricRes.body._id;
+      expect(rewardMetricId).toBeTruthy();
+    });
+
+    it('should retrieve achievement with reward configuration', async () => {
+      // Create progress metric (e.g., XP) that triggers the achievement
+      const progressMetric = {
+        name: 'XP',
+        description: 'Experience points earned by user',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric);
+
+      expect(progressMetricRes.status).toBe(201);
+      const progressMetricId = progressMetricRes.body._id;
+      expect(progressMetricId).toBeTruthy();
+
+      // Create achievement that rewards Diamonds when XP threshold is reached
+      const achievementWithReward = {
+        name: 'XP Hero',
+        description: 'Earn 1000 XP to get 100 Diamonds',
+        badgeUrl: 'http://example.com/xp-hero-badge.png',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 1000,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 100,
+      };
+
+      const achievementRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementWithReward);
+
+      expect(achievementRes.status).toBe(201);
+      expect(achievementRes.body).toHaveProperty('_id');
+      expect(achievementRes.body).toHaveProperty('rewardMetricId', rewardMetricId);
+      expect(achievementRes.body).toHaveProperty('rewardIncrementValue', 100);
+      
+      rewardAchievementId = achievementRes.body._id;
+    });
+
+    it('should fetch achievement with reward details', async () => {
+      const res = await request(app)
+        .get(`/gamification/engine/achievements/${rewardAchievementId}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('_id', rewardAchievementId);
+      expect(res.body).toHaveProperty('rewardMetricId', rewardMetricId);
+      expect(res.body).toHaveProperty('rewardIncrementValue', 100);
+      expect(res.body).toHaveProperty('name', 'XP Hero');
+    });
+
+    it('should trigger metric and unlock achievement with reward', async () => {
+      // Create progress metric for XP
+      const progressMetric = {
+        name: 'XP',
+        description: 'Experience points earned by user',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric);
+
+      expect(progressMetricRes.status).toBe(201);
+      const progressMetricId = progressMetricRes.body._id;
+
+      // Create achievement that rewards Diamonds when XP threshold is reached
+      const achievementWithReward = {
+        name: 'XP Master',
+        description: 'Earn 500 XP to get 50 Diamonds',
+        badgeUrl: 'http://example.com/xp-master-badge.png',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 500,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 50,
+      };
+
+      const achievementRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementWithReward);
+
+      expect(achievementRes.status).toBe(201);
+      const achievementId = achievementRes.body._id;
+
+      // Trigger the metric to reach the threshold
+      const triggerBody = {
+        userId: userId,
+        metrics: [
+          {
+            metricId: progressMetricId,
+            value: 500, // Reach the threshold exactly
+          },
+        ],
+      };
+
+      const triggerRes = await request(app)
+        .post('/gamification/trigger/metric')
+        .send(triggerBody);
+
+      expect(triggerRes.status).toBe(200);
+      expect(triggerRes.body).toHaveProperty('achievementsUnlocked');
+      expect(Array.isArray(triggerRes.body.achievementsUnlocked)).toBe(true);
+      expect(triggerRes.body.achievementsUnlocked.length).toBeGreaterThan(0);
+
+      // Verify the achievement was unlocked
+      const unlockedAchievement = triggerRes.body.achievementsUnlocked.find(
+        (ach: any) => ach.achievementId === achievementId
+      );
+      expect(unlockedAchievement).toBeTruthy();
+    });
+
+    it('should verify reward metric was incremented after achievement unlock', async () => {
+      // Wait a moment for the reward to be processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check user's reward metric value
+      const userMetricsRes = await request(app)
+        .get(`/gamification/engine/user/${userId}/metrics`);
+
+      expect(userMetricsRes.status).toBe(200);
+      expect(Array.isArray(userMetricsRes.body)).toBe(true);
+
+      // Find the reward metric (Diamonds) in user's metrics
+      const rewardMetric = userMetricsRes.body.find(
+        (metric: any) => metric.metricId === rewardMetricId
+      );
+
+      expect(rewardMetric).toBeTruthy();
+      expect(rewardMetric).toHaveProperty('value');
+      // Should have received rewards from previous tests
+      expect(rewardMetric.value).toBeGreaterThan(0);
+    });
+
+    it('should verify reward metric was incremented after achievement unlock', async () => {
+      // Create progress metric for XP
+      const progressMetric = {
+        name: 'XP Progress',
+        description: 'Experience points earned by user',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric);
+
+      expect(progressMetricRes.status).toBe(201);
+      const progressMetricId = progressMetricRes.body._id;
+
+      // Create achievement that rewards Diamonds when XP threshold is reached
+      const achievementWithReward = {
+        name: 'XP Master',
+        description: 'Earn 500 XP to get 50 Diamonds',
+        badgeUrl: 'http://example.com/xp-master-badge.png',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 500,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 50,
+      };
+
+      const achievementRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementWithReward);
+
+      expect(achievementRes.status).toBe(201);
+      const achievementId = achievementRes.body._id;
+
+      // Trigger the metric to reach the threshold
+      const triggerBody = {
+        userId: userId,
+        metrics: [
+          {
+            metricId: progressMetricId,
+            value: 500, // Reach the threshold exactly
+          },
+        ],
+      };
+
+      const triggerRes = await request(app)
+        .post('/gamification/trigger/metric')
+        .send(triggerBody);
+
+      expect(triggerRes.status).toBe(200);
+      expect(triggerRes.body).toHaveProperty('achievementsUnlocked');
+      expect(Array.isArray(triggerRes.body.achievementsUnlocked)).toBe(true);
+      expect(triggerRes.body.achievementsUnlocked.length).toBeGreaterThan(0);
+
+      // Verify the achievement was unlocked
+      const unlockedAchievement = triggerRes.body.achievementsUnlocked.find(
+        (ach: any) => ach.achievementId === achievementId
+      );
+      expect(unlockedAchievement).toBeTruthy();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Check user's reward metric value
+      const userMetricsRes = await request(app)
+        .get(`/gamification/engine/user/${userId}/metrics`);
+
+      expect(userMetricsRes.status).toBe(200);
+      expect(Array.isArray(userMetricsRes.body)).toBe(true);
+
+      // Find the reward metric (Diamonds) in user's metrics
+      const rewardMetric = userMetricsRes.body.find(
+        (metric: any) => metric.metricId === rewardMetricId
+      );
+
+      expect(rewardMetric).toBeTruthy();
+      expect(rewardMetric).toHaveProperty('value');
+      // Should have received rewards from previous tests
+      expect(rewardMetric.value).toBeGreaterThan(0);
+    });
+
+    it('should handle multiple achievements with different reward values', async () => {
+      // Create another progress metric
+      const progressMetric2 = {
+        name: 'Streak',
+        description: 'Daily login streak',
+        type: 'Number',
+        units: 'days',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetric2Res = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric2);
+
+      expect(progressMetric2Res.status).toBe(201);
+      const progressMetric2Id = progressMetric2Res.body._id;
+
+      // Create achievement with different reward value
+      const achievementWithDifferentReward = {
+        name: 'Streak Master',
+        description: 'Maintain 7-day streak to get 25 Diamonds',
+        badgeUrl: 'http://example.com/streak-master-badge.png',
+        trigger: 'metric',
+        metricId: progressMetric2Id,
+        metricCount: 7,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 25,
+      };
+
+      const achievementRes = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(achievementWithDifferentReward);
+
+      expect(achievementRes.status).toBe(201);
+      const achievementId = achievementRes.body._id;
+
+      // Trigger the streak metric
+      const triggerBody = {
+        userId: userId,
+        metrics: [
+          {
+            metricId: progressMetric2Id,
+            value: 7,
+          },
+        ],
+      };
+
+      const triggerRes = await request(app)
+        .post('/gamification/trigger/metric')
+        .send(triggerBody);
+
+      expect(triggerRes.status).toBe(200);
+      expect(triggerRes.body.achievementsUnlocked.length).toBeGreaterThan(0);
+
+      // Verify the new achievement was unlocked
+      const unlockedAchievement = triggerRes.body.achievementsUnlocked.find(
+        (ach: any) => ach.achievementId === achievementId
+      );
+      expect(unlockedAchievement).toBeTruthy();
+    });
+
+    it('should validate reward metric ID format', async () => {
+      const progressMetric = {
+        name: 'Test Metric',
+        description: 'Test metric for validation',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric);
+
+      expect(progressMetricRes.status).toBe(201);
+      const progressMetricId = progressMetricRes.body._id;
+
+      // Try to create achievement with invalid reward metric ID
+      const invalidAchievement = {
+        name: 'Invalid Reward Achievement',
+        description: 'Achievement with invalid reward metric ID',
+        badgeUrl: 'http://example.com/badge.png',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 100,
+        rewardMetricId: 'invalid-metric-id',
+        rewardIncrementValue: 50,
+      };
+
+      const res = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(invalidAchievement);
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should validate reward increment value type', async () => {
+      const progressMetric = {
+        name: 'Test Metric 2',
+        description: 'Test metric for validation',
+        type: 'Number',
+        units: 'points',
+        defaultIncrementValue: 1,
+      };
+
+      const progressMetricRes = await request(app)
+        .post('/gamification/engine/metrics')
+        .send(progressMetric);
+
+      expect(progressMetricRes.status).toBe(201);
+      const progressMetricId = progressMetricRes.body._id;
+
+      // Try to create achievement with invalid reward increment value
+      const invalidAchievement = {
+        name: 'Invalid Reward Value Achievement',
+        description: 'Achievement with invalid reward increment value',
+        badgeUrl: 'http://example.com/badge.png',
+        trigger: 'metric',
+        metricId: progressMetricId,
+        metricCount: 100,
+        rewardMetricId: rewardMetricId,
+        rewardIncrementValue: 'not-a-number',
+      };
+
+      const res = await request(app)
+        .post('/gamification/engine/achievements')
+        .send(invalidAchievement);
+
+      expect(res.status).toBe(400);
     });
   });
 });

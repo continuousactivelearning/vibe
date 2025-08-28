@@ -804,6 +804,7 @@ export class GamifyEngineRepository implements IGamifyEngineRepository {
       unlockedAt: ach.unlockedAt,
     }));
 
+
     return {
       metricsUpdated: metricsUpdated,
       achievementsUnlocked: achievementsUpdated,
