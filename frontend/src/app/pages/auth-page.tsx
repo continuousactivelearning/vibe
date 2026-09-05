@@ -257,11 +257,11 @@ export default function AuthPage() {
       });
 
       navigate({ to: `/${activeRole}` });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Email Login Failed", error);
       setFormErrors({
         ...formErrors,
-        auth: "Invalid email or password. Please try again."
+        auth: error?.message || "Invalid email or password. Please try again."
       });
     } finally {
       setLoading(false);
@@ -353,6 +353,15 @@ export default function AuthPage() {
             (Object.values(signupError?.errors?.find((e: any) => e.property === 'firstName')?.constraints || {}).join(', ') +
               (Object.values(signupError?.errors?.find((e: any) => e.property === 'lastName')?.constraints || {}).join(', '))).trim() || "",
           password: Object.values(signupError?.errors?.find((e: any) => e.property === 'password')?.constraints || {}).join(', ') || ""
+        });
+      } else {
+        // Firebase itself rejected the signup (e.g. auth/email-already-in-use for a
+        // retried signup) before the backend mutation ever ran, so isSignUpError is
+        // false here -- this branch was previously silent, leaving the user with no
+        // feedback at all beyond the spinner stopping.
+        setFormErrors({
+          ...formErrors,
+          auth: error?.message || "Failed to create account. Please try again."
         });
       }
     } finally {
