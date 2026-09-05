@@ -55,25 +55,27 @@ export const loginWithGoogle = async () => {
  * security (so a failed login can't be used to probe which emails are
  * registered). fetchSignInMethodsForEmail is the supported way to still
  * give an accurate, helpful message in that specific case.
+ *
+ * Returns null when there's nothing more specific to say than the original
+ * error already conveys, so callers can fall back to their own handling
+ * (several callers switch on error.code themselves) instead of this
+ * silently overwriting a message they already handle better.
  */
-const describeEmailAuthError = async (email: string, error: any): Promise<string> => {
+const describeGoogleOnlyAccountError = async (email: string, error: any): Promise<string | null> => {
   const code = error?.code;
-  if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
-    try {
-      const methods = await fetchSignInMethodsForEmail(auth, email);
-      if (methods.length > 0 && !methods.includes('password')) {
-        const provider = methods.includes('google.com') ? 'Google Sign-In' : methods[0];
-        return `This email is registered with ${provider}. Please use that to sign in instead.`;
-      }
-    } catch {
-      // Best-effort -- fall through to the generic message below if this lookup itself fails.
+  if (code !== 'auth/user-not-found' && code !== 'auth/invalid-credential' && code !== 'auth/wrong-password') {
+    return null;
+  }
+  try {
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    if (methods.length > 0 && !methods.includes('password')) {
+      const provider = methods.includes('google.com') ? 'Google Sign-In' : methods[0];
+      return `This email is registered with ${provider}. Please use that to sign in instead.`;
     }
-    return 'Invalid email or password. Please try again.';
+  } catch {
+    // Best-effort -- fall through to null if this lookup itself fails.
   }
-  if (code === 'auth/too-many-requests') {
-    return 'Too many attempts. Please wait a moment and try again.';
-  }
-  return 'Invalid email or password. Please try again.';
+  return null;
 };
 
 export const loginWithEmail = async (email: string, password: string) => {
@@ -88,7 +90,15 @@ export const loginWithEmail = async (email: string, password: string) => {
 
     return result;
   } catch (error: any) {
-    throw new Error(await describeEmailAuthError(email, error));
+    const message = await describeGoogleOnlyAccountError(email, error);
+    if (message) {
+      // Preserve the original code so callers with their own code-based
+      // error handling (there are a couple) still see a recognizable error.
+      const wrapped = new Error(message);
+      (wrapped as any).code = error?.code;
+      throw wrapped;
+    }
+    throw error;
   }
 };
 
@@ -109,13 +119,19 @@ export const createUserWithEmail = async (email: string, password: string, displ
       } catch {
         // Best-effort -- fall back to the generic message above if this lookup itself fails.
       }
-      throw new Error(message);
+      const wrapped = new Error(message);
+      (wrapped as any).code = error.code;
+      throw wrapped;
     }
-    if (error?.code === 'auth/weak-password') {
-      throw new Error('Password is too weak. Please choose a stronger password.');
-    }
-    if (error?.code === 'auth/invalid-email') {
-      throw new Error('Invalid email address.');
+    if (error?.code === 'auth/weak-password' || error?.code === 'auth/invalid-email') {
+      // Firebase's own default message for these is a raw "Firebase: Error
+      // (auth/weak-password)." string, not something to show a user.
+      const message = error.code === 'auth/weak-password'
+        ? 'Password is too weak. Please choose a stronger password.'
+        : 'Invalid email address.';
+      const wrapped = new Error(message);
+      (wrapped as any).code = error.code;
+      throw wrapped;
     }
     throw error;
   }
