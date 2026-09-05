@@ -270,7 +270,7 @@ export default function AuthPage() {
 
   //SignUp
 
-  const { mutateAsync: signupMutation, error: signupError, isError: isSignUpError } = useSignup();
+  const { mutateAsync: signupMutation } = useSignup();
 
   // New function for handling signup
   const handleEmailSignup = async () => {
@@ -303,14 +303,42 @@ export default function AuthPage() {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ' ';
 
-      await signupMutation({
-        body: {
-          email: email,
-          password: password,
-          firstName: firstName,
-          lastName: lastName
+      try {
+        await signupMutation({
+          body: {
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName
+          }
+        });
+      } catch (mutationError: any) {
+        // Caught locally (rather than read off the useSignup() hook's error/isError
+        // state) because that hook state is stale across attempts: it only updates
+        // when mutateAsync is called, so a later attempt that fails before ever
+        // reaching signupMutation (e.g. a Firebase-level auth/email-already-in-use)
+        // would otherwise still see isError=true from this mutation's *previous*
+        // failure and show its stale message instead of the real one.
+        let message = "";
+        if (mutationError?.message === "Invalid body, check 'errors' property for more info.") {
+          for (const err of mutationError?.errors || []) {
+            message += `${Object.values(err.constraints).join(', ')}`;
+          }
+        } else {
+          message = mutationError?.message || "An error occurred during signup";
         }
-      });
+
+        setFormErrors({
+          ...formErrors,
+          auth: message || "Failed to create account. Please try again.",
+          email: Object.values(mutationError?.errors?.find((e: any) => e.property === 'email')?.constraints || {}).join(', ') || "",
+          fullName:
+            (Object.values(mutationError?.errors?.find((e: any) => e.property === 'firstName')?.constraints || {}).join(', ') +
+              (Object.values(mutationError?.errors?.find((e: any) => e.property === 'lastName')?.constraints || {}).join(', '))).trim() || "",
+          password: Object.values(mutationError?.errors?.find((e: any) => e.property === 'password')?.constraints || {}).join(', ') || ""
+        });
+        return;
+      }
       // const result = await loginWithEmail(email, password);
 
       const token = await result.user.getIdToken();
@@ -334,36 +362,15 @@ export default function AuthPage() {
       navigate({ to: "/student" });
 
     } catch (error: any) {
+      // Firebase-level failures land here (e.g. auth/email-already-in-use for a
+      // retried signup) -- backend-mutation failures are handled in the inner
+      // catch above instead, so this branch's message is never masked by a
+      // stale error from a previous attempt.
       console.error("Email Signup Failed", error);
-      console.log(signupError, isSignUpError);
-      if (isSignUpError) {
-        let message = "";
-        if (signupError?.message === "Invalid body, check 'errors' property for more info.") {
-          for (const error of signupError?.errors || []) {
-            message += `${Object.values(error.constraints).join(', ')}`;
-          }
-        }
-        else message = signupError?.message || "An error occurred during signup";
-
-        setFormErrors({
-          ...formErrors,
-          auth: message || "Failed to create account. Please try again.",
-          email: Object.values(signupError?.errors?.find((e: any) => e.property === 'email')?.constraints || {}).join(', ') || "",
-          fullName:
-            (Object.values(signupError?.errors?.find((e: any) => e.property === 'firstName')?.constraints || {}).join(', ') +
-              (Object.values(signupError?.errors?.find((e: any) => e.property === 'lastName')?.constraints || {}).join(', '))).trim() || "",
-          password: Object.values(signupError?.errors?.find((e: any) => e.property === 'password')?.constraints || {}).join(', ') || ""
-        });
-      } else {
-        // Firebase itself rejected the signup (e.g. auth/email-already-in-use for a
-        // retried signup) before the backend mutation ever ran, so isSignUpError is
-        // false here -- this branch was previously silent, leaving the user with no
-        // feedback at all beyond the spinner stopping.
-        setFormErrors({
-          ...formErrors,
-          auth: error?.message || "Failed to create account. Please try again."
-        });
-      }
+      setFormErrors({
+        ...formErrors,
+        auth: error?.message || "Failed to create account. Please try again."
+      });
     } finally {
       setLoading(false);
     }
