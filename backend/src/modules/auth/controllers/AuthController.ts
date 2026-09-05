@@ -204,6 +204,24 @@ export class AuthController {
     );
     const result = await data.json();
 
+    if (!data.ok) {
+      // Firebase's client SDK collapses wrong-password and no-such-account
+      // into the same generic error for anyone but us (email enumeration
+      // protection) -- but it still tells the Admin SDK exactly which
+      // providers are on an account, so this is the only reliable place
+      // left to tell "wrong password" apart from "this account has no
+      // password credential" (e.g. it was created via Google Sign-In).
+      const providers = await this.authService.getSignInProviders(email);
+      if (providers.length > 0 && !providers.includes('password')) {
+        const provider = providers.includes('google.com') ? 'Google Sign-In' : providers[0];
+        throw new HttpError(
+          401,
+          `This email is registered with ${provider}. Please use that to sign in instead.`,
+        );
+      }
+      throw new HttpError(401, 'Incorrect email or password. Please try again.');
+    }
+
     // ✅ fetch your app user from DB
     // const user = await this.authService.getCurrentUserFromToken(result.idToken);
     return result;
