@@ -816,10 +816,13 @@ export default function AuthPage({ role }: AuthPageProps) {
         ...formErrors,
         auth: (() => {
           const code = (error as any)?.code;
-          // loginWithEmail (lib/firebase.ts) already produces this specific message
-          // when it detects the account only has a Google credential -- prefer it
-          // over the generic per-code messages below.
-          if (typeof error?.message === "string" && error.message.startsWith("This email is registered with")) return error.message;
+          // Errors thrown from the backend /auth/login response never carry a
+          // Firebase .code (only client SDK errors do) and already have a
+          // human-friendly message -- including the Google-only-account case,
+          // which the backend can now detect reliably via the Admin SDK
+          // (unlike the client SDK, which Firebase's email enumeration
+          // protection prevents from telling us anything useful here).
+          if (!code && typeof error?.message === "string" && error.message.length > 0) return error.message;
           if (code === "auth/invalid-credential" || code === "auth/wrong-password" || code === "auth/user-not-found") return "Incorrect email or password. Please try again.";
           if (code === "auth/too-many-requests") return "Too many failed attempts. Please try again later.";
           if (code === "auth/user-disabled") return "Your account has been disabled. Please contact support.";

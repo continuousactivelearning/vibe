@@ -474,4 +474,17 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
       );
     }
   }
+
+  async getSignInProviders(email: string): Promise<string[]> {
+    try {
+      const userRecord = await this.auth.getUserByEmail(email);
+      return userRecord.providerData.map(provider => provider.providerId);
+    } catch (error: any) {
+      if (error?.code === 'auth/user-not-found') {
+        return [];
+      }
+      console.error('Failed to look up sign-in providers:', error);
+      return [];
+    }
+  }
 }
