@@ -521,7 +521,11 @@ export default function AuthPage({ role }: AuthPageProps) {
     else if (!/\S+@\S+\.\S+/.test(email)) errors.email = "Invalid email format";
 
     if (!password) errors.password = "Password is required";
-    else if (isSignUp && password.length < 8) errors.password = "Password must be at least 8 characters";
+    // The backend's LoginBody requires 8+ characters too (every real account's
+    // password is at least that long, enforced at signup), so a shorter one is
+    // guaranteed wrong either way -- catch it here instead of round-tripping to
+    // the backend just to get its raw validation-framework message back.
+    else if (password.length < 8) errors.password = "Password must be at least 8 characters";
 
     if (isSignUp && !fullName) errors.fullName = "Full name is required";
 
