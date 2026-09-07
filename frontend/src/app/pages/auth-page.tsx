@@ -261,7 +261,17 @@ export default function AuthPage() {
       console.error("Email Login Failed", error);
       setFormErrors({
         ...formErrors,
-        auth: error?.message || "Invalid email or password. Please try again."
+        auth: (() => {
+          // loginWithEmail (lib/firebase.ts) produces this specific message
+          // when it detects the account only has a Google credential --
+          // prefer it. Otherwise, an error with a Firebase .code is the raw
+          // SDK error (e.g. "Firebase: Error (auth/invalid-credential)."),
+          // which isn't something to show a user directly.
+          if (typeof error?.message === "string" && error.message.startsWith("This email is registered with")) return error.message;
+          if (error?.code === "auth/too-many-requests") return "Too many attempts. Please wait a moment and try again.";
+          if (error?.code) return "Invalid email or password. Please try again.";
+          return error?.message || "Invalid email or password. Please try again.";
+        })()
       });
     } finally {
       setLoading(false);

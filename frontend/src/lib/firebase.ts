@@ -53,8 +53,14 @@ export const loginWithGoogle = async () => {
  * "this email only has a Google account" -- recent Firebase Auth versions
  * collapse both into the same generic auth/invalid-credential error for
  * security (so a failed login can't be used to probe which emails are
- * registered). fetchSignInMethodsForEmail is the supported way to still
- * give an accurate, helpful message in that specific case.
+ * registered). fetchSignInMethodsForEmail is the *documented* way to try to
+ * tell them apart, but it's best-effort only: projects with Firebase's email
+ * enumeration protection enabled make it return an empty list unconditionally,
+ * same as the error code above -- when that happens this silently returns
+ * null (see below) rather than claiming an answer it doesn't have. The
+ * backend's Admin-SDK-based lookup (FirebaseAuthService.getSignInProviders)
+ * is not subject to that restriction and is the reliable version of this
+ * check; this client-side one is a nice-to-have on top when it works.
  *
  * Returns null when there's nothing more specific to say than the original
  * error already conveys, so callers can fall back to their own handling

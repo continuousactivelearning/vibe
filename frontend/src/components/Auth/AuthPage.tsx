@@ -820,6 +820,12 @@ export default function AuthPage({ role }: AuthPageProps) {
         ...formErrors,
         auth: (() => {
           const code = (error as any)?.code;
+          // A failed fetch() itself (offline, DNS failure, ...) throws a
+          // TypeError with no .code either, same shape as our own backend
+          // errors below -- but its message ("Failed to fetch") is a raw
+          // browser string, not something to show a user. Route it to the
+          // network message instead of the "trust the message" branch.
+          if (error instanceof TypeError) return "Network error. Please check your connection and try again.";
           // Errors thrown from the backend /auth/login response never carry a
           // Firebase .code (only client SDK errors do) and already have a
           // human-friendly message -- including the Google-only-account case,
