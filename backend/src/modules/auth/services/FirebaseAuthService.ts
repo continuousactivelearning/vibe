@@ -190,7 +190,16 @@ export class FirebaseAuthService extends BaseService implements IAuthService {
     // ==========================================================
     const existingUser = await this.userRepository.findByEmail(body.email);
     if (existingUser) {
-      throw new InternalServerError('User with this email already exists');
+      const providers = await this.getSignInProviders(body.email);
+      if (providers.length > 0 && !providers.includes('password')) {
+        const provider = providers.includes('google.com') ? 'Google Sign-In' : providers[0];
+        throw new InternalServerError(
+          `This email already has an account via ${provider}. Please use that to sign in instead.`,
+        );
+      }
+      throw new InternalServerError(
+        'An account with this email already exists. Please sign in instead.',
+      );
     }
 
     let userRecord: any;
