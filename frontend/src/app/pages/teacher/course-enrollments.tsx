@@ -623,6 +623,7 @@ function CourseEnrollments() {
   const [activeCount, setActiveCount] = useState(0)
   const [inactiveCount, setInactiveCount] = useState(0)
   const [cohort, setCohort] = useState<string | null>(null);
+  const [cohortFilterSearch, setCohortFilterSearch] = useState("");
   const {
     data: quizScores,
     isLoading: isLoadingQuizScores,
@@ -1653,6 +1654,8 @@ function CourseEnrollments() {
                   version={version}
                   cohort={cohort}
                   setCohort={setCohort}
+                  cohortFilterSearch={cohortFilterSearch}
+                  setCohortFilterSearch={setCohortFilterSearch}
                   courseId= {courseId}
                 />
               )}
@@ -1712,6 +1715,8 @@ function CourseEnrollments() {
                   version={version}
                   cohort={cohort}
                   setCohort={setCohort}
+                  cohortFilterSearch={cohortFilterSearch}
+                  setCohortFilterSearch={setCohortFilterSearch}
                 />
               )}
             </div>
@@ -3046,6 +3051,8 @@ interface EnrollmentsTableProps {
   version: any;
   cohort: string | null;
   setCohort: (cohort: string | null) => void;
+  cohortFilterSearch: string;
+  setCohortFilterSearch: (search: string) => void;
   courseId: string | undefined
 }
 
@@ -3092,6 +3099,8 @@ function EnrollmentsTable({
   version,
   cohort,
   setCohort,
+  cohortFilterSearch,
+  setCohortFilterSearch,
   courseId
 }: EnrollmentsTableProps) {
   const isInactiveTab = enrollmentTab === "INACTIVE"
@@ -3172,7 +3181,7 @@ function EnrollmentsTable({
           </Button> */}
 
           {(version as any)?.cohortDetails?.length > 0 && (
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={(open) => { if (!open) setCohortFilterSearch(""); }}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
@@ -3182,7 +3191,20 @@ function EnrollmentsTable({
                   {cohort ? (version as any).cohortDetails.find((c: any) => c.id === cohort)?.name : "Select Cohort"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="max-h-80 overflow-y-auto">
+                {(version as any).cohortDetails.length > 8 && (
+                  <div className="p-1">
+                    <Input
+                      placeholder="Search cohorts..."
+                      value={cohortFilterSearch}
+                      onChange={(e) => setCohortFilterSearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="h-8"
+                      autoFocus
+                    />
+                  </div>
+                )}
                 <DropdownMenuRadioGroup
                   value={cohort ?? ""}
                   onValueChange={(id) => {
@@ -3194,14 +3216,19 @@ function EnrollmentsTable({
                     onClick={() => setCohort(null)}>
                     All Cohorts
                   </DropdownMenuRadioItem>
-                  {(version as any)?.cohortDetails?.map((cohort: any) => (
-                    <DropdownMenuRadioItem
-                      key={cohort.id}
-                      value={cohort.id}
-                    >
-                      {cohort.name}
-                    </DropdownMenuRadioItem>
-                  ))}
+                  {(version as any).cohortDetails
+                    .filter((c: any) => c.name.toLowerCase().includes(cohortFilterSearch.toLowerCase()))
+                    .map((cohort: any) => (
+                      <DropdownMenuRadioItem
+                        key={cohort.id}
+                        value={cohort.id}
+                      >
+                        {cohort.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  {cohortFilterSearch && !(version as any).cohortDetails.some((c: any) => c.name.toLowerCase().includes(cohortFilterSearch.toLowerCase())) && (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">No cohorts match "{cohortFilterSearch}"</div>
+                  )}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
