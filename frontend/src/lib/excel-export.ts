@@ -27,6 +27,15 @@ export interface RegistrationDetailData {
   totalQuizMaxScore: number;
 }
 
+export interface StudentRegistrationDetailData {
+  name: string;
+  email: string;
+  gender?: string;
+  country?: string;
+  state?: string;
+  city?: string;
+}
+
 interface QuestionScore {
   questionId: string;
   score: number;
@@ -634,6 +643,40 @@ export function generateRegistrationDetailsCsv(
 
   if (!rows.length) {
     console.warn('No registration data to export');
+    return;
+  }
+
+  const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  const csv = XLSX.utils.sheet_to_csv(worksheet);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function generateStudentRegistrationDetailsCsv(
+  data: StudentRegistrationDetailData[],
+  filename: string = 'student_registration_details.csv'
+): void {
+  const header = ['S.No.', 'Name', 'Email', 'Gender', 'Country', 'State', 'City'];
+
+  const rows = data.map((student, index) => [
+    index + 1,
+    student.name || 'Unknown User',
+    student.email || '',
+    student.gender || '',
+    student.country || '',
+    student.state || '',
+    student.city || '',
+  ]);
+
+  if (!rows.length) {
+    console.warn('No student registration data to export');
     return;
   }
 
