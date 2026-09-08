@@ -50,7 +50,7 @@ import { useCourseStore } from "@/store/course-store"
 import type { EnrolledUser, EnrollmentDetails } from "@/types/course.types"
 import { useAuthStore } from "@/store/auth-store"
 import { EnrollmentRole } from "@/types/invite.types"
-import { generateExcel, generateStudentContactsExcel, type ExcelExportOptions } from "@/lib/excel-export"
+import { generateExcel, generateStudentContactsExcel, generateRegistrationDetailsCsv, type ExcelExportOptions, type RegistrationDetailData } from "@/lib/excel-export"
 import {
   downloadGuruSetuFeedbackExport,
   isGuruSetuPilotCourse,
@@ -438,6 +438,7 @@ function CourseEnrollments() {
   const [isSearching, setIsSearching] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingStudentContacts, setIsExportingStudentContacts] = useState(false);
+  const [isExportingRegistrationDetails, setIsExportingRegistrationDetails] = useState(false);
   const [isExportingGuruSetuFeedback, setIsExportingGuruSetuFeedback] = useState(false);
   const [quizExportOptions, setQuizExportOptions] = useState<ExcelExportOptions>({
     includeAttempts: true,
@@ -890,7 +891,7 @@ function CourseEnrollments() {
     debouncedSearch,
     sortBy,
     sortOrder,
-    isExportingStudentContacts,
+    isExportingStudentContacts || isExportingRegistrationDetails,
     'STUDENT',
     statusTab,
     cohort,
@@ -976,6 +977,72 @@ function CourseEnrollments() {
     }
   };
 
+  const handleExportRegistrationDetails = async () => {
+    if (!courseId || !versionId) {
+      toast.error('Course ID or Version ID is missing');
+      return;
+    }
+
+    if (!totalDocuments) {
+      toast.warning('No students found to export');
+      return;
+    }
+
+    const enrollments = exportEnrollmentsData?.enrollments || [];
+
+    if (!enrollments.length) {
+      toast.warning('No students found to export');
+      return;
+    }
+
+    try {
+      const formattedData: RegistrationDetailData[] = enrollments.map((enrollment: any) => ({
+        name:
+          `${enrollment?.user?.firstName ?? ''} ${enrollment?.user?.lastName ?? ''}`.trim() ||
+          'Unknown User',
+        email: enrollment?.user?.email || '',
+        cohortName: enrollment.cohortName || null,
+        enrolledDate: enrollment.enrollmentDate || null,
+        status: statusTab,
+        unenrolledAt: enrollment.unenrolledAt || null,
+        progress: Math.min(enrollment.progress ?? 0, 100),
+        completedItems: enrollment.completedItemsCount || 0,
+        totalItems: enrollment.contentCounts?.total || 0,
+        completedVideos: enrollment.contentCounts?.completedItemCounts?.VIDEO || 0,
+        totalVideos: enrollment.contentCounts?.itemCounts?.VIDEO || 0,
+        completedQuizzes: enrollment.contentCounts?.completedItemCounts?.QUIZ || 0,
+        totalQuizzes: enrollment.contentCounts?.itemCounts?.QUIZ || 0,
+        completedArticles: enrollment.contentCounts?.completedItemCounts?.BLOG || 0,
+        totalArticles: enrollment.contentCounts?.itemCounts?.BLOG || 0,
+        completedProjects: enrollment.contentCounts?.completedItemCounts?.PROJECT || 0,
+        totalProjects: enrollment.contentCounts?.itemCounts?.PROJECT || 0,
+        totalQuizScore: enrollment.totalQuizScore || 0,
+        totalQuizMaxScore: enrollment.totalQuizMaxScore || 0,
+      }));
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
+      const statusLabel = enrollmentTab === 'ACTIVE' ? 'active' : 'inactive';
+      const courseLabel = sanitizeFilenamePart(course?.name || 'course');
+      const cohortName = cohort
+        ? (version as any)?.cohortDetails?.find((item: any) => item.id === cohort)?.name
+        : null;
+      const cohortLabel = cohortName
+        ? `${sanitizeFilenamePart(cohortName)}_`
+        : '';
+      const filename = `${courseLabel}_${cohortLabel}${statusLabel}_registration_details_${timestamp}.csv`;
+
+      generateRegistrationDetailsCsv(formattedData, filename);
+      toast.success('Registration details exported successfully');
+    } catch (error) {
+      console.error('Error exporting registration details:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to export registration details',
+      );
+    }
+  };
+
   const handleExportGuruSetuFeedback = async () => {
     if (!courseId || !versionId) {
       toast.error('Course ID or Version ID is missing');
@@ -1040,6 +1107,12 @@ function CourseEnrollments() {
       handleExportStudentContacts().finally(() => setIsExportingStudentContacts(false));
     }
   }, [isExportingStudentContacts, isLoadingStudentContacts, exportEnrollmentsData]);
+
+  useEffect(() => {
+    if (isExportingRegistrationDetails && !isLoadingStudentContacts) {
+      handleExportRegistrationDetails().finally(() => setIsExportingRegistrationDetails(false));
+    }
+  }, [isExportingRegistrationDetails, isLoadingStudentContacts, exportEnrollmentsData]);
 
   const handleResetProgress = (user: EnrolledUser) => {
     setSelectedUser(user)
@@ -1627,8 +1700,11 @@ function CourseEnrollments() {
                   sortOrder={sortOrder}
                   isLoadingQuizScores={isLoadingQuizScores}
                   setIsExporting={setIsExporting}
-                  isExportingStudentContacts={isLoadingStudentContacts}
+                  isExportingStudentContacts={isExportingStudentContacts && isLoadingStudentContacts}
                   setIsExportingStudentContacts={setIsExportingStudentContacts}
+                  isExportingRegistrationDetails={isExportingRegistrationDetails && isLoadingStudentContacts}
+                  setIsExportingRegistrationDetails={setIsExportingRegistrationDetails}
+                  isAnyExporting={isExportingStudentContacts || isExportingRegistrationDetails}
                   isExportingGuruSetuFeedback={isExportingGuruSetuFeedback}
                   onExportGuruSetuFeedback={handleExportGuruSetuFeedback}
                   isGuruSetuCourse={isGuruSetuCourse}
@@ -1674,8 +1750,11 @@ function CourseEnrollments() {
                   sortOrder={sortOrder}
                   isLoadingQuizScores={isLoadingQuizScores}
                   setIsExporting={setIsExporting}
-                  isExportingStudentContacts={isLoadingStudentContacts}
+                  isExportingStudentContacts={isExportingStudentContacts && isLoadingStudentContacts}
                   setIsExportingStudentContacts={setIsExportingStudentContacts}
+                  isExportingRegistrationDetails={isExportingRegistrationDetails && isLoadingStudentContacts}
+                  setIsExportingRegistrationDetails={setIsExportingRegistrationDetails}
+                  isAnyExporting={isExportingStudentContacts || isExportingRegistrationDetails}
                   isExportingGuruSetuFeedback={isExportingGuruSetuFeedback}
                   onExportGuruSetuFeedback={handleExportGuruSetuFeedback}
                   isGuruSetuCourse={isGuruSetuCourse}
@@ -3023,6 +3102,9 @@ interface EnrollmentsTableProps {
   setIsExporting: (exporting: boolean) => void;
   isExportingStudentContacts: boolean;
   setIsExportingStudentContacts: (exporting: boolean) => void;
+  isExportingRegistrationDetails: boolean;
+  setIsExportingRegistrationDetails: (exporting: boolean) => void;
+  isAnyExporting: boolean;
   isExportingGuruSetuFeedback: boolean;
   onExportGuruSetuFeedback: () => void;
   isGuruSetuCourse: boolean;
@@ -3071,6 +3153,9 @@ function EnrollmentsTable({
   setIsExporting,
   isExportingStudentContacts,
   setIsExportingStudentContacts,
+  isExportingRegistrationDetails,
+  setIsExportingRegistrationDetails,
+  isAnyExporting,
   isExportingGuruSetuFeedback,
   onExportGuruSetuFeedback,
   isGuruSetuCourse,
@@ -3263,13 +3348,22 @@ function EnrollmentsTable({
                 )}
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => setIsExportingStudentContacts(true)} disabled={isExportingStudentContacts || enrollmentsLoading || isSearching}>
+              <DropdownMenuItem onClick={() => setIsExportingStudentContacts(true)} disabled={isAnyExporting || enrollmentsLoading || isSearching}>
                 {isExportingStudentContacts ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
                 <span>{isExportingStudentContacts ? "Exporting..." : "Export Student Contacts"}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setIsExportingRegistrationDetails(true)} disabled={isAnyExporting || enrollmentsLoading || isSearching}>
+                {isExportingRegistrationDetails ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span>{isExportingRegistrationDetails ? "Exporting..." : "Export Registration Details"}</span>
               </DropdownMenuItem>
 
               <DropdownMenuItem onClick={() => setIsExporting(true)} disabled={isLoadingQuizScores}>

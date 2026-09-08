@@ -5,6 +5,28 @@ export interface StudentContactData {
   email: string;
 }
 
+export interface RegistrationDetailData {
+  name: string;
+  email: string;
+  cohortName?: string | null;
+  enrolledDate?: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  unenrolledAt?: string | null;
+  progress: number;
+  completedItems: number;
+  totalItems: number;
+  completedVideos: number;
+  totalVideos: number;
+  completedQuizzes: number;
+  totalQuizzes: number;
+  completedArticles: number;
+  totalArticles: number;
+  completedProjects: number;
+  totalProjects: number;
+  totalQuizScore: number;
+  totalQuizMaxScore: number;
+}
+
 interface QuestionScore {
   questionId: string;
   score: number;
@@ -571,4 +593,59 @@ export function generateStudentContactsExcel(
 
   XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
   XLSX.writeFile(workbook, filename);
+}
+
+export function generateRegistrationDetailsCsv(
+  data: RegistrationDetailData[],
+  filename: string = 'registration_details.csv'
+): void {
+  const header = [
+    'S.No.', 'Name', 'Email', 'Cohort', 'Enrollment Date', 'Status', 'Unenrolled Date',
+    'Progress %', 'Completed Items', 'Total Items',
+    'Videos Completed', 'Videos Total',
+    'Quizzes Completed', 'Quizzes Total',
+    'Articles Completed', 'Articles Total',
+    'Projects Completed', 'Projects Total',
+    'Total Quiz Score', 'Total Quiz Max Score',
+  ];
+
+  const rows = data.map((student, index) => [
+    index + 1,
+    student.name || 'Unknown User',
+    student.email || '',
+    student.cohortName || '',
+    student.enrolledDate ? new Date(student.enrolledDate).toLocaleDateString('en-US') : '',
+    student.status,
+    student.unenrolledAt ? new Date(student.unenrolledAt).toLocaleDateString('en-US') : '',
+    Number(student.progress || 0).toFixed(2),
+    student.completedItems || 0,
+    student.totalItems || 0,
+    student.completedVideos || 0,
+    student.totalVideos || 0,
+    student.completedQuizzes || 0,
+    student.totalQuizzes || 0,
+    student.completedArticles || 0,
+    student.totalArticles || 0,
+    student.completedProjects || 0,
+    student.totalProjects || 0,
+    student.totalQuizScore || 0,
+    student.totalQuizMaxScore || 0,
+  ]);
+
+  if (!rows.length) {
+    console.warn('No registration data to export');
+    return;
+  }
+
+  const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+  const csv = XLSX.utils.sheet_to_csv(worksheet);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
