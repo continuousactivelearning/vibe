@@ -51,6 +51,7 @@ import type { EnrolledUser, EnrollmentDetails } from "@/types/course.types"
 import { useAuthStore } from "@/store/auth-store"
 import { EnrollmentRole } from "@/types/invite.types"
 import { generateExcel, generateStudentContactsExcel, generateStudentRegistrationDetailsCsv, type ExcelExportOptions, type StudentRegistrationDetailData } from "@/lib/excel-export"
+import { fetchClient } from "@/lib/openapi"
 import {
   downloadGuruSetuFeedbackExport,
   isGuruSetuPilotCourse,
@@ -996,16 +997,63 @@ function CourseEnrollments() {
     }
 
     try {
-      const formattedData: StudentRegistrationDetailData[] = enrollments.map((enrollment: any) => ({
-        name:
-          `${enrollment?.user?.firstName ?? ''} ${enrollment?.user?.lastName ?? ''}`.trim() ||
-          'Unknown User',
-        email: enrollment?.user?.email || '',
-        gender: enrollment?.user?.gender || '',
-        country: enrollment?.user?.country || '',
-        state: enrollment?.user?.state || '',
-        city: enrollment?.user?.city || '',
-      }));
+      const [formResult, registrationsResult] = await Promise.all([
+        fetchClient.GET('/course/registration/form/version/{versionId}' as any, {
+          params: { path: { versionId } },
+        }),
+        fetchClient.GET('/course/registration/requests/version/{versionId}' as any, {
+          params: {
+            path: { versionId },
+            query: { status: 'ALL', limit: Math.max(totalDocuments, 1) },
+          },
+        }),
+      ]);
+
+      if (formResult.error || !formResult.response.ok) {
+        throw new Error('Failed to fetch the registration form definition');
+      }
+      if (registrationsResult.error || !registrationsResult.response.ok) {
+        throw new Error('Failed to fetch course registrations');
+      }
+
+      const jsonSchemaProperties: Record<string, {title?: string}> =
+        (formResult.data as any)?.jsonSchema?.properties || {};
+      const fieldKeys = Object.keys(jsonSchemaProperties);
+      const fieldLabels = fieldKeys.map(
+        key => jsonSchemaProperties[key]?.title || key,
+      );
+
+      const registrations: any[] = (registrationsResult.data as any)?.registrations || [];
+      const registrationByUser = new Map<string, any>();
+      for (const registration of registrations) {
+        const key = `${registration.userId}_${registration.cohortId ?? ''}`;
+        registrationByUser.set(key, registration);
+        registrationByUser.set(String(registration.userId), registration);
+      }
+
+      const formattedData: StudentRegistrationDetailData[] = enrollments.map((enrollment: any) => {
+        const userId = enrollment?.user?._id || enrollment?.userId;
+        const enrollmentCohortId = enrollment?.cohortId ?? cohort ?? '';
+        const registration =
+          registrationByUser.get(`${userId}_${enrollmentCohortId}`) ||
+          registrationByUser.get(String(userId));
+        const detail: Record<string, any> = registration?.detail || {};
+
+        const fields: Record<string, string> = {};
+        fieldKeys.forEach((key, index) => {
+          const label = fieldLabels[index];
+          const value = detail[key];
+          fields[label] = value === undefined || value === null ? '' : String(value);
+        });
+
+        return {
+          name:
+            `${enrollment?.user?.firstName ?? ''} ${enrollment?.user?.lastName ?? ''}`.trim() ||
+            'Unknown User',
+          email: enrollment?.user?.email || '',
+          fields,
+        };
+      });
 
       const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
       const statusLabel = enrollmentTab === 'ACTIVE' ? 'active' : 'inactive';
@@ -1018,7 +1066,7 @@ function CourseEnrollments() {
         : '';
       const filename = `${courseLabel}_${cohortLabel}${statusLabel}_student_registration_details_${timestamp}.csv`;
 
-      generateStudentRegistrationDetailsCsv(formattedData, filename);
+      generateStudentRegistrationDetailsCsv(formattedData, fieldLabels, filename);
       toast.success('Student registration details exported successfully');
     } catch (error) {
       console.error('Error exporting student registration details:', error);

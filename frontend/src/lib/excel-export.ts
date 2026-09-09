@@ -8,10 +8,7 @@ export interface StudentContactData {
 export interface StudentRegistrationDetailData {
   name: string;
   email: string;
-  gender?: string;
-  country?: string;
-  state?: string;
-  city?: string;
+  fields: Record<string, string>;
 }
 
 interface QuestionScore {
@@ -584,18 +581,16 @@ export function generateStudentContactsExcel(
 
 export function generateStudentRegistrationDetailsCsv(
   data: StudentRegistrationDetailData[],
+  fieldLabels: string[],
   filename: string = 'student_registration_details.csv'
 ): void {
-  const header = ['S.No.', 'Name', 'Email', 'Gender', 'Country', 'State', 'City'];
+  const header = ['S.No.', 'Name', 'Email', ...fieldLabels];
 
   const rows = data.map((student, index) => [
     index + 1,
     student.name || 'Unknown User',
     student.email || '',
-    student.gender || '',
-    student.country || '',
-    student.state || '',
-    student.city || '',
+    ...fieldLabels.map(label => student.fields[label] ?? ''),
   ]);
 
   if (!rows.length) {
