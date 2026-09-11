@@ -3936,6 +3936,12 @@ export class EnrollmentRepository {
     courseVersionId: string,
     cohortId?: string,
     session?: ClientSession,
+    // When no cohortId is given, default to the no-cohort-only enrollments
+    // (matches existing callers that scope a single cohort or the legacy,
+    // cohort-less case). Pass true to include every cohort instead — for
+    // callers, like the public leaderboard, that want every enrolled student
+    // regardless of cohort.
+    allCohorts = false,
   ): Promise<IEnrollment[]> {
     try {
       await this.init();
@@ -3952,7 +3958,9 @@ export class EnrollmentRepository {
             isDeleted: { $ne: true },
             ...(cohortId
               ? { cohortId: new ObjectId(cohortId) }
-              : { cohortId: null }),
+              : allCohorts
+                ? {}
+                : { cohortId: null }),
           },
           { session },
         )
