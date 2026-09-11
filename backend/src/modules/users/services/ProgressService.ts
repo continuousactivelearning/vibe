@@ -2679,11 +2679,17 @@ class ProgressService extends BaseService {
         percentCompleted >= FOLLOW_UP_INVITE_THRESHOLD;
 
       if (percentCompleted > 99) {
+        // session must be passed here: without it, this recalculation reads
+        // student-completion data from outside the still-open transaction,
+        // missing the very item completion that triggered it, and its own
+        // write then silently overwrites the correct percentCompleted step
+        // 10 just computed with a stale, too-low value.
         await this.recalculateStudentProgress(
           userId,
           courseId,
           courseVersionId,
           cohortId,
+          session,
         );
       }
 
@@ -4932,7 +4938,8 @@ class ProgressService extends BaseService {
     userId: string,
     courseId: string,
     versionId: string,
-    cohortId?: string
+    cohortId?: string,
+    session?: ClientSession,
   ): Promise<string> {
     if (!userId || !courseId || !versionId) {
       throw new BadRequestError('userId, courseId and versionId are required');
@@ -4943,7 +4950,8 @@ class ProgressService extends BaseService {
       userId,
       courseId,
       versionId,
-      cohortId
+      cohortId,
+      session,
     );
 
     if (!progress) {
@@ -4956,10 +4964,20 @@ class ProgressService extends BaseService {
     }
 
     // 2. Fetch required data's in parallel
+    // session is threaded through the student-state reads (progress,
+    // completed items, enrollment) so a caller running inside an open
+    // transaction (stopItem, when a completion pushes past 99%) sees its own
+    // not-yet-committed writes instead of racing ahead of them -- confirmed
+    // live: without it, this recalculation is blind to the very item
+    // completion that triggered it, and its unconditional write below then
+    // overwrites the correct percentCompleted stopItem had just computed
+    // with a stale, too-low value. courseRepo.readVersion reads course
+    // structure, which nothing in this same transaction is concurrently
+    // editing, so it's left as-is.
     const [completedItemIds, courseVersion, enrollment] = await Promise.all([
-      this.progressRepository.getCompletedItems(userId, courseId, versionId, cohortId),
+      this.progressRepository.getCompletedItems(userId, courseId, versionId, cohortId, session),
       this.courseRepo.readVersion(versionId),
-      this.resolveEnrollment(userId, courseId, versionId, cohortId),
+      this.resolveEnrollment(userId, courseId, versionId, cohortId, session),
     ]);
 
     if (!courseVersion) {
@@ -4978,6 +4996,7 @@ class ProgressService extends BaseService {
         guruProgress.percentCompleted,
         guruProgress.completedItemsCount,
         cohortId,
+        session,
       );
       return 'Progress recalculated successfully';
     }
@@ -5004,7 +5023,7 @@ class ProgressService extends BaseService {
     let missedItemIds = allRelevantItemIds.filter(
       itemId => !completedItemSet.has(itemId),
     );
-    const hiddenItems = await this.progressRepository.getHiddenOrDeletedItems(versionId);
+    const hiddenItems = await this.progressRepository.getHiddenOrDeletedItems(versionId, session);
     const hiddenSet = new Set(hiddenItems.map(i => i.itemId.toString()));
     missedItemIds = missedItemIds.filter(itemId => !hiddenSet.has(itemId));
     // 3. Backfill missed watch-time records
@@ -5014,7 +5033,8 @@ class ProgressService extends BaseService {
         courseId,
         versionId,
         missedItemIds,
-        cohortId
+        cohortId,
+        session,
       );
     }
 
@@ -5070,6 +5090,7 @@ class ProgressService extends BaseService {
       percentCompleted,
       totalCompletedItemsCount,
       enrollment.cohort,
+      session,
     );
 
     return 'Progress recalculated successfully';
