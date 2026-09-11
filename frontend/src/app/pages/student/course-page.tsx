@@ -850,18 +850,21 @@ export default function CoursePage() {
       setPendingStudentQuestionContext(null);
 
       try {
-        // Record completion for the current item before leaving.
-        // Documents (BLOG) only get their completion recorded by an explicit stop
-        // call; unlike video/quiz/project they don't auto-complete on their own
-        // event. Without this, leaving a document via the sidebar (instead of the
-        // "Next Lesson" button) left it un-ticked and stuck students below 100%.
-        // Scoped to BLOG so half-watched videos / unfinished quizzes are untouched,
-        // and wrapped so a stop failure can never block navigation.
-        if (itemContainerRef.current && currentItem?.type === 'BLOG') {
+        // Record completion for the current item before leaving. Awaited for
+        // every item type: the stop must reach the server before the next
+        // item's GET, or the backend still sees this item as incomplete and
+        // 403s the next one -- this was previously scoped to BLOG only, which
+        // left videos left via the sidebar (instead of the "Next Lesson"
+        // button) relying on an unmount fallback that raced the next lesson's
+        // request. A half-watched video is rejected server-side inside the
+        // stop transaction, so the row rolls back and stays open and
+        // recoverable -- this can never record a completion that wasn't
+        // earned. Wrapped so a stop failure can never block navigation.
+        if (itemContainerRef.current) {
           try {
             await itemContainerRef.current.stopCurrentItem();
           } catch (e) {
-            console.error('Failed to record document completion on sidebar nav:', e);
+            console.error('Failed to record completion on sidebar nav:', e);
           }
         }
         // Small delay for API/callback cleanup
