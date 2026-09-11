@@ -5230,11 +5230,16 @@ class ProgressService extends BaseService {
       throw new BadRequestError(`Invalid courseVersionId: ${courseVersionId}`);
     }
 
-    // Get all progress records for this course version
+    // Get all progress records for this course version. This is the public,
+    // cohort-agnostic leaderboard, so it must include cohort-scoped progress
+    // too — not just the cohort-less legacy case.
     const progressRecords =
       await this.progressRepository.getAllProgressForCourseVersion(
         courseId,
         courseVersionId,
+        undefined,
+        undefined,
+        true,
       );
 
     if (!progressRecords) {
@@ -5243,10 +5248,15 @@ class ProgressService extends BaseService {
       );
     }
 
-    // Get all enrollments to fetch completion percentages
+    // Get all enrollments to fetch completion percentages. This is the
+    // public, cohort-agnostic leaderboard, so it must include cohort-scoped
+    // enrollments too — not just the cohort-less legacy case.
     const enrollments = await this.enrollmentRepo.getEnrollmentsByCourseVersion(
       courseId,
       courseVersionId,
+      undefined,
+      undefined,
+      true,
     );
 
     if (!enrollments || enrollments.length === 0) {

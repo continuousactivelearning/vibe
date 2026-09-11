@@ -1050,6 +1050,12 @@ class ProgressRepository {
     courseVersionId: string,
     cohortId?: string,
     session?: ClientSession,
+    // When no cohortId is given, default to the no-cohort-only records
+    // (matches existing callers that scope a single cohort or the legacy,
+    // cohort-less case). Pass true to include every cohort instead — for
+    // callers, like the public leaderboard, that want every student
+    // regardless of cohort.
+    allCohorts = false,
   ): Promise<IProgress[]> {
     await this.init();
     const progressRecords = await this.progressCollection
@@ -1057,7 +1063,11 @@ class ProgressRepository {
         {
           courseId: { $in: [new ObjectId(courseId), courseId] },
           courseVersionId: { $in: [new ObjectId(courseVersionId), courseVersionId] },
-          ...(cohortId ? this.cohortIdMatch(cohortId) : {cohortId: null}),
+          ...(cohortId
+            ? this.cohortIdMatch(cohortId)
+            : allCohorts
+              ? {}
+              : {cohortId: null}),
         },
         { session },
       )
