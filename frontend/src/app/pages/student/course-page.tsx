@@ -219,6 +219,7 @@ export default function CoursePage() {
 
   // --- Focused learn-page UI state ---
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeDrawerTab, setActiveDrawerTab] = useState<"content" | "case-studies">("content");
   const [aiExpanded, setAiExpanded] = useState(false);
   const [aiSheet, setAiSheet] = useState<"chat" | "talk" | "discussion" | null>(null);
   const [camPinned, setCamPinned] = useState(false);
@@ -2139,6 +2140,12 @@ return false;
         onToggleSection={toggleSection}
         onSelectItem={(m, s, i) => { handleSelectItem(m, s, i); setDrawerOpen(false); }}
         isItemLocked={isItemLocked}
+        caseStudiesEnabled={proctoringData?.settings.caseStudiesEnabled ?? false}
+        activeDrawerTab={activeDrawerTab}
+        onDrawerTabChange={(tab) => {
+          setActiveDrawerTab(tab);
+          if (tab === "case-studies") setDrawerOpen(false);
+        }}
         emotion={
           currentItem
             ? {

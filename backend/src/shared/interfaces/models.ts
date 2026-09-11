@@ -322,6 +322,7 @@ export enum ItemType {
   PROJECT = 'PROJECT',
   FEEDBACK = 'FEEDBACK',
   REFLECTION = 'REFLECTION',
+  CASE_STUDY = 'CASE_STUDY',
 }
 
 export interface IBaseItem {
@@ -439,6 +440,17 @@ export interface IReflectionDetails {
   requiredReviewsToUnlock?: number;
   /** Reviews needed before an average is shown at all. Defaults to 3. */
   minReviewsToReveal?: number;
+}
+
+export interface ICaseStudyDetails {
+  /** The case scenario/prompt shown to the learner (markdown). */
+  bodyMarkdown?: string;
+  /** Wins a response needs before it leaves the review pool (1-25). Defaults to 7. */
+  reviewsRequired?: number;
+  /** Comparisons each learner must judge (1-25). Defaults to 7. */
+  picksRequired?: number;
+  /** Consecutive losses before the author is prompted to revise (0-25, 0 disables). Defaults to 3. */
+  weakStreakThreshold?: number;
 }
 
 export interface IFeedBackFormDetails {
@@ -802,6 +814,9 @@ export interface ISettings {
   baseHp?: number;
   randomizeItems?: boolean;
   crowdsourcedQuestionSubmissionEnabled?: boolean;
+  caseStudiesEnabled?: boolean;
+  caseStudyStrictUnlockEnabled?: boolean;
+  caseStudyWeakStreakThreshold?: number;
   // registration_settings?: IRegistrationSettings[];
   registration?: {
     jsonSchema?: any;
