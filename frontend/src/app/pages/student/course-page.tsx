@@ -1769,11 +1769,17 @@ const handleGoToNextItem = async () => {
   // even for already-completed items. Unknown position must not imply locked.
   if (currentItemIndex === -1) return false;
 
-  // Only unlock next item if it's a QUIZ paired with current VIDEO
+  // Unlock the paired quiz only once the video is actually completed. The
+  // backend serves it on the same condition, so unlocking earlier hands the
+  // student a link that 403s mid-video.
   if (itemIndex === currentItemIndex + 1) {
     const currentItemInList = sectionItemsList[currentItemIndex] as any;
     const thisItem = sectionItemsList[itemIndex] as any;
-    if (currentItemInList?.type === 'VIDEO' && thisItem?.type === 'QUIZ') {
+    if (
+      currentItemInList?.type === 'VIDEO' &&
+      thisItem?.type === 'QUIZ' &&
+      currentItemInList?.isCompleted
+    ) {
       return false; // unlock paired quiz
     }
     return true; // lock everything else
