@@ -3,7 +3,7 @@ import {Db, MongoClient, ObjectId} from 'mongodb';
 import {MongoMemoryReplSet} from 'mongodb-memory-server';
 import {CaseStudyRepository} from '../repositories/providers/mongodb/CaseStudyRepository.js';
 import {CaseStudyService} from '../services/CaseStudyService.js';
-import {ELEMENT_2A_MIN_WORDS, WINS_REQUIRED} from '../constants.js';
+import {ELEMENT_2A_MIN_WORDS, UNJUDGEABLE_FLAG_THRESHOLD, WINS_REQUIRED} from '../constants.js';
 
 class FakeCourseSettingService {
   async readCourseSettings() {
@@ -255,7 +255,7 @@ describe('case studies — real MongoDB', () => {
     }
   });
 
-  it('does NOT withdraw a response even after multiple FLAGGED verdicts', async () => {
+  it('withdraws a response once FLAGGED verdicts reach UNJUDGEABLE_FLAG_THRESHOLD', async () => {
     const caseId = await seedCase(1);
     const author = new ObjectId().toString();
     const {responseId} = await submit(caseId, author);
@@ -270,8 +270,8 @@ describe('case studies — real MongoDB', () => {
     }
 
     const doc = await db.collection('caseResponses').findOne({_id: new ObjectId(responseId)});
-    expect(doc?.flagCount).toBeGreaterThan(0);
-    expect(doc?.status).not.toBe('WITHDRAWN');
+    expect(doc?.flagCount).toBeGreaterThanOrEqual(UNJUDGEABLE_FLAG_THRESHOLD);
+    expect(doc?.status).toBe('WITHDRAWN');
   });
 
   it('exposes all six response fields in the served pair, but never the legacy text field', async () => {
