@@ -50,7 +50,7 @@ import { useCourseStore } from "@/store/course-store"
 import type { EnrolledUser, EnrollmentDetails } from "@/types/course.types"
 import { useAuthStore } from "@/store/auth-store"
 import { EnrollmentRole } from "@/types/invite.types"
-import { generateExcel, generateStudentContactsExcel, type ExcelExportOptions } from "@/lib/excel-export"
+import { generateExcel, generateStudentContactsExcel, generateStudentRegistrationDetailsCsv, type ExcelExportOptions, type StudentRegistrationDetailData } from "@/lib/excel-export"
 import {
   downloadGuruSetuFeedbackExport,
   isGuruSetuPilotCourse,
@@ -438,6 +438,7 @@ function CourseEnrollments() {
   const [isSearching, setIsSearching] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingStudentContacts, setIsExportingStudentContacts] = useState(false);
+  const [isExportingStudentRegistrationDetails, setIsExportingStudentRegistrationDetails] = useState(false);
   const [isExportingGuruSetuFeedback, setIsExportingGuruSetuFeedback] = useState(false);
   const [quizExportOptions, setQuizExportOptions] = useState<ExcelExportOptions>({
     includeAttempts: true,
@@ -623,6 +624,7 @@ function CourseEnrollments() {
   const [activeCount, setActiveCount] = useState(0)
   const [inactiveCount, setInactiveCount] = useState(0)
   const [cohort, setCohort] = useState<string | null>(null);
+  const [cohortFilterSearch, setCohortFilterSearch] = useState("");
   const {
     data: quizScores,
     isLoading: isLoadingQuizScores,
@@ -889,7 +891,7 @@ function CourseEnrollments() {
     debouncedSearch,
     sortBy,
     sortOrder,
-    isExportingStudentContacts,
+    isExportingStudentContacts || isExportingStudentRegistrationDetails,
     'STUDENT',
     statusTab,
     cohort,
@@ -975,6 +977,59 @@ function CourseEnrollments() {
     }
   };
 
+  const handleExportStudentRegistrationDetails = async () => {
+    if (!courseId || !versionId) {
+      toast.error('Course ID or Version ID is missing');
+      return;
+    }
+
+    if (!totalDocuments) {
+      toast.warning('No students found to export');
+      return;
+    }
+
+    const enrollments = exportEnrollmentsData?.enrollments || [];
+
+    if (!enrollments.length) {
+      toast.warning('No students found to export');
+      return;
+    }
+
+    try {
+      const formattedData: StudentRegistrationDetailData[] = enrollments.map((enrollment: any) => ({
+        name:
+          `${enrollment?.user?.firstName ?? ''} ${enrollment?.user?.lastName ?? ''}`.trim() ||
+          'Unknown User',
+        email: enrollment?.user?.email || '',
+        gender: enrollment?.user?.gender || '',
+        country: enrollment?.user?.country || '',
+        state: enrollment?.user?.state || '',
+        city: enrollment?.user?.city || '',
+      }));
+
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '_');
+      const statusLabel = enrollmentTab === 'ACTIVE' ? 'active' : 'inactive';
+      const courseLabel = sanitizeFilenamePart(course?.name || 'course');
+      const cohortName = cohort
+        ? (version as any)?.cohortDetails?.find((item: any) => item.id === cohort)?.name
+        : null;
+      const cohortLabel = cohortName
+        ? `${sanitizeFilenamePart(cohortName)}_`
+        : '';
+      const filename = `${courseLabel}_${cohortLabel}${statusLabel}_student_registration_details_${timestamp}.csv`;
+
+      generateStudentRegistrationDetailsCsv(formattedData, filename);
+      toast.success('Student registration details exported successfully');
+    } catch (error) {
+      console.error('Error exporting student registration details:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to export student registration details',
+      );
+    }
+  };
+
   const handleExportGuruSetuFeedback = async () => {
     if (!courseId || !versionId) {
       toast.error('Course ID or Version ID is missing');
@@ -1039,6 +1094,12 @@ function CourseEnrollments() {
       handleExportStudentContacts().finally(() => setIsExportingStudentContacts(false));
     }
   }, [isExportingStudentContacts, isLoadingStudentContacts, exportEnrollmentsData]);
+
+  useEffect(() => {
+    if (isExportingStudentRegistrationDetails && !isLoadingStudentContacts) {
+      handleExportStudentRegistrationDetails().finally(() => setIsExportingStudentRegistrationDetails(false));
+    }
+  }, [isExportingStudentRegistrationDetails, isLoadingStudentContacts, exportEnrollmentsData]);
 
   const handleResetProgress = (user: EnrolledUser) => {
     setSelectedUser(user)
@@ -1626,8 +1687,10 @@ function CourseEnrollments() {
                   sortOrder={sortOrder}
                   isLoadingQuizScores={isLoadingQuizScores}
                   setIsExporting={setIsExporting}
-                  isExportingStudentContacts={isLoadingStudentContacts}
+                  isExportingStudentContacts={isExportingStudentContacts && isLoadingStudentContacts}
                   setIsExportingStudentContacts={setIsExportingStudentContacts}
+                  isExportingStudentRegistrationDetails={isExportingStudentRegistrationDetails && isLoadingStudentContacts}
+                  setIsExportingStudentRegistrationDetails={setIsExportingStudentRegistrationDetails}
                   isExportingGuruSetuFeedback={isExportingGuruSetuFeedback}
                   onExportGuruSetuFeedback={handleExportGuruSetuFeedback}
                   isGuruSetuCourse={isGuruSetuCourse}
@@ -1653,6 +1716,8 @@ function CourseEnrollments() {
                   version={version}
                   cohort={cohort}
                   setCohort={setCohort}
+                  cohortFilterSearch={cohortFilterSearch}
+                  setCohortFilterSearch={setCohortFilterSearch}
                   courseId= {courseId}
                 />
               )}
@@ -1671,8 +1736,10 @@ function CourseEnrollments() {
                   sortOrder={sortOrder}
                   isLoadingQuizScores={isLoadingQuizScores}
                   setIsExporting={setIsExporting}
-                  isExportingStudentContacts={isLoadingStudentContacts}
+                  isExportingStudentContacts={isExportingStudentContacts && isLoadingStudentContacts}
                   setIsExportingStudentContacts={setIsExportingStudentContacts}
+                  isExportingStudentRegistrationDetails={isExportingStudentRegistrationDetails && isLoadingStudentContacts}
+                  setIsExportingStudentRegistrationDetails={setIsExportingStudentRegistrationDetails}
                   isExportingGuruSetuFeedback={isExportingGuruSetuFeedback}
                   onExportGuruSetuFeedback={handleExportGuruSetuFeedback}
                   isGuruSetuCourse={isGuruSetuCourse}
@@ -1712,6 +1779,8 @@ function CourseEnrollments() {
                   version={version}
                   cohort={cohort}
                   setCohort={setCohort}
+                  cohortFilterSearch={cohortFilterSearch}
+                  setCohortFilterSearch={setCohortFilterSearch}
                 />
               )}
             </div>
@@ -3018,6 +3087,8 @@ interface EnrollmentsTableProps {
   setIsExporting: (exporting: boolean) => void;
   isExportingStudentContacts: boolean;
   setIsExportingStudentContacts: (exporting: boolean) => void;
+  isExportingStudentRegistrationDetails: boolean;
+  setIsExportingStudentRegistrationDetails: (exporting: boolean) => void;
   isExportingGuruSetuFeedback: boolean;
   onExportGuruSetuFeedback: () => void;
   isGuruSetuCourse: boolean;
@@ -3046,6 +3117,8 @@ interface EnrollmentsTableProps {
   version: any;
   cohort: string | null;
   setCohort: (cohort: string | null) => void;
+  cohortFilterSearch: string;
+  setCohortFilterSearch: (search: string) => void;
   courseId: string | undefined
 }
 
@@ -3064,6 +3137,8 @@ function EnrollmentsTable({
   setIsExporting,
   isExportingStudentContacts,
   setIsExportingStudentContacts,
+  isExportingStudentRegistrationDetails,
+  setIsExportingStudentRegistrationDetails,
   isExportingGuruSetuFeedback,
   onExportGuruSetuFeedback,
   isGuruSetuCourse,
@@ -3092,6 +3167,8 @@ function EnrollmentsTable({
   version,
   cohort,
   setCohort,
+  cohortFilterSearch,
+  setCohortFilterSearch,
   courseId
 }: EnrollmentsTableProps) {
   const isInactiveTab = enrollmentTab === "INACTIVE"
@@ -3172,7 +3249,7 @@ function EnrollmentsTable({
           </Button> */}
 
           {(version as any)?.cohortDetails?.length > 0 && (
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={(open) => { if (!open) setCohortFilterSearch(""); }}>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
@@ -3182,7 +3259,20 @@ function EnrollmentsTable({
                   {cohort ? (version as any).cohortDetails.find((c: any) => c.id === cohort)?.name : "Select Cohort"}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent className="max-h-80 overflow-y-auto">
+                {(version as any).cohortDetails.length > 8 && (
+                  <div className="p-1">
+                    <Input
+                      placeholder="Search cohorts..."
+                      value={cohortFilterSearch}
+                      onChange={(e) => setCohortFilterSearch(e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                      onKeyDown={(e) => e.stopPropagation()}
+                      className="h-8"
+                      autoFocus
+                    />
+                  </div>
+                )}
                 <DropdownMenuRadioGroup
                   value={cohort ?? ""}
                   onValueChange={(id) => {
@@ -3194,14 +3284,19 @@ function EnrollmentsTable({
                     onClick={() => setCohort(null)}>
                     All Cohorts
                   </DropdownMenuRadioItem>
-                  {(version as any)?.cohortDetails?.map((cohort: any) => (
-                    <DropdownMenuRadioItem
-                      key={cohort.id}
-                      value={cohort.id}
-                    >
-                      {cohort.name}
-                    </DropdownMenuRadioItem>
-                  ))}
+                  {(version as any).cohortDetails
+                    .filter((c: any) => c.name.toLowerCase().includes(cohortFilterSearch.toLowerCase()))
+                    .map((cohort: any) => (
+                      <DropdownMenuRadioItem
+                        key={cohort.id}
+                        value={cohort.id}
+                      >
+                        {cohort.name}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  {cohortFilterSearch && !(version as any).cohortDetails.some((c: any) => c.name.toLowerCase().includes(cohortFilterSearch.toLowerCase())) && (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">No cohorts match "{cohortFilterSearch}"</div>
+                  )}
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -3236,7 +3331,16 @@ function EnrollmentsTable({
                 )}
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => setIsExportingStudentContacts(true)} disabled={isExportingStudentContacts || enrollmentsLoading || isSearching}>
+              <DropdownMenuItem onClick={() => setIsExportingStudentRegistrationDetails(true)} disabled={isExportingStudentContacts || isExportingStudentRegistrationDetails || enrollmentsLoading || isSearching}>
+                {isExportingStudentRegistrationDetails ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4" />
+                )}
+                <span>{isExportingStudentRegistrationDetails ? "Exporting..." : "Export Student Registration Details"}</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem onClick={() => setIsExportingStudentContacts(true)} disabled={isExportingStudentContacts || isExportingStudentRegistrationDetails || enrollmentsLoading || isSearching}>
                 {isExportingStudentContacts ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

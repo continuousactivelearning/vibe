@@ -1741,12 +1741,21 @@ const handleGoToNextItem = async () => {
     const moduleIndex = allModules.findIndex((m: any) => m.moduleId === moduleId);
     const currentModuleIndex = allModules.findIndex((m: any) => m.moduleId === currentModuleId);
 
+    // Same failure mode as the currentItemIndex guard below: if currentModuleId
+    // doesn't resolve in this course structure (e.g. a stale/cross-version
+    // pointer left behind by an admin reset), currentModuleIndex is -1 and
+    // *every* real module (index >= 0) would compare greater than it, locking
+    // already-completed modules. Unknown position must not imply locked.
+    if (currentModuleIndex === -1) return false;
+
     if (moduleIndex > currentModuleIndex) return true;
     if (moduleIndex < currentModuleIndex) return false;
 
     const sections = allModules[moduleIndex]?.sections || [];
     const sectionIndex = sections.findIndex((s: any) => s.sectionId === sectionId);
     const currentSectionIndex = sections.findIndex((s: any) => s.sectionId === currentSectionId);
+
+    if (currentSectionIndex === -1) return false;
 
     if (sectionIndex > currentSectionIndex) return true;
     if (sectionIndex < currentSectionIndex) return false;
