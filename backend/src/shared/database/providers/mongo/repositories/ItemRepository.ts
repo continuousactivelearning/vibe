@@ -897,6 +897,7 @@ export class ItemRepository implements IItemRepository {
         [ItemType.PROJECT]: [],
         [ItemType.FEEDBACK]: [],
         [ItemType.REFLECTION]: [],
+        [ItemType.CASE_STUDY]: [],
       };
 
       for (const group of deletedItemGroups) {
