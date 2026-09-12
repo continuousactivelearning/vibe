@@ -2,18 +2,18 @@ import { expect, test, type Page } from '@playwright/test';
 import { loginAsStudent } from './common-utils';
 
 /**
- * E2E coverage for the case-studies write/review flow (FR-12 six-field
- * response, video-gated unlock, steelman-only review).
+ * E2E coverage for the case-studies write/review flow.
+ *
+ * Case study items live in the normal module tree (Item-container.tsx's
+ * CASE_STUDY branch). Tests navigate there via the drawer's module/section
+ * tree, identified by data-item-type="case_study".
  *
  * Required env vars:
- *   TEST_STUDENT_EMAIL / TEST_STUDENT_PASSWORD   — reuses the existing convention
- *   CASE_STUDY_COURSE_NAME                        — a course with caseStudiesEnabled: true,
- *                                                    seeded with at least one case linked to
- *                                                    a video the student has completed
- *   CASE_STUDY_CONTROL_COURSE_NAME (optional)     — a course with caseStudiesEnabled: false
- *   TEST_STUDENT_2_EMAIL / TEST_STUDENT_2_PASSWORD (optional) — second account for review flow
- *
- * Tests that need infrastructure not present skip with a clear reason.
+ *   TEST_STUDENT_EMAIL / TEST_STUDENT_PASSWORD
+ *   CASE_STUDY_COURSE_NAME  — course with caseStudiesEnabled: true and at
+ *                             least one CASE_STUDY item
+ *   CASE_STUDY_CONTROL_COURSE_NAME (optional) — course with no CASE_STUDY items
+ *   TEST_STUDENT_2_EMAIL / TEST_STUDENT_2_PASSWORD (optional) — second account
  */
 
 const COURSE_NAME = process.env.CASE_STUDY_COURSE_NAME;
@@ -26,24 +26,40 @@ async function openCourse(page: Page, courseName: string) {
   await page.getByText(courseName, { exact: false }).first().click();
 }
 
-async function openCaseStudiesTab(page: Page) {
+/** Opens drawer, expands all modules/sections, returns the first CASE_STUDY item button. */
+async function findCaseStudyItem(page: Page) {
   const drawerTrigger = page.getByRole('button', { name: /course content|menu|back/i }).first();
-  if (await drawerTrigger.isVisible().catch(() => false)) {
-    await drawerTrigger.click();
+  if (await drawerTrigger.isVisible().catch(() => false)) await drawerTrigger.click();
+
+  for (const toggle of await page.getByTestId('course-module-toggle').all()) {
+    if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
   }
-  await expect(page.getByTestId('drawer-tab-case-studies')).toBeVisible({ timeout: 30_000 });
-  await page.getByTestId('drawer-tab-case-studies').click();
+  for (const toggle of await page.getByTestId('course-section-toggle').all()) {
+    if ((await toggle.getAttribute('aria-expanded')) !== 'true') await toggle.click();
+  }
+  return page.locator('[data-testid="course-item"][data-item-type="case_study"]:not([disabled])').first();
 }
 
-/** Fills in all six FR-12 fields with valid content (steelman ≥25 words). */
+/** Passes the declaration + session-date gate if it is present. */
+async function passDeclarationGate(page: Page) {
+  const checkbox = page.getByRole('checkbox', { name: /I confirm/i });
+  if (!(await checkbox.isVisible({ timeout: 5_000 }).catch(() => false))) return;
+  await checkbox.click();
+  await page.getByRole('button', { name: /continue/i }).click();
+  await page.locator('input[type="date"]').fill('2025-01-15');
+  await page.getByRole('button', { name: /ok/i }).click();
+}
+
+/** Fills all six CaseComposer fields with valid content (steelman ≥ 25 words). */
 async function fillComposer(page: Page) {
-  await page.getByTestId('case-composer-beat1a').fill('I assumed students already understood the core concept.');
-  await page.getByTestId('case-composer-beat1b').fill('The facilitator showed how one question changed the direction.');
-  await page.getByTestId('case-composer-beat1c').fill('Now I see that confusion is a useful diagnostic signal.');
-  const steelmanWords = Array.from({length: 30}, (_, i) => `word${i}`).join(' ');
-  await page.getByTestId('case-composer-steelman').fill(steelmanWords);
-  await page.getByTestId('case-composer-room-perspective').fill('One participant argued for probing before reteaching.');
-  await page.getByTestId('case-composer-change-commitment').fill('I will ask the clarifying question before explaining again.');
+  await page.getByTestId('beat1a').fill('I assumed students already understood the core concept.');
+  await page.getByTestId('beat1b').fill('The facilitator showed how one question changed the direction.');
+  await page.getByTestId('beat1c').fill('Now I see that confusion is a useful diagnostic signal.');
+  await page.getByTestId('steelman').fill(
+    Array.from({ length: 30 }, (_, i) => `word${i}`).join(' '),
+  );
+  await page.getByTestId('roomPerspective').fill('One participant argued for probing before reteaching.');
+  await page.getByTestId('changeCommitment').fill('I will ask the clarifying question before explaining again.');
 }
 
 test.describe('Case studies', () => {
@@ -54,77 +70,57 @@ test.describe('Case studies', () => {
     await loginAsStudent(page);
   });
 
-  test('toggle off hides the Case Studies tab entirely', async ({ page }) => {
+  test('course with no CASE_STUDY items shows none in the module tree', async ({ page }) => {
     test.skip(!CONTROL_COURSE_NAME, 'CASE_STUDY_CONTROL_COURSE_NAME not set');
     await openCourse(page, CONTROL_COURSE_NAME!);
     const drawerTrigger = page.getByRole('button', { name: /course content|menu|back/i }).first();
-    if (await drawerTrigger.isVisible().catch(() => false)) {
-      await drawerTrigger.click();
-    }
-    await expect(page.getByTestId('drawer-tab-case-studies')).not.toBeVisible();
+    if (await drawerTrigger.isVisible().catch(() => false)) await drawerTrigger.click();
+    await expect(page.locator('[data-testid="course-item"][data-item-type="case_study"]')).toHaveCount(0);
   });
 
-  test('case list shows locked state for cases whose video is unwatched', async ({ page }) => {
+  test('four-section composer appears after passing the declaration gate', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no unlocked case_study item in this environment');
+    await item.click();
 
-    const items = page.getByTestId('case-list-item');
-    await expect(items.first()).toBeVisible({ timeout: 30_000 });
+    await passDeclarationGate(page);
 
-    const lockedCases = page.getByTestId('case-list-item').and(page.locator('[data-case-state="locked"]'));
-    if (await lockedCases.count() > 0) {
-      await expect(lockedCases.first()).toBeDisabled();
-    }
-  });
-
-  test('four-section composer appears for a writable case', async ({ page }) => {
-    await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
-
-    const writable = page.getByTestId('case-list-item').and(page.locator('[data-case-state="writable"]'));
-    test.skip((await writable.count()) === 0, 'no writable case available in this environment/run');
-    await writable.first().click();
-
-    await expect(page.getByTestId('case-composer-beat1a')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('case-composer-beat1b')).toBeVisible();
-    await expect(page.getByTestId('case-composer-beat1c')).toBeVisible();
-    await expect(page.getByTestId('case-composer-steelman')).toBeVisible();
-    await expect(page.getByTestId('case-composer-room-perspective')).toBeVisible();
-    await expect(page.getByTestId('case-composer-change-commitment')).toBeVisible();
+    await expect(page.getByTestId('beat1a')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('beat1b')).toBeVisible();
+    await expect(page.getByTestId('beat1c')).toBeVisible();
+    await expect(page.getByTestId('steelman')).toBeVisible();
+    await expect(page.getByTestId('roomPerspective')).toBeVisible();
+    await expect(page.getByTestId('changeCommitment')).toBeVisible();
   });
 
   test('submit is disabled until steelman reaches 25 words', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no unlocked case_study item available');
+    await item.click();
 
-    const writable = page.getByTestId('case-list-item').and(page.locator('[data-case-state="writable"]'));
-    test.skip((await writable.count()) === 0, 'no writable case available');
-    await writable.first().click();
+    await passDeclarationGate(page);
+    await expect(page.getByTestId('steelman')).toBeVisible({ timeout: 15_000 });
 
-    await expect(page.getByTestId('case-composer-steelman')).toBeVisible({ timeout: 15_000 });
-
-    // Fill every field but keep steelman short (< 25 words).
-    await page.getByTestId('case-composer-beat1a').fill('Going-in thought.');
-    await page.getByTestId('case-composer-beat1b').fill('Challenge encountered.');
-    await page.getByTestId('case-composer-beat1c').fill('Where I landed.');
-    await page.getByTestId('case-composer-steelman').fill('Too short steelman.');
-    await page.getByTestId('case-composer-room-perspective').fill('Room perspective.');
-    await page.getByTestId('case-composer-change-commitment').fill('My change commitment.');
+    await page.getByTestId('beat1a').fill('Going-in thought.');
+    await page.getByTestId('beat1b').fill('Challenge encountered.');
+    await page.getByTestId('beat1c').fill('Where I landed.');
+    await page.getByTestId('steelman').fill('Too short steelman.');
+    await page.getByTestId('roomPerspective').fill('Room perspective.');
+    await page.getByTestId('changeCommitment').fill('My change commitment.');
 
     await expect(page.getByTestId('case-composer-submit')).toBeDisabled();
-    // Steelman word count indicator should show a warning/red state.
-    await expect(page.getByTestId('case-composer-steelman-count')).toBeVisible();
   });
 
   test('submit is enabled once all fields are filled and steelman has ≥25 words', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no unlocked case_study item available');
+    await item.click();
 
-    const writable = page.getByTestId('case-list-item').and(page.locator('[data-case-state="writable"]'));
-    test.skip((await writable.count()) === 0, 'no writable case available');
-    await writable.first().click();
-
-    await expect(page.getByTestId('case-composer-beat1a')).toBeVisible({ timeout: 15_000 });
+    await passDeclarationGate(page);
+    await expect(page.getByTestId('beat1a')).toBeVisible({ timeout: 15_000 });
     await fillComposer(page);
 
     await expect(page.getByTestId('case-composer-submit')).toBeEnabled({ timeout: 3_000 });
@@ -132,72 +128,72 @@ test.describe('Case studies', () => {
 
   test('paste is blocked in the steelman field', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no unlocked case_study item available');
+    await item.click();
 
-    const writable = page.getByTestId('case-list-item').and(page.locator('[data-case-state="writable"]'));
-    test.skip((await writable.count()) === 0, 'no writable case available');
-    await writable.first().click();
-
-    const steelman = page.getByTestId('case-composer-steelman');
+    await passDeclarationGate(page);
+    const steelman = page.getByTestId('steelman');
     await expect(steelman).toBeVisible({ timeout: 15_000 });
     await steelman.click();
-
-    await steelman.evaluate((el) => {
-      const event = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
-      el.dispatchEvent(event);
-    });
+    await steelman.evaluate(el =>
+      el.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true })),
+    );
 
     await expect(page.getByTestId('case-composer-paste-blocked-notice')).toBeVisible();
     await expect(steelman).toHaveValue('');
   });
 
-  test('submit transitions the case to submitted-awaiting-verdict', async ({ page }) => {
+  test('submit transitions the case to the review state', async ({ page }) => {
     test.skip(!STUDENT_2_EMAIL, 'TEST_STUDENT_2_EMAIL not set — review flow needs two accounts');
-
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no unlocked case_study item available');
+    await item.click();
 
-    const writable = page.getByTestId('case-list-item').and(page.locator('[data-case-state="writable"]'));
-    test.skip((await writable.count()) === 0, 'no writable case available for account 1');
-    await writable.first().click();
-
-    await expect(page.getByTestId('case-composer-beat1a')).toBeVisible({ timeout: 15_000 });
+    await passDeclarationGate(page);
+    await expect(page.getByTestId('beat1a')).toBeVisible({ timeout: 15_000 });
     await fillComposer(page);
     await page.getByTestId('case-composer-submit').click();
 
-    // After submission the student sees either the review timer gate or the
-    // "waiting for colleagues" message.
     await expect(
-      page.getByTestId('reading-timer-gate').or(page.getByText(/check back once more colleagues/i))
+      page.getByTestId('reading-timer-gate').or(page.getByText(/check back once more colleagues/i)),
     ).toBeVisible({ timeout: 20_000 });
   });
 
-  test('review view shows steelman text but not other response fields', async ({ page }) => {
+  test('review view shows A/B comparison cards for a submitted response', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no case_study item found');
+    await item.click();
 
-    const reviewable = page.getByTestId('case-list-item').and(
-      page.locator('[data-case-state="submitted-awaiting-verdict"], [data-case-state="won"]'),
-    );
-    test.skip((await reviewable.count()) === 0, 'no submitted case to review in this run');
-    await reviewable.first().click();
+    await passDeclarationGate(page);
 
-    // ComparisonView must render steelman text, not beat1a / roomPerspective.
-    const responseCard = page.locator('[data-testid="pick-left"]').locator('..').first();
-    if (await responseCard.isVisible({ timeout: 20_000 }).catch(() => false)) {
-      await expect(page.locator('[data-testid="pick-left"], [data-testid="pick-right"]').first()).toBeVisible();
+    const reviewBtn = page.getByRole('button', { name: /review peers/i });
+    if (!(await reviewBtn.isVisible({ timeout: 5_000 }).catch(() => false))) {
+      test.skip(true, 'no existing submission to review in this run');
+    }
+    await reviewBtn.click();
+    const pickLeft = page.getByTestId('pick-left');
+    if (await pickLeft.isVisible({ timeout: 20_000 }).catch(() => false)) {
+      await expect(pickLeft).toBeVisible();
+      await expect(page.getByTestId('pick-right')).toBeVisible();
     }
   });
 
   test('tab-switch during the reading timer resets the visible countdown', async ({ page }) => {
     await openCourse(page, COURSE_NAME!);
-    await openCaseStudiesTab(page);
+    const item = await findCaseStudyItem(page);
+    test.skip((await item.count()) === 0, 'no case_study item found');
+    await item.click();
 
-    const reviewable = page.getByTestId('case-list-item').and(
-      page.locator('[data-case-state="submitted-awaiting-verdict"], [data-case-state="won"]'),
-    );
-    test.skip((await reviewable.count()) === 0, 'no case with an existing submission to review in this run');
-    await reviewable.first().click();
+    await passDeclarationGate(page);
+
+    const reviewBtn = page.getByRole('button', { name: /review peers/i });
+    if (!(await reviewBtn.isVisible({ timeout: 5_000 }).catch(() => false))) {
+      test.skip(true, 'need an existing submission to access review');
+    }
+    await reviewBtn.click();
 
     const gate = page.getByTestId('reading-timer-gate');
     await expect(gate).toBeVisible({ timeout: 20_000 });

@@ -29,6 +29,8 @@ const getItemIcon = (type: string) => {
     case "form":
     case "feedback":
       return <FileEdit className="h-3 w-3" />;
+    case "case_study":
+      return <FileEdit className="h-3 w-3" />;
     default:
       return <FileText className="h-3 w-3" />;
   }
@@ -51,6 +53,8 @@ const typeLabel = (type: string) => {
       return "Feedback";
     case "project":
       return "Project";
+    case "case_study":
+      return "Case Study";
     default:
       return type || "Item";
   }
@@ -90,15 +94,6 @@ type Props = {
   isItemLocked: (moduleId: string, sectionId: string, itemId: string) => boolean;
 
   emotion?: EmotionConfig;
-
-  /**
-   * Case Studies tab — additive, only rendered when the course setting is on.
-   * Omitting these (existing callers) renders exactly as before: no tab
-   * switcher, module tree as the only content, zero visible change.
-   */
-  caseStudiesEnabled?: boolean;
-  activeDrawerTab?: "content" | "case-studies";
-  onDrawerTabChange?: (tab: "content" | "case-studies") => void;
 };
 
 // Theme-aware row transition (works in light & dark).
@@ -128,9 +123,6 @@ export function CourseDrawer({
   onSelectItem,
   isItemLocked,
   emotion,
-  caseStudiesEnabled = false,
-  activeDrawerTab = "content",
-  onDrawerTabChange,
 }: Props) {
   const supportHref = (() => {
     if (!supportLink) return null;
