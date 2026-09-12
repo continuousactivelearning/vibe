@@ -2,13 +2,10 @@ import { useEffect, useRef } from "react";
 import { Face } from "@tensorflow-models/face-detection";
 import { AnomalyType, ViolationMetadata } from "@/types/reportanomaly.types";
 import {
-  BLINK_WINDOW_MS,
   CONSECUTIVE_FRAMES_REQUIRED,
   STILLNESS_WINDOW_MS,
   TimedSample,
-  computeEyeOpennessRatio,
   getKeypoint,
-  isBlinkMissingInWindow,
   isLookingAwaySustained,
   isStillInWindow,
   trimSamples,
@@ -33,9 +30,7 @@ const LivenessDetector: React.FC<LivenessDetectorProps> = ({
   onViolation,
 }) => {
   const noseHistoryRef = useRef<TimedSample<{ x: number; y: number }>[]>([]);
-  const eyeRatioHistoryRef = useRef<TimedSample<number>[]>([]);
   const stillnessFramesRef = useRef(0);
-  const noBlinkFramesRef = useRef(0);
   const lookingAwayFramesRef = useRef(0);
   const lookingAwaySinceRef = useRef<number | null>(null);
   const onViolationRef = useRef(onViolation);
@@ -57,11 +52,10 @@ const LivenessDetector: React.FC<LivenessDetectorProps> = ({
       if (noFaceStreakRef.current <= NO_FACE_TOLERANCE_FRAMES) {
         return;
       }
-      if (stillnessFramesRef.current || noBlinkFramesRef.current || lookingAwayFramesRef.current) {
-        console.log("🟣 [Liveness] face lost for", noFaceStreakRef.current, "frames — stillness/blink/looking-away progress reset to 0");
+      if (stillnessFramesRef.current || lookingAwayFramesRef.current) {
+        console.log("🟣 [Liveness] face lost for", noFaceStreakRef.current, "frames — stillness/looking-away progress reset to 0");
       }
       stillnessFramesRef.current = 0;
-      noBlinkFramesRef.current = 0;
       lookingAwayFramesRef.current = 0;
       lookingAwaySinceRef.current = null;
       return;
@@ -81,26 +75,9 @@ const LivenessDetector: React.FC<LivenessDetectorProps> = ({
       );
     }
 
-    const eyeRatio = computeEyeOpennessRatio(face);
-    if (eyeRatio !== null) {
-      eyeRatioHistoryRef.current = trimSamples(
-        [
-          ...eyeRatioHistoryRef.current,
-          { value: eyeRatio, timestamp: now },
-        ],
-        BLINK_WINDOW_MS,
-        now,
-      );
-    }
-
     const still = isStillInWindow(noseHistoryRef.current);
     stillnessFramesRef.current = still
       ? stillnessFramesRef.current + 1
-      : 0;
-
-    const blinkMissing = isBlinkMissingInWindow(eyeRatioHistoryRef.current);
-    noBlinkFramesRef.current = blinkMissing
-      ? noBlinkFramesRef.current + 1
       : 0;
 
     const lookingAwayNow = isLookingAway(face);
@@ -128,7 +105,6 @@ const LivenessDetector: React.FC<LivenessDetectorProps> = ({
       lastDebugLogRef.current = now;
       console.log(
         `🟣 [Liveness] still ${stillnessFramesRef.current}/${CONSECUTIVE_FRAMES_REQUIRED} (${noseHistoryRef.current.length} nose samples)` +
-        ` | noBlink ${noBlinkFramesRef.current}/${CONSECUTIVE_FRAMES_REQUIRED} (${eyeRatioHistoryRef.current.length} eye samples)` +
         ` | lookingAway ${lookingAwayNow ? lookingAwayFramesRef.current + '/' + CONSECUTIVE_FRAMES_REQUIRED : 'no'}`,
       );
     }
@@ -144,22 +120,10 @@ const LivenessDetector: React.FC<LivenessDetectorProps> = ({
       });
       stillnessFramesRef.current = 0;
       noseHistoryRef.current = [];
-    } else if (noBlinkFramesRef.current >= CONSECUTIVE_FRAMES_REQUIRED) {
-      const durationSec = Math.round(BLINK_WINDOW_MS / 1000);
-      onViolationRef.current(AnomalyType.LIVENESS, {
-        reason: `No eye blink detected for ${durationSec} seconds`,
-        durationMs: BLINK_WINDOW_MS,
-        consecutiveFrames: noBlinkFramesRef.current,
-        signalStrength: 0.75,
-        detectedAt,
-      });
-      noBlinkFramesRef.current = 0;
-      eyeRatioHistoryRef.current = [];
     } else if (lookingAwayFramesRef.current >= CONSECUTIVE_FRAMES_REQUIRED) {
       const durationMs = now - (lookingAwaySinceRef.current ?? now);
       onViolationRef.current(AnomalyType.LOOKING_AWAY, {
         reason: `Head turned away from camera for ${Math.round(durationMs / 1000)}s`,
-        durationMs,
         consecutiveFrames: lookingAwayFramesRef.current,
         signalStrength: 0.85,
         detectedAt,
